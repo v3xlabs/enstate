@@ -10,3 +10,7 @@ repository = "https://github.com/v3xlabs/enstate"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 # manifest has no description, license, license-file, documentation, homepage or repository
 [dependencies]
+axum = "0.6.18"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.96"
+tokio = { version = "1.28.0", features = ["full"] }
