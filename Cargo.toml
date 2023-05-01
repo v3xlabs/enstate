@@ -2,7 +2,7 @@
 name = "enstate"
 version = "0.1.0"
 edition = "2021"
-description = ""
+description = "enstate"
 license = "GPL-3.0"
 homepage = "enstate.rs"
 repository = "https://github.com/v3xlabs/enstate"
