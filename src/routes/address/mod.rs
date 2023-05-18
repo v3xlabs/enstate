@@ -19,5 +19,5 @@ pub struct AddressResponse {
     )
 )]
 pub async fn get() -> String {
-    "".to_string()
+    String::new()
 }

@@ -1,7 +1,6 @@
 use axum::{
     extract::{Path, State},
-    http::{Response, StatusCode},
-    response::IntoResponse,
+    http::StatusCode,
     Json,
 };
 use ethers::providers::Middleware;
