@@ -1,34 +1,28 @@
-use ethers::prelude::*;
+#![warn(clippy::all, clippy::pedantic, clippy::nursery)]
 
+mod abi;
 mod database;
 mod http;
+mod oapi;
 mod routes;
 mod state;
-mod oapi;
-mod abi;
 
+use dotenvy::dotenv;
+use ethers::prelude::*;
 use state::AppState;
+use std::env;
 
 #[tokio::main]
 async fn main() {
-    println!("enstate.rs v{}", env!("CARGO_PKG_VERSION"));
+    dotenv().ok();
 
-    database::setup().await;
+    println!("📦 enstate.rs v{}", env!("CARGO_PKG_VERSION"));
 
-    let client = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
+    let redis = database::setup().await.expect("Failed to connect to Redis");
+    let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
 
-    let state = AppState {
-        provider: client,
-    };
-
-    let router = http::setup(state);
-    
-    http::start(router).await;
+    http::setup(AppState { redis, provider }).listen(3000).await;
 }
-
-
-
-
 
 // let contract = MyThingssssss::new(H160::from_str("0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85").unwrap(), Arc::new(client));
 // let v = contract.balance_of(H160::from_str("0x225f137127d9067788314bc7fcc1f36746a3c3B5").unwrap()).await.unwrap();
