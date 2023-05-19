@@ -10,7 +10,7 @@ pub struct App {
 
 impl App {
     pub async fn listen(self, port: u16) {
-        let addr = SocketAddr::from(([127, 0, 0, 1], port));
+        let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
         println!("   Listening on http://{addr}\n");
         //       ^^^ Three spaces here to align with enstate.rs header :)

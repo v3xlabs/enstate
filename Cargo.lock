@@ -916,7 +916,7 @@ dependencies = [
 [[package]]
 name = "ethers-ccip-read"
 version = "0.1.0"
-source = "git+https://github.com/ensdomains/ethers-ccip-read?branch=main#5c4610dcec7d0fdbcb1886a7cb1a43038159a0fc"
+source = "git+https://github.com/lucemans/ethers-ccip-read?branch=main#11f606ef69f64560047986f0cf6bb201995dae80"
 dependencies = [
  "async-recursion",
  "async-trait",
