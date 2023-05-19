@@ -4,7 +4,7 @@ use axum::{
     Json,
 };
 
-use crate::models::profile_data::ProfileData;
+use crate::models::profile::Profile;
 
 #[utoipa::path(
     get,
@@ -22,11 +22,12 @@ use crate::models::profile_data::ProfileData;
 pub async fn get(
     Path(address): Path<String>,
     State(state): State<crate::AppState>,
-) -> Result<Json<ProfileData>, StatusCode> {
+) -> Result<Json<Profile>, StatusCode> {
     let address = address.parse().map_err(|_| StatusCode::BAD_REQUEST)?;
 
-    match ProfileData::from_address(address, &state).await {
-        Ok(profile_data) => Ok(Json(profile_data)),
-        Err(_) => Err(StatusCode::NOT_FOUND),
-    }
+    let profile = Profile::from_address(address, &state)
+        .await
+        .map_err(|_| StatusCode::NOT_FOUND)?;
+
+    Ok(Json(profile))
 }
