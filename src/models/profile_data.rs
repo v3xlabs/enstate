@@ -1,5 +1,5 @@
-use ethers::providers::{Middleware};
-use redis::{AsyncCommands};
+use ethers::{providers::{Middleware, ProviderError}, types::H160};
+use redis::AsyncCommands;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
@@ -17,7 +17,54 @@ pub enum ProfileDataError {
 }
 
 impl ProfileData {
-    pub async fn new(name: &str, state: &AppState) -> Result<Self, ProfileDataError> {
+    pub async fn from_address(address: H160, state: &AppState) -> Result<Self, ProfileDataError> {
+        let cache_key = format!("a:{}", address);
+
+        let mut redis = state.redis.clone();
+
+        // Get value from the cache otherwise compute
+        let name: String = if let Ok(cached_value) = redis.get(&cache_key).await {
+            cached_value
+        } else {
+            let vx = address;
+            let v = state.fallback_provider.lookup_address(vx);
+    
+            let result = v.await;
+    
+            let result = match result {
+                Ok(result) => result,
+                Err(error) => match error {
+                    ProviderError::EnsError(_error) => {
+                        println!("ENS Error resolving address: {:?}", _error);
+    
+                        // Cache the value
+                        let _: () = redis.set(&cache_key, "").await.unwrap();
+    
+                        // Expire the value after 5 minutes
+                        let _: () = redis.expire(&cache_key, 300).await.unwrap();
+    
+                        return Err(ProfileDataError::NotFound);
+                    }
+                    _ => {
+                        println!("Error resolving address: {:?}", error);
+                        return Err(ProfileDataError::NotFound);
+                    }
+                },
+            };
+    
+            // Cache the value
+            let _: () = redis.set(&cache_key, &result).await.unwrap();
+    
+            // Expire the value after 5 minutes
+            let _: () = redis.expire(&cache_key, 300).await.unwrap();
+    
+            result
+        };    
+
+        Self::from_name(&name, state).await
+    }
+
+    pub async fn from_name(name: &str, state: &AppState) -> Result<Self, ProfileDataError> {
         let cache_key = format!("n:{}", name);
 
         let mut redis = state.redis.clone();

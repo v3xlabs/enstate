@@ -3,10 +3,6 @@ use axum::{
     http::StatusCode,
     Json,
 };
-use ethers::providers::Middleware;
-use redis::AsyncCommands;
-use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 
 use crate::models::profile_data::ProfileData;
 
@@ -25,7 +21,7 @@ pub async fn get(
     Path(name): Path<String>,
     State(state): State<crate::AppState>,
 ) -> Result<Json<ProfileData>, StatusCode> {
-    match ProfileData::new(&name, &state).await {
+    match ProfileData::from_name(&name, &state).await {
         Ok(profile_data) => Ok(Json(profile_data)),
         Err(_) => Err(StatusCode::NOT_FOUND),
     }
