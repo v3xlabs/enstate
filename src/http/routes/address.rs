@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct AddressResponse {
+pub struct Response {
     pub name: String,
 }
 
@@ -34,7 +34,7 @@ pub struct AddressResponse {
 pub async fn get(
     Path(address): Path<String>,
     State(state): State<crate::AppState>,
-) -> Result<Json<AddressResponse>, StatusCode> {
+) -> Result<Json<Response>, StatusCode> {
     let mut redis = state.redis.clone();
 
     let address = match H160::from_str(address.as_str()) {
@@ -49,8 +49,8 @@ pub async fn get(
     let cache_key = format!("a:{:?}", address);
 
     // Get value from the cache otherwise compute
-    let value: String = if let Ok(value) = redis.get(&cache_key).await {
-        value
+    let name: String = if let Ok(name) = redis.get(&cache_key).await {
+        name
     } else {
         let vx = address;
         let v = state.fallback_provider.lookup_address(vx);
@@ -59,37 +59,32 @@ pub async fn get(
 
         let result = match result {
             Ok(result) => result,
-            Err(error) => match error {
-                ProviderError::EnsError(_error) => {
-                    println!("ENS Error resolving address: {:?}", _error);
+            Err(error) => {
+                if let ProviderError::EnsError(error) = error {
+                    println!("ENS Error resolving address: {:?}", error);
 
-                    // Cache the value
-                    let _: () = redis.set(&cache_key, "").await.unwrap();
-
-                    // Expire the value after 5 minutes
-                    let _: () = redis.expire(&cache_key, 300).await.unwrap();
+                    // Cache the value and expire it after 5 minutes
+                    redis.set::<_, _, ()>(&cache_key, "").await.unwrap();
+                    redis.expire::<_, ()>(&cache_key, 300).await.unwrap();
 
                     return Err(StatusCode::NOT_FOUND);
                 }
-                _ => {
-                    println!("Error resolving address: {:?}", error);
-                    return Err(StatusCode::NOT_FOUND);
-                }
-            },
+
+                println!("Error resolving address: {:?}", error);
+                return Err(StatusCode::NOT_FOUND);
+            }
         };
 
-        // Cache the value
-        let _: () = redis.set(&cache_key, &result).await.unwrap();
-
-        // Expire the value after 5 minutes
-        let _: () = redis.expire(&cache_key, 300).await.unwrap();
+        // Cache the value and expire it after 5 minutes
+        redis.set::<_, _, ()>(&cache_key, &result).await.unwrap();
+        redis.expire::<_, ()>(&cache_key, 300).await.unwrap();
 
         result
     };
 
-    if value.is_empty() {
-        return Err(StatusCode::NOT_FOUND);
+    if name.is_empty() {
+        Err(StatusCode::NOT_FOUND)
+    } else {
+        Ok(Json(Response { name }))
     }
-
-    Ok(Json(AddressResponse { name: value }))
 }

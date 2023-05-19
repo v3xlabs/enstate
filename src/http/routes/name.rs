@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct NameResponse {
+pub struct Response {
     pub address: String,
     pub avatar: String,
 }
@@ -28,9 +28,8 @@ pub async fn get(
     Path(name): Path<String>,
     State(state): State<crate::AppState>,
 ) -> Result<String, StatusCode> {
-    let mut redis = state.redis.clone();
-
     let cache_key = format!("n:{}", name);
+    let mut redis = state.redis.clone();
 
     // Get value from the cache otherwise compute
     if let Ok(value) = redis.get(&cache_key).await {
@@ -51,25 +50,22 @@ pub async fn get(
     // Get the avatar from the name
     let avatar_request = state.provider.resolve_avatar(name.as_str());
 
-    let avatar = match avatar_request.await.ok() {
-        Some(result) => result.to_string(),
-        None => "".to_string(),
-    };
+    let avatar = avatar_request
+        .await
+        .ok()
+        .map_or_else(String::new, |result| result.to_string());
 
     // Create the NameResponse
-    let value = NameResponse {
+    let value = Response {
         address: format!("{:?}", address),
         avatar: avatar.to_string(),
     };
 
     let response = serde_json::to_string(&value).unwrap();
 
-    // Cache the value
-    let _: () = redis.set(&cache_key, &response).await.unwrap();
+    // Cache the value and expire it after 5 minutes
+    let _: () = redis.set::<_, _, ()>(&cache_key, &response).await.unwrap();
+    redis.expire::<_, ()>(&cache_key, 300).await.unwrap();
 
-    // Expire the value after 5 minutes
-    let _: () = redis.expire(&cache_key, 300).await.unwrap();
-
-    // Return `value` as json string
     Ok(response)
 }

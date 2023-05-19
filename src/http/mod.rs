@@ -1,8 +1,20 @@
 use crate::state::AppState;
-use axum::{routing::get, Router};
+use axum::Router;
 use std::net::SocketAddr;
 use utoipa::OpenApi;
-use utoipa_swagger_ui::SwaggerUi;
+
+mod routes;
+
+#[derive(OpenApi)]
+#[openapi(
+    paths(routes::name::get, routes::address::get, routes::records::get),
+    components(schemas(
+        routes::name::Response,
+        routes::address::Response,
+        routes::records::Response
+    ))
+)]
+pub struct ApiDoc;
 
 pub struct App {
     router: Router,
@@ -23,13 +35,7 @@ impl App {
 }
 
 pub fn setup(state: AppState) -> App {
-    let router = Router::new()
-        .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", crate::oapi::ApiDoc::openapi()))
-        .route("/", get(crate::routes::root::get))
-        .route("/a/:address", get(crate::routes::address::get))
-        .route("/n/:name", get(crate::routes::name::get))
-        .route("/r/:name", get(crate::routes::records::get))
-        .with_state(state);
+    let router = routes::router().with_state(state);
 
     App { router }
 }
