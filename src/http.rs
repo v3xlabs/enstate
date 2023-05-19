@@ -9,7 +9,7 @@ use crate::routes;
 #[derive(OpenApi)]
 #[openapi(
     paths(routes::address::get, routes::name::get),
-    components(schemas(crate::models::profile_data::ProfileData))
+    components(schemas(crate::models::profile::Profile))
 )]
 pub struct ApiDoc;
 
@@ -34,10 +34,10 @@ impl App {
 pub fn setup(state: AppState) -> App {
     let router = Router::new()
         .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", ApiDoc::openapi()))
-        .route("/", get(crate::routes::root::get))
-        .route("/a/:address", get(crate::routes::address::get))
-        .route("/n/:name", get(crate::routes::name::get))
-        .route("/r/:name", get(crate::routes::records::get))
+        .route("/", get(routes::root::get))
+        .route("/a/:address", get(routes::address::get))
+        .route("/n/:name", get(routes::name::get))
+        .route("/r/:name", get(routes::records::get))
         .with_state(state);
 
     App { router }

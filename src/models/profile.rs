@@ -9,7 +9,7 @@ use utoipa::ToSchema;
 use crate::state::AppState;
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct ProfileData {
+pub struct Profile {
     pub name: String,
     pub address: Option<String>,
     pub avatar: Option<String>,
@@ -19,7 +19,7 @@ pub enum Error {
     NotFound,
 }
 
-impl ProfileData {
+impl Profile {
     pub async fn from_address(address: H160, state: &AppState) -> Result<Self, Error> {
         let cache_key = format!("a:{}", address);
 

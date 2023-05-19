@@ -3,11 +3,10 @@
 mod abi;
 mod database;
 mod http;
+mod models;
 mod routes;
 mod state;
-mod models;
 
-use anyhow::Result;
 use dotenvy::dotenv;
 use ethers::prelude::*;
 use ethers_ccip_read::CCIPReadMiddleware;
@@ -15,7 +14,7 @@ use state::AppState;
 use std::env;
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() {
     dotenv().ok();
 
     println!("📦 enstate.rs v{}", env!("CARGO_PKG_VERSION"));
@@ -24,13 +23,11 @@ async fn main() -> Result<()> {
     let fallback_provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
     let provider = CCIPReadMiddleware::new(fallback_provider.clone());
 
-    http::setup(AppState {
+    let state = AppState {
         redis,
         provider,
         fallback_provider,
-    })
-    .listen(3000)
-    .await;
+    };
 
-    Ok(())
+    http::setup(state).listen(3000).await;
 }
