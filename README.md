@@ -10,7 +10,7 @@ We believe software should be simple and containerized. Enstate provides you wit
 
 ### 🐳 Docker
 
-```bash
+```sh
 docker run \
   -p 3000:3000 \
   -e REDIS_URL=redis://0.0.0.0:6379 \

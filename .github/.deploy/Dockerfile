@@ -1,9 +1,7 @@
 ####################################################################################################
-## Builder
+## Final image
 ####################################################################################################
-FROM rust:latest AS builder
-
-RUN update-ca-certificates
+FROM gcr.io/distroless/cc
 
 # Create appuser
 ENV USER=enstate
@@ -20,23 +18,8 @@ RUN adduser \
 
 WORKDIR /enstate
 
-COPY ./ .
-
-RUN cargo build --release
-
-####################################################################################################
-## Final image
-####################################################################################################
-FROM gcr.io/distroless/cc
-
-# Import from builder.
-COPY --from=builder /etc/passwd /etc/passwd
-COPY --from=builder /etc/group /etc/group
-
-WORKDIR /enstate
-
 # Copy our build
-COPY --from=builder /enstate/target/release/enstate ./
+COPY ./enstate ./
 
 # Use an unprivileged user.
 USER enstate:enstate
