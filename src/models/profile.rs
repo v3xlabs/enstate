@@ -21,30 +21,22 @@ pub enum Error {
 
 impl Profile {
     pub async fn from_address(address: H160, state: &AppState) -> Result<Self, Error> {
-        let cache_key = format!("a:{}", address);
-
+        let cache_key = format!("a:{address:?}");
         let mut redis = state.redis.clone();
 
         // Get value from the cache otherwise compute
-        let name: String = if let Ok(cached_value) = redis.get(&cache_key).await {
-            cached_value
+        let name = if let Ok(name) = redis.get(&cache_key).await {
+            name
         } else {
-            let vx = address;
-            let v = state.fallback_provider.lookup_address(vx);
-
-            let result = v.await;
-
-            let result = match result {
+            let result = match state.fallback_provider.lookup_address(address).await {
                 Ok(result) => result,
                 Err(error) => {
-                    if let ProviderError::EnsError(error) = error {
-                        println!("ENS Error resolving address: {error:?}");
+                    println!("Error resolving address: {error:?}");
 
+                    if let ProviderError::EnsError(_) = error {
                         // Cache the value, and expire it after 5 minutes
                         redis.set::<_, _, ()>(&cache_key, "").await.unwrap();
                         redis.expire::<_, ()>(&cache_key, 300).await.unwrap();
-                    } else {
-                        println!("Error resolving address: {:?}", error);
                     };
 
                     return Err(Error::NotFound);
@@ -58,6 +50,10 @@ impl Profile {
             result
         };
 
+        if name.is_empty() {
+            return Err(Error::NotFound);
+        }
+
         Self::from_name(&name, state).await
     }
 
@@ -65,8 +61,8 @@ impl Profile {
         let cache_key = format!("n:{name}");
         let mut redis = state.redis.clone();
 
-        // Get value from the cache otherwise compute
-        if let Ok(value) = redis.get(&cache_key).await as Result<String, _> {
+        // If the value is in the cache, return it
+        if let Ok(value) = redis.get::<_, String>(&cache_key).await {
             if !value.is_empty() {
                 let entry: Self = serde_json::from_str(value.as_str()).unwrap();
 
@@ -77,37 +73,32 @@ impl Profile {
         }
 
         // Get the address from the name
-        let address_request = state.provider.resolve_name(name);
 
-        let address = match address_request.await {
-            Ok(result) => result,
-            Err(e) => {
-                println!("Error resolving name: {:?}", e);
-                return Err(Error::NotFound);
-            }
-        };
+        let address = state.provider.resolve_name(name).await.map_err(|e| {
+            println!("Error resolving name: {e:?}");
+
+            Error::NotFound
+        })?;
 
         // Get the avatar from the name
-        let avatar_request = state.provider.resolve_avatar(name);
+        let avatar = state
+            .provider
+            .resolve_avatar(name)
+            .await
+            .ok()
+            .map(|result| result.to_string());
 
-        let avatar = avatar_request.await.ok().map(|result| result.to_string());
-
-        // Create the NameResponse
         let value = Self {
-            name: name.to_string(),
-            address: Some(format!("{:?}", address)),
             avatar,
+            name: name.to_string(),
+            address: Some(format!("{address:?}")),
         };
 
         let response = serde_json::to_string(&value).unwrap();
 
-        // Cache the value
-        let _: () = redis.set(&cache_key, &response).await.unwrap();
+        redis.set::<_, _, ()>(&cache_key, &response).await.unwrap();
+        redis.expire::<_, ()>(&cache_key, 300).await.unwrap();
 
-        // Expire the value after 5 minutes
-        let _: () = redis.expire(&cache_key, 300).await.unwrap();
-
-        // Return `value` as json string
         Ok(value)
     }
 }
