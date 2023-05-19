@@ -1,4 +1,4 @@
-#
+<img src=".github/banner.png#1" alt="enstate.rs" />
 
 ## 📌 API Specification (OpenAPI)
 
