@@ -25,8 +25,8 @@ pub async fn get(
 ) -> Result<Json<ProfileData>, StatusCode> {
     let address = address.parse().map_err(|_| StatusCode::BAD_REQUEST)?;
 
-    match ProfileData::from_address(address, &state).await {
-        Ok(profile_data) => Ok(Json(profile_data)),
-        Err(_) => Err(StatusCode::NOT_FOUND),
-    }
+    (ProfileData::from_address(address, &state).await)
+        .map_or(Err(StatusCode::NOT_FOUND), |profile_data| {
+            Ok(Json(profile_data))
+        })
 }

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct RecordsResponse {
+pub struct Response {
     pub address: String,
 }
 
@@ -18,8 +18,9 @@ pub struct RecordsResponse {
         ("name" = String, Path, description = "Name to lookup the address for."),
     )
 )]
-pub async fn get() -> Json<RecordsResponse> {
-    Json(RecordsResponse {
+#[allow(clippy::unused_async)]
+pub async fn get() -> Json<Response> {
+    Json(Response {
         address: "0x1234567890".to_string(),
     })
 }

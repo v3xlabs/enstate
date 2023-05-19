@@ -21,8 +21,8 @@ pub async fn get(
     Path(name): Path<String>,
     State(state): State<crate::AppState>,
 ) -> Result<Json<ProfileData>, StatusCode> {
-    match ProfileData::from_name(&name, &state).await {
-        Ok(profile_data) => Ok(Json(profile_data)),
-        Err(_) => Err(StatusCode::NOT_FOUND),
-    }
+    (ProfileData::from_name(&name, &state).await)
+        .map_or(Err(StatusCode::NOT_FOUND), |profile_data| {
+            Ok(Json(profile_data))
+        })
 }
