@@ -1,7 +1,6 @@
 use axum::{
     extract::{Path, State},
     http::StatusCode,
-    Json,
 };
 use ethers::providers::Middleware;
 use redis::AsyncCommands;
@@ -11,6 +10,7 @@ use utoipa::ToSchema;
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct NameResponse {
     pub address: String,
+    pub avatar: String,
 }
 
 #[utoipa::path(
@@ -27,37 +27,49 @@ pub struct NameResponse {
 pub async fn get(
     Path(name): Path<String>,
     State(state): State<crate::AppState>,
-) -> Result<Json<NameResponse>, StatusCode> {
+) -> Result<String, StatusCode> {
     let mut redis = state.redis.clone();
 
     let cache_key = format!("n:{}", name);
 
     // Get value from the cache otherwise compute
-    let value: String = if let Ok(value) = redis.get(&cache_key).await {
-        value
-    } else {
-        let v = state.provider.resolve_name(name.as_str());
+    if let Ok(value) = redis.get(&cache_key).await {
+        return Ok(value);
+    }
 
-        let result = v.await;
+    // Get the address from the name
+    let address_request = state.provider.resolve_name(name.as_str());
 
-        let result = match result {
-            Ok(result) => result,
-            Err(e) => {
-                println!("Error resolving name: {:?}", e);
-                return Err(StatusCode::NOT_FOUND);
-            }
-        };
-
-        let value = format!("{:?}", result);
-
-        // Cache the value
-        let _: () = redis.set(&cache_key, &value).await.unwrap();
-
-        // Expire the value after 5 minutes
-        let _: () = redis.expire(&cache_key, 300).await.unwrap();
-
-        value
+    let address = match address_request.await {
+        Ok(result) => result,
+        Err(e) => {
+            println!("Error resolving name: {:?}", e);
+            return Err(StatusCode::NOT_FOUND);
+        }
     };
 
-    Ok(Json(NameResponse { address: value }))
+    // Get the avatar from the name
+    let avatar_request = state.provider.resolve_avatar(name.as_str());
+
+    let avatar = match avatar_request.await.ok() {
+        Some(result) => result.to_string(),
+        None => "".to_string(),
+    };
+
+    // Create the NameResponse
+    let value = NameResponse {
+        address: format!("{:?}", address),
+        avatar: avatar.to_string(),
+    };
+
+    let response = serde_json::to_string(&value).unwrap();
+
+    // Cache the value
+    let _: () = redis.set(&cache_key, &response).await.unwrap();
+
+    // Expire the value after 5 minutes
+    let _: () = redis.expire(&cache_key, 300).await.unwrap();
+
+    // Return `value` as json string
+    Ok(response)
 }
