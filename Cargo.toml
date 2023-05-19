@@ -10,7 +10,7 @@ authors = ["Luc van Kampen <luc@v3x.email>", "Miguel Piedrafita <sup@miguel.buil
 
 [dependencies]
 axum = "0.6.18"
-ethers = "1.0.2"
+ethers = "2"
 anyhow = "1.0.71"
 dotenvy = "0.15.7"
 serde_json = "1.0.96"
@@ -19,6 +19,8 @@ tokio = { version = "1.28.0", features = ["full"] }
 utoipa = { version = "3.0.3", features = ["axum_extras"] }
 utoipa-swagger-ui = { version = "3.0.2", features = ["axum"] }
 redis = { version = "0.23.0", features = ["connection-manager", "tokio-comp"] }
+tracing = "0.1.27"
+ethers-ccip-read = { git = "https://github.com/ensdomains/ethers-ccip-read", branch = "main" }
 
 [build-dependencies]
 chrono = "0.4.24"
