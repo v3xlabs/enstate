@@ -6,6 +6,6 @@ use redis::aio::ConnectionManager;
 #[allow(clippy::module_name_repetitions)]
 pub struct AppState {
     pub redis: ConnectionManager,
-    pub provider: CCIPReadMiddleware<Provider<Http>>,
     pub fallback_provider: Provider<Http>,
+    pub provider: CCIPReadMiddleware<Provider<Http>>,
 }
