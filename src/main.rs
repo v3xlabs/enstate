@@ -6,6 +6,7 @@ mod http;
 mod oapi;
 mod routes;
 mod state;
+mod models;
 
 use anyhow::Result;
 use dotenvy::dotenv;

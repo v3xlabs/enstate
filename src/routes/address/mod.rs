@@ -13,6 +13,8 @@ use redis::AsyncCommands;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
+use crate::models::profile_data::ProfileData;
+
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct AddressResponse {
     pub name: String,
@@ -22,7 +24,7 @@ pub struct AddressResponse {
     get,
     path = "/a/{address}",
     responses(
-        (status = 200, description = "Successfully found address", body = AddressResponse),
+        (status = 200, description = "Successfully found address", body = ProfileData),
         (status = BAD_REQUEST, description = "Invalid address."),
         (status = NOT_FOUND, description = "No name was associated with this address."),
         (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address."),
@@ -34,7 +36,7 @@ pub struct AddressResponse {
 pub async fn get(
     Path(address): Path<String>,
     State(state): State<crate::AppState>,
-) -> Result<Json<AddressResponse>, StatusCode> {
+) -> Result<Json<ProfileData>, StatusCode> {
     let mut redis = state.redis.clone();
 
     let address = match H160::from_str(address.as_str()) {
@@ -91,5 +93,8 @@ pub async fn get(
         return Err(StatusCode::NOT_FOUND);
     }
 
-    Ok(Json(AddressResponse { name: value }))
+    match ProfileData::new(&value, &state).await {
+        Ok(profile_data) => Ok(Json(profile_data)),
+        Err(_) => Err(StatusCode::NOT_FOUND),
+    }
 }
