@@ -4,6 +4,15 @@ use std::net::SocketAddr;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
+use crate::routes;
+
+#[derive(OpenApi)]
+#[openapi(
+    paths(routes::address::get, routes::name::get),
+    components(schemas(crate::models::profile_data::ProfileData))
+)]
+pub struct ApiDoc;
+
 pub struct App {
     router: Router,
 }
@@ -24,7 +33,7 @@ impl App {
 
 pub fn setup(state: AppState) -> App {
     let router = Router::new()
-        .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", crate::oapi::ApiDoc::openapi()))
+        .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", ApiDoc::openapi()))
         .route("/", get(crate::routes::root::get))
         .route("/a/:address", get(crate::routes::address::get))
         .route("/n/:name", get(crate::routes::name::get))

@@ -3,7 +3,6 @@
 mod abi;
 mod database;
 mod http;
-mod oapi;
 mod routes;
 mod state;
 mod models;
@@ -35,7 +34,3 @@ async fn main() -> Result<()> {
 
     Ok(())
 }
-
-// let contract = MyThingssssss::new(H160::from_str("0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85").unwrap(), Arc::new(client));
-// let v = contract.balance_of(H160::from_str("0x225f137127d9067788314bc7fcc1f36746a3c3B5").unwrap()).await.unwrap();
-// println!("balance: {}", v);

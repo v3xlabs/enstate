@@ -1,15 +1,8 @@
-use std::str::FromStr;
-
 use axum::{
     extract::{Path, State},
     http::StatusCode,
     Json,
 };
-use ethers::{
-    providers::{Middleware, ProviderError},
-    types::H160,
-};
-use redis::AsyncCommands;
 
 use crate::models::profile_data::ProfileData;
 
