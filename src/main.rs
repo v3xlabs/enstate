@@ -3,6 +3,7 @@
 mod abi;
 mod database;
 mod http;
+mod routes;
 mod state;
 
 use dotenvy::dotenv;

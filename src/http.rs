@@ -1,9 +1,8 @@
+use crate::routes;
 use crate::state::AppState;
 use axum::Router;
 use std::net::SocketAddr;
 use utoipa::OpenApi;
-
-mod routes;
 
 #[derive(OpenApi)]
 #[openapi(
