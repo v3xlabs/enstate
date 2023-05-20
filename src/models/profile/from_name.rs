@@ -1,5 +1,6 @@
 use ethers::providers::Middleware;
 use redis::AsyncCommands;
+use tokio::join;
 
 use crate::{models::profile::Profile, state::AppState};
 
@@ -37,12 +38,17 @@ impl Profile {
             .ok()
             .map(|result| result.to_string());
 
+        let (records, display) = join!(
+            Self::resolve_records(name, state),
+            Self::resolve_display(name, state)
+        );
+
         let value = Self {
             avatar,
             name: name.to_string(),
-            display: Some(String::new()),
+            display: display.unwrap_or_else(|| name.to_string()),
             address: Some(format!("{address:?}")),
-            records: Self::resolve_records(name, state).await?,
+            records,
         };
 
         let response = serde_json::to_string(&value).unwrap();
