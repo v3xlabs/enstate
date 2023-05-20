@@ -2,14 +2,15 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use utoipa::ToSchema;
 
-pub mod from_name;
 pub mod from_address;
+pub mod from_name;
+pub mod resolve_avatar;
 pub mod resolve_display;
 pub mod resolve_records;
 
 pub use resolve_records::default_records;
 
-#[derive(Debug, Deserialize, Serialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct Profile {
     pub name: String,
     pub address: Option<String>,

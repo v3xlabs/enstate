@@ -23,22 +23,15 @@ impl Profile {
         }
 
         // Get the address from the name
-
         let address = state.provider.resolve_name(name).await.map_err(|e| {
             println!("Error resolving name: {e:?}");
 
             ProfileError::NotFound
         })?;
 
-        // Get the avatar from the name
-        let avatar = state
-            .provider
-            .resolve_avatar(name)
-            .await
-            .ok()
-            .map(|result| result.to_string());
-
-        let (records, display) = join!(
+        // Do it all
+        let (avatar, records, display) = join!(
+            Self::resolve_avatar(name, state),
             Self::resolve_records(name, state),
             Self::resolve_display(name, state)
         );
