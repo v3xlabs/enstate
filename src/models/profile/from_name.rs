@@ -1,25 +1,12 @@
-use ethers::{
-    providers::{Middleware, ProviderError},
-    types::H160,
-};
+use ethers::providers::Middleware;
 use redis::AsyncCommands;
-use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 
-use crate::state::AppState;
+use crate::{models::profile::Profile, state::AppState};
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct Profile {
-    pub name: String,
-    pub address: Option<String>,
-    pub avatar: Option<String>,
-}
-
-pub enum Error {
-    NotFound,
-}
+use super::ProfileError;
 
 impl Profile {
+<<<<<<< master:src/models/profile.rs
     pub async fn from_address(address: H160, state: &AppState) -> Result<Self, Error> {
         let cache_key = format!("a:{address:?}");
         let mut redis = state.redis.clone();
@@ -59,6 +46,9 @@ impl Profile {
     }
 
     pub async fn from_name(name: &str, state: &AppState) -> Result<Self, Error> {
+=======
+    pub async fn from_name(name: &str, state: &AppState) -> Result<Self, ProfileError> {
+>>>>>>> Distribute Profile:src/models/profile/from_name.rs
         let cache_key = format!("n:{name}");
         let mut redis = state.redis.clone();
 
@@ -70,7 +60,7 @@ impl Profile {
                 return Ok(entry);
             }
 
-            return Err(Error::NotFound);
+            return Err(ProfileError::NotFound);
         }
 
         // Get the address from the name
@@ -78,7 +68,7 @@ impl Profile {
         let address = state.provider.resolve_name(name).await.map_err(|e| {
             println!("Error resolving name: {e:?}");
 
-            Error::NotFound
+            ProfileError::NotFound
         })?;
 
         // Get the avatar from the name
