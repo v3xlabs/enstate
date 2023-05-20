@@ -1,4 +1,7 @@
-use ethers::{types::H160, providers::{Middleware, ProviderError}};
+use ethers::{
+    providers::{Middleware, ProviderError},
+    types::H160,
+};
 use redis::AsyncCommands;
 
 use crate::state::AppState;
@@ -29,7 +32,10 @@ impl Profile {
             };
 
             // Cache the value, and expire it after 5 minutes
-            redis.set_ex::<_, _, ()>(&cache_key, &result, 300).await.unwrap();
+            redis
+                .set_ex::<_, _, ()>(&cache_key, &result, 300)
+                .await
+                .unwrap();
 
             result
         };

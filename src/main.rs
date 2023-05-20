@@ -6,10 +6,9 @@ mod http;
 mod models;
 mod routes;
 mod state;
+mod utils;
 
 use dotenvy::dotenv;
-use ethers::prelude::*;
-use ethers_ccip_read::CCIPReadMiddleware;
 use state::AppState;
 use std::env;
 
@@ -19,15 +18,7 @@ async fn main() {
 
     println!("📦 enstate.rs v{}", env!("CARGO_PKG_VERSION"));
 
-    let redis = database::setup().await.expect("Failed to connect to Redis");
-    let fallback_provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
-    let provider = CCIPReadMiddleware::new(fallback_provider.clone());
-
-    let state = AppState {
-        redis,
-        provider,
-        fallback_provider,
-    };
+    let state = AppState::new().await;
 
     http::setup(state).listen(3000).await;
 }
