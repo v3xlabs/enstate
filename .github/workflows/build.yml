@@ -35,28 +35,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up cargo cache
-        uses: actions/cache@v3
-        continue-on-error: false
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-
-      - name: Build
-        run: cargo build --release
-
-      - name: Create .dockerignore
-        run: echo 'target' > .dockerignore
-
-      - name: Move the binary to the root
-        run: mv target/release/enstate .
-
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
@@ -66,3 +44,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           file: .github/.deploy/Dockerfile
           context: .
+          cache-from: type=registry,ref=ghcr.io/v3xlabs/enstate:edge
+          cache-to: type=inline
