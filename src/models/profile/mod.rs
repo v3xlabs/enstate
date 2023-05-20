@@ -7,6 +7,7 @@ pub mod from_name;
 pub mod resolve_avatar;
 pub mod resolve_display;
 pub mod resolve_records;
+pub mod resolve_address;
 
 pub use resolve_records::default_records;
 

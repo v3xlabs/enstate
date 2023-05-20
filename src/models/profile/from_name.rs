@@ -1,4 +1,3 @@
-use ethers::providers::Middleware;
 use redis::AsyncCommands;
 use tokio::join;
 
@@ -22,19 +21,17 @@ impl Profile {
             return Err(ProfileError::NotFound);
         }
 
-        // Get the address from the name
-        let address = state.provider.resolve_name(name).await.map_err(|e| {
-            println!("Error resolving name: {e:?}");
-
-            ProfileError::NotFound
-        })?;
-
         // Do it all
-        let (avatar, records, display) = join!(
+        let (address, avatar, records, display) = join!(
+            Self::resolve_address(name, state),
             Self::resolve_avatar(name, state),
             Self::resolve_records(name, state),
             Self::resolve_display(name, state)
         );
+
+        let Ok(address) = address else {
+            return Err(ProfileError::NotFound);
+        };
 
         let value = Self {
             avatar,
