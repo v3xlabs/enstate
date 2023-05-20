@@ -6,7 +6,6 @@ mod http;
 mod models;
 mod routes;
 mod state;
-mod utils;
 
 use dotenvy::dotenv;
 use state::AppState;

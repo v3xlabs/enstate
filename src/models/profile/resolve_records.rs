@@ -26,13 +26,10 @@ impl Profile {
         Ok(result.is_empty().not().then_some(result))
     }
 
-    pub async fn resolve_records(
-        name: &str,
-        state: &AppState,
-    ) -> Result<BTreeMap<String, Option<String>>, ProfileError> {
-        let mut results = BTreeMap::new();
+    pub async fn resolve_records(name: &str, state: &AppState) -> BTreeMap<String, String> {
+        let mut results: BTreeMap<String, String> = BTreeMap::new();
 
-        let mut tasks: JoinSet<(String, Result<Option<String>, ProfileError>)> = JoinSet::new();
+        let mut tasks: JoinSet<(String, Option<String>)> = JoinSet::new();
 
         for record in &state.profile_records {
             let name = name.to_string();
@@ -40,19 +37,22 @@ impl Profile {
             let record = record.clone();
 
             tasks.spawn(async move {
-                let result = Self::resolve_record(&name, &record, &state).await;
+                let result = Self::resolve_record(&name, &record, &state)
+                    .await
+                    .ok()
+                    .flatten();
 
                 (record, result)
             });
         }
 
         while let Some(res) = tasks.join_next().await {
-            let Ok((record, result)) = res else { continue };
+            let Ok((record, Some(result))) = res else { continue };
 
-            results.insert(record.to_string(), result.unwrap());
+            results.insert(record.to_string(), result);
         }
 
-        Ok(results)
+        results
     }
 }
 
