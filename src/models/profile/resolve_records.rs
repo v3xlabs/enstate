@@ -32,21 +32,21 @@ impl Profile {
     ) -> Result<BTreeMap<String, Option<String>>, ProfileError> {
         let mut results = BTreeMap::new();
 
-        let mut futures = JoinSet::new();
+        let mut tasks: JoinSet<(String, Result<Option<String>, ProfileError>)> = JoinSet::new();
 
         for record in &state.profile_records {
             let name = name.to_string();
             let state = state.clone();
             let record = record.clone();
 
-            futures.spawn(async move {
+            tasks.spawn(async move {
                 let result = Self::resolve_record(&name, &record, &state).await;
 
                 (record, result)
             });
         }
 
-        while let Some(res) = futures.join_next().await {
+        while let Some(res) = tasks.join_next().await {
             let Ok((record, result)) = res else { continue };
 
             results.insert(record.to_string(), result.unwrap());
