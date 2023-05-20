@@ -41,6 +41,8 @@ impl Profile {
             avatar,
             name: name.to_string(),
             address: Some(format!("{address:?}")),
+            records: Self::resolve_records(name, state).await?,
+            display: Some("".to_string()),
         };
 
         let response = serde_json::to_string(&value).unwrap();
