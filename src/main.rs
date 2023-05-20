@@ -19,5 +19,6 @@ async fn main() {
     println!("📦 enstate.rs v{}", env!("CARGO_PKG_VERSION"));
 
     let state = AppState::new().await;
+
     http::setup(state).listen(3000).await;
 }
