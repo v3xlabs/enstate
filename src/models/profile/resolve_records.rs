@@ -59,6 +59,7 @@ impl Profile {
 pub fn default_records() -> Vec<String> {
     vec![
         "url",
+        "name",
         "email",
         "header",
         "location",
