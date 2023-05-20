@@ -37,7 +37,6 @@ pub fn setup(state: AppState) -> App {
         .route("/", get(routes::root::get))
         .route("/a/:address", get(routes::address::get))
         .route("/n/:name", get(routes::name::get))
-        .route("/r/:name", get(routes::records::get))
         .with_state(state);
 
     App { router }
