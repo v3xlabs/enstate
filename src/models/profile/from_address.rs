@@ -2,6 +2,7 @@ use ethers::{
     providers::{Middleware, ProviderError},
     types::H160,
 };
+use ethers_ccip_read::CCIPReadMiddlewareError;
 use redis::AsyncCommands;
 
 use crate::state::AppState;
@@ -17,15 +18,13 @@ impl Profile {
         let name = if let Ok(name) = redis.get(&cache_key).await {
             name
         } else {
-            let result = match state.fallback_provider.lookup_address(address).await {
+            let result = match state.provider.lookup_address(address).await {
                 Ok(result) => result,
                 Err(error) => {
                     println!("Error resolving address: {error:?}");
 
-                    if let ProviderError::EnsError(_) = error {
-                        // Cache the value, and expire it after 5 minutes
-                        redis.set_ex::<_, _, ()>(&cache_key, "", 300).await.unwrap();
-                    };
+                    // Cache the value, and expire it after 5 minutes
+                    redis.set_ex::<_, _, ()>(&cache_key, "", 300).await.unwrap();
 
                     return Err(ProfileError::NotFound);
                 }
