@@ -6,10 +6,10 @@ use super::ProfileError;
 
 impl Profile {
     pub async fn resolve_address(name: &str, state: &AppState) -> Result<H160, ProfileError> {
-        Ok(state.provider.resolve_name(name).await.map_err(|e| {
+        state.provider.resolve_name(name).await.map_err(|e| {
             println!("Error resolving name: {e:?}");
 
             ProfileError::NotFound
-        })?)
+        })
     }
 }
