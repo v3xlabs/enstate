@@ -28,22 +28,21 @@ impl Profile {
         }
 
         // Do it all
-        let (address, avatar, records, display) = join!(
-            Self::resolve_address(name, state),
+        let (owner, avatar, records, addresses, display) = join!(
+            Self::resolve_owner(name, state),
             Self::resolve_avatar(name, state),
             Self::resolve_records(name, state),
+            Self::resolve_addresses(name, state),
             Self::resolve_display(name, state)
         );
 
-        let Ok(address) = address else {
-            return Err(ProfileError::NotFound);
-        };
-
         let value = Self {
             avatar,
+            resolver: "".to_string(),
             name: name.to_string(),
+            owner,
             display: display.unwrap_or_else(|| name.to_string()),
-            address: Some(format!("{address:?}")),
+            addresses,
             records,
         };
 

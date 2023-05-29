@@ -24,7 +24,7 @@ pub struct CacheQuery {
     ),
     params(
         ("address" = String, Path, description = "Address to lookup name data for"),
-        CacheQuery,
+        ("fresh" = bool, Query, description = "Whether to use cached data or not"),
     )
 )]
 pub async fn get(
