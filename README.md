@@ -2,7 +2,11 @@
 
 ## 📌 API Specification (OpenAPI)
 
-The API specification is available at `{your_site_here}/docs`.
+The API specification is available [on enstate.rs](https://enstate.rs/docs) or locally at `{your_site_here}/docs`.
+
+## 🌐 Hosted version
+
+For demonstration purposes (and one-off usage), a hosted instance is made available at [https://enstate.rs/](https://enstate.rs). This instance is provided as-is and as a gift to the community. Please do not abuse it.
 
 ## 🚀 Getting Started
 
@@ -40,7 +44,7 @@ services:
 
 ## 🛣️ Roadmap
 
-- Dockerize
-- TTL Specification
-- Internal Batching
-- Batching endpoints
+- Dockerize ✅
+- Internal Batching 👨‍🔧
+- Batching endpoints 👨‍🔧
+- TTL Specification 🔜
