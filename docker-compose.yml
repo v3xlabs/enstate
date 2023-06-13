@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  # enstate:
+    # image: ghcr.io/v3xlabs/enstate:0.0.1
+    # ports:
+     # - 3000:3000
+    # environment:
+     # - REDIS_URL=redis://redis:6379
+     # - RPC_URL=https://rpc.ankr.com/eth
+    # depends_on:
+     # - redis
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379

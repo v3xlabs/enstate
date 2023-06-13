@@ -20,7 +20,8 @@ tokio = { version = "1.28.0", features = ["full"] }
 utoipa = { version = "3.0.3", features = ["axum_extras"] }
 utoipa-swagger-ui = { version = "3.0.2", features = ["axum"] }
 redis = { version = "0.23.0", features = ["connection-manager", "tokio-comp"] }
-ethers-ccip-read = { git = "https://github.com/lucemans/ethers-ccip-read", branch = "main" }
+# ethers-ccip-read = { git = "https://github.com/ensdomains/ethers-ccip-read" }
+ethers-ccip-read = { path = "/home/luc/dev/local/ethers-ccip-read" }
 
 [build-dependencies]
 chrono = "0.4.24"
