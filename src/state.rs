@@ -11,7 +11,6 @@ pub struct AppState {
     pub redis: ConnectionManager,
     pub provider: CCIPReadMiddleware<Provider<Http>>,
     pub profile_records: Vec<String>,
-    pub fallback_provider: Provider<Http>,
 }
 
 impl AppState {
@@ -27,13 +26,12 @@ impl AppState {
         let redis = database::setup().await.expect("Failed to connect to Redis");
         let fallback_provider = Provider::<Http>::try_from(rpc_url).unwrap();
         let provider: CCIPReadMiddleware<Provider<Http>> =
-            CCIPReadMiddleware::new(fallback_provider.clone());
+            CCIPReadMiddleware::new(fallback_provider);
 
         Self {
             redis,
             provider,
             profile_records,
-            fallback_provider,
         }
     }
 }
