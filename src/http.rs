@@ -3,6 +3,7 @@ use axum::{routing::get, Router};
 use std::net::SocketAddr;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
+use tower_http::cors::CorsLayer;
 
 use crate::routes;
 
@@ -33,6 +34,7 @@ impl App {
 
 pub fn setup(state: AppState) -> App {
     let router = Router::new()
+        .layer(CorsLayer::permissive())
         .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", ApiDoc::openapi()))
         .route("/", get(routes::root::get))
         .route("/a/:address", get(routes::address::get))
