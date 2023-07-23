@@ -71,6 +71,7 @@ pub fn default_records() -> Vec<String> {
         "io.keybase",
         "description",
         "com.twitter",
+        "com.discord",
         "social.bsky",
         "org.telegram",
         "social.mastodon",
