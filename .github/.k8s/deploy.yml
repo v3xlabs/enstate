@@ -49,7 +49,7 @@ spec:
     spec:
       containers:
         - name: enstate
-          image: ghcr.io/v3xlabs/enstate:latest
+          image: ghcr.io/v3xlabs/enstate:sha-e89beb4
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -57,7 +57,7 @@ spec:
             - name: REDIS_URL
               value: redis://redis.enstate.svc.cluster.local:6379
             - name: RPC_URL
-              value: https://rpc.ankr.com/eth
+              value: https://eth.llamarpc.com,https://rpc.payload.de,https://rpc.builder0x69.io,https://rpc.ankr.com/eth
           resources:
             requests:
               cpu: 100m
@@ -84,7 +84,10 @@ kind: Ingress
 metadata:
   name: enstate
   namespace: enstate
+  annotations:
+    cert-manager.io/issuer: le-http
 spec:
+  ingressClassName: traefik
   rules:
     - host: enstate.rs
       http:
@@ -96,3 +99,7 @@ spec:
                 name: enstate
                 port:
                   number: 3000
+  tls:
+  - hosts:
+    - enstate.rs
+    secretName: tls-enstate-ingress-http
