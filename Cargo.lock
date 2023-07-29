@@ -791,6 +791,7 @@ dependencies = [
  "dotenvy",
  "ethers",
  "ethers-ccip-read",
+ "rand",
  "redis",
  "serde",
  "serde_json",

@@ -1,4 +1,5 @@
-use ethers::providers::Middleware;
+use ethers::providers::{Http, Middleware, Provider};
+use ethers_ccip_read::CCIPReadMiddleware;
 use std::{collections::BTreeMap, ops::Not};
 use tokio::task::JoinSet;
 
@@ -11,10 +12,9 @@ impl Profile {
     pub async fn resolve_record(
         name: &str,
         record: &str,
-        state: &AppState,
+        provider: CCIPReadMiddleware<Provider<Http>>,
     ) -> Result<Option<String>, ProfileError> {
-        let result = state
-            .provider
+        let result = provider
             .resolve_field(name, record)
             .await
             .map_err(|e| {
@@ -36,8 +36,10 @@ impl Profile {
             let state = state.clone();
             let record = record.clone();
 
+            let provider = state.get_random_rpc_provider().await;
+
             tasks.spawn(async move {
-                let result = Self::resolve_record(&name, &record, &state)
+                let result = Self::resolve_record(&name, &record, provider)
                     .await
                     .ok()
                     .flatten();

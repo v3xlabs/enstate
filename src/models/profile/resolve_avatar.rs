@@ -1,11 +1,11 @@
-use ethers::providers::Middleware;
+use ethers::providers::{Http, Middleware, Provider};
+use ethers_ccip_read::CCIPReadMiddleware;
 
-use crate::{models::profile::Profile, state::AppState};
+use crate::models::profile::Profile;
 
 impl Profile {
-    pub async fn resolve_avatar(name: &str, state: &AppState) -> Option<String> {
-        state
-            .provider
+    pub async fn resolve_avatar(name: &str, provider: CCIPReadMiddleware<Provider<Http>>) -> Option<String> {
+        provider
             .resolve_avatar(name)
             .await
             .ok()

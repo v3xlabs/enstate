@@ -9,6 +9,7 @@ impl Profile {
     pub async fn from_name(name: &str, state: &AppState) -> Result<Self, ProfileError> {
         let cache_key = format!("n:{name}");
         let mut redis = state.redis.clone();
+        let provider = state.get_random_rpc_provider().await;
 
         // If the value is in the cache, return it
         if let Ok(value) = redis.get::<_, String>(&cache_key).await {
@@ -23,10 +24,10 @@ impl Profile {
 
         // Do it all
         let (address, avatar, records, display) = join!(
-            Self::resolve_address(name, state),
-            Self::resolve_avatar(name, state),
+            Self::resolve_address(name, provider.clone()),
+            Self::resolve_avatar(name, provider.clone()),
             Self::resolve_records(name, state),
-            Self::resolve_display(name, state)
+            Self::resolve_display(name, provider.clone())
         );
 
         let Ok(address) = address else {
