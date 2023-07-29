@@ -924,19 +924,16 @@ dependencies = [
 [[package]]
 name = "ethers-ccip-read"
 version = "0.1.1"
-source = "git+https://github.com/lucemans/ethers-ccip-read?branch=main#2f5b568be0a17e3f613a440506aa8d6f892b4bf6"
+source = "git+https://github.com/ensdomains/ethers-ccip-read?branch=main#5669e42e13bca733d34bbcfb7896a68af5ca79a2"
 dependencies = [
  "async-recursion",
  "async-trait",
  "ethers-core",
  "ethers-providers",
  "futures-util",
- "hex",
  "reqwest",
- "serde",
  "serde_json",
  "thiserror",
- "tracing",
 ]
 
 [[package]]

@@ -45,7 +45,7 @@ impl Profile {
         let response = serde_json::to_string(&value).unwrap();
 
         redis
-            .set_ex::<_, _, ()>(&cache_key, &response, 300)
+            .set_ex::<_, _, ()>(&cache_key, &response, 3600)
             .await
             .unwrap();
 

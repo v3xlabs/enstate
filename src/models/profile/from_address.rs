@@ -24,7 +24,7 @@ impl Profile {
 
                     if let ProviderError::EnsError(_) = error {
                         // Cache the value, and expire it after 5 minutes
-                        redis.set_ex::<_, _, ()>(&cache_key, "", 300).await.unwrap();
+                        redis.set_ex::<_, _, ()>(&cache_key, "", 3600).await.unwrap();
                     };
 
                     return Err(ProfileError::NotFound);
@@ -33,7 +33,7 @@ impl Profile {
 
             // Cache the value, and expire it after 5 minutes
             redis
-                .set_ex::<_, _, ()>(&cache_key, &result, 300)
+                .set_ex::<_, _, ()>(&cache_key, &result, 3600)
                 .await
                 .unwrap();
 
