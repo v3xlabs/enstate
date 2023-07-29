@@ -1,8 +1,10 @@
 use crate::state::AppState;
 use axum::{routing::get, Router};
+use tracing::info;
 use std::net::SocketAddr;
 use tower_http::cors::CorsLayer;
 use utoipa::OpenApi;
+use tower_http::trace::TraceLayer;
 use utoipa_swagger_ui::SwaggerUi;
 
 use crate::routes;
@@ -22,7 +24,8 @@ impl App {
     pub async fn listen(self, port: u16) {
         let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
-        println!("   Listening on http://{addr}\n");
+        info!("Listening http on {}", addr);
+        // println!("   Listening on http://{addr}\n");
         //       ^^^ Three spaces here to align with enstate.rs header :)
 
         axum::Server::bind(&addr)
@@ -39,6 +42,7 @@ pub fn setup(state: AppState) -> App {
         .route("/a/:address", get(routes::address::get))
         .route("/n/:name", get(routes::name::get))
         .layer(CorsLayer::permissive())
+        .layer(TraceLayer::new_for_http())
         .with_state(state);
 
     App { router }

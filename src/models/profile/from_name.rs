@@ -1,5 +1,6 @@
 use redis::AsyncCommands;
 use tokio::join;
+use tracing::info;
 
 use crate::{models::profile::Profile, state::AppState};
 
@@ -10,6 +11,8 @@ impl Profile {
         let cache_key = format!("n:{name}");
         let mut redis = state.redis.clone();
         let provider = state.get_random_rpc_provider().await;
+
+        info!(name = name, cache_key = cache_key, "Looking up profile for {name}...");
 
         // If the value is in the cache, return it
         if let Ok(value) = redis.get::<_, String>(&cache_key).await {

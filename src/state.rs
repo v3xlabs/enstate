@@ -4,6 +4,7 @@ use ethers::{
 };
 use ethers_ccip_read::CCIPReadMiddleware;
 use redis::aio::ConnectionManager;
+use tracing::info;
 use std::env;
 
 use crate::{database, models::profile::default_records};
@@ -33,7 +34,12 @@ impl AppState {
             .map(std::string::ToString::to_string)
             .collect::<Vec<_>>();
 
+        info!("Connecting to Redis...");
+
         let redis = database::setup().await.expect("Failed to connect to Redis");
+
+        info!("Connected to Redis");
+
         let fallback_provider = Provider::<Http>::try_from(rpc_urls.first().unwrap()).unwrap();
         let provider: CCIPReadMiddleware<Provider<Http>> =
             CCIPReadMiddleware::new(fallback_provider.clone());
