@@ -33,6 +33,7 @@ ethers-core = "2.0.9"
 hex = "0.4.3"
 thiserror = "1.0.48"
 regex = "1.9.5"
+rustls = "0.21.7"
 
 
 [build-dependencies]

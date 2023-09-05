@@ -870,6 +870,7 @@ dependencies = [
  "rand",
  "redis",
  "regex",
+ "rustls",
  "serde",
  "serde_json",
  "thiserror",
