@@ -869,6 +869,7 @@ dependencies = [
  "hex",
  "rand",
  "redis",
+ "regex",
  "serde",
  "serde_json",
  "thiserror",

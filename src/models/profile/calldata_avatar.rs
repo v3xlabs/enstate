@@ -1,10 +1,6 @@
 use std::convert::Infallible;
 
-use ethers::{
-    types::{Bytes, H256},
-    utils::hex::FromHex,
-};
-use ethers_core::abi::Token;
+use ethers::types::H256;
 
 use crate::models::profile::Profile;
 
@@ -13,9 +9,44 @@ impl Profile {
         Self::calldata_text(namehash, "avatar")
     }
 
-    pub fn decode_avatar(data: &[u8]) -> Result<String, Infallible> {
+    pub async fn decode_avatar(name: &str, data: &[u8]) -> Result<String, Infallible> {
         // TODO: Add ipfs & arweave support
-        Self::decode_text(data)
+        let raw_value = Self::decode_text(data).unwrap();
+
+        // If the raw value is eip155 url
+        let regex =
+            regex::Regex::new(r"eip155:([0-9]+)/(erc1155|erc712):0x([0-9a-fA-F]{40})/([0-9]+)")
+                .unwrap();
+
+        if let Some(_captures) = regex.captures(&raw_value) {
+
+            // TODO: Remove naive approach
+            return Ok(format!("https://metadata.ens.domains/mainnet/avatar/{}", name).to_string());
+
+            // let chain_id = captures.get(1).unwrap().as_str();
+            // let contract_type = captures.get(2).unwrap().as_str();
+            // let contract_address = captures.get(3).unwrap().as_str();
+            // let token_id = captures.get(4).unwrap().as_str();
+
+            // let url = match contract_type {
+            //     "erc1155" => format!(
+            //         "https://api.opensea.io/asset/{}/{}",
+            //         contract_address, token_id
+            //     ),
+            //     "erc712" => format!(
+            //         "https://api.opensea.io/asset/{}/{}",
+            //         contract_address, token_id
+            //     ),
+            //     _ => format!(
+            //         "https://api.opensea.io/asset/{}/{}",
+            //         contract_address, token_id
+            //     ),
+            // };
+
+            // return Ok(url);
+        }
+
+        Ok(raw_value)
     }
 }
 

@@ -9,7 +9,7 @@ use crate::state::AppState;
 use super::{error::ProfileError, Profile};
 
 impl Profile {
-    pub async fn from_address(address: H160, state: &AppState) -> Result<Self, ProfileError> {
+    pub async fn from_address(address: H160, fresh: bool, state: &AppState) -> Result<Self, ProfileError> {
         let cache_key = format!("a:{address:?}");
         let mut redis = state.redis.clone();
 
@@ -47,6 +47,6 @@ impl Profile {
             return Err(ProfileError::NotFound);
         }
 
-        Self::from_name(&name, state).await
+        Self::from_name(&name, fresh, state).await
     }
 }
