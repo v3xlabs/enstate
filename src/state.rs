@@ -4,19 +4,42 @@ use ethers::{
 };
 use ethers_ccip_read::CCIPReadMiddleware;
 use redis::aio::ConnectionManager;
-use tracing::info;
 use std::env;
+use tracing::info;
 
-use crate::{database, models::profile::default_records};
+use crate::{database, provider::RoundRobinProvider};
 
-#[derive(Clone)]
 #[allow(clippy::module_name_repetitions)]
 pub struct AppState {
     pub redis: ConnectionManager,
-    pub provider: CCIPReadMiddleware<Provider<Http>>,
     pub profile_records: Vec<String>,
-    pub fallback_provider: Provider<Http>,
     pub rpc_urls: Vec<String>,
+    pub provider: RoundRobinProvider,
+}
+
+pub fn default_records() -> Vec<String> {
+    vec![
+        "url",
+        "name",
+        "email",
+        "header",
+        "location",
+        "timezone",
+        "language",
+        "pronouns",
+        "com.github",
+        "org.matrix",
+        "io.keybase",
+        "description",
+        "com.twitter",
+        "com.discord",
+        "social.bsky",
+        "org.telegram",
+        "social.mastodon",
+    ]
+    .into_iter()
+    .map(ToString::to_string)
+    .collect()
 }
 
 impl AppState {
@@ -40,26 +63,13 @@ impl AppState {
 
         info!("Connected to Redis");
 
-        let fallback_provider = Provider::<Http>::try_from(rpc_urls.first().unwrap()).unwrap();
-        let provider: CCIPReadMiddleware<Provider<Http>> =
-            CCIPReadMiddleware::new(fallback_provider.clone());
+        let provider = RoundRobinProvider::new(rpc_urls.clone());
 
         Self {
             redis,
-            provider,
             profile_records,
-            fallback_provider,
             rpc_urls,
+            provider,
         }
-    }
-}
-
-impl AppState {
-    pub async fn get_random_rpc_provider(&self) -> CCIPReadMiddleware<Provider<Http>> {
-        let rpc_url = self.rpc_urls.choose(&mut rand::thread_rng()).unwrap();
-        let provider = Provider::<Http>::try_from(rpc_url).unwrap();
-        let provider: CCIPReadMiddleware<Provider<Http>> = CCIPReadMiddleware::new(provider);
-
-        provider
     }
 }

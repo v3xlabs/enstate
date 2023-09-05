@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{
     extract::{Path, State},
     http::StatusCode,
@@ -21,7 +23,7 @@ use crate::models::profile::Profile;
 )]
 pub async fn get(
     Path(address): Path<String>,
-    State(state): State<crate::AppState>,
+    State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<Profile>, StatusCode> {
     let address = address.parse().map_err(|_| StatusCode::BAD_REQUEST)?;
 

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{
     extract::{Path, State},
     http::StatusCode,
@@ -19,7 +21,7 @@ use crate::models::profile::Profile;
 )]
 pub async fn get(
     Path(name): Path<String>,
-    State(state): State<crate::AppState>,
+    State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<Profile>, StatusCode> {
     let profile = Profile::from_name(&name, &state)
         .await

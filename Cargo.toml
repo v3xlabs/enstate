@@ -31,6 +31,7 @@ chrono = "0.4.24"
 ethers-contract = "2.0.9"
 ethers-core = "2.0.9"
 hex = "0.4.3"
+thiserror = "1.0.48"
 
 
 [build-dependencies]

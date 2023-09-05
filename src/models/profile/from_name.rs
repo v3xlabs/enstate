@@ -1,19 +1,26 @@
-use std::{time::{SystemTime, UNIX_EPOCH}, collections::BTreeMap};
+use std::{
+    collections::BTreeMap,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
+use ethers::providers::namehash;
 use redis::AsyncCommands;
-use tokio::join;
 use tracing::info;
 
 use crate::{models::profile::Profile, state::AppState};
 
-use super::ProfileError;
+use super::error::ProfileError;
 
 impl Profile {
     pub async fn from_name(name: &str, state: &AppState) -> Result<Self, ProfileError> {
         let cache_key = format!("n:{name}");
         let mut redis = state.redis.clone();
 
-        info!(name = name, cache_key = cache_key, "Looking up profile for {name}...");
+        info!(
+            name = name,
+            cache_key = cache_key,
+            "Looking up profile for {name}..."
+        );
 
         // If the value is in the cache, return it
         // if let Ok(value) = redis.get::<_, String>(&cache_key).await {
@@ -26,36 +33,43 @@ impl Profile {
         //     return Err(ProfileError::NotFound);
         // }
 
-        let provider = state.get_random_rpc_provider().await;
+        let provider = state.provider.get_provider();
 
-        // Do it all
-        // let (address, avatar, records, display) = join!(
-        //     Self::resolve_address(name, provider.clone()),
-        //     Self::resolve_avatar(name, provider.clone()),
-        //     Self::resolve_records(name, state),
-        //     Self::resolve_display(name, provider.clone())
-        // );
+        let namehash = namehash(name);
 
-        // let Ok(address) = address else {
-        //     return Err(ProfileError::NotFound);
-        // };
+        let data = vec![
+            Self::calldata_address(&namehash),
+            Self::calldata_avatar(&namehash),
+            Self::calldata_text(&namehash, "location"),
+            Self::calldata_text(&namehash, "display"),
+        ];
 
-        // let value = Self {
-        //     avatar,
-        //     name: name.to_string(),
-        //     display: display.unwrap_or_else(|| name.to_string()),
-        //     address: Some(format!("{address:?}")),
-        //     records,
-        //     fresh: chrono::offset::Utc::now().timestamp_millis()
-        // };
+        let (data, resolver) = Self::resolve_universal(name, data, provider).await?;
+
+        info!("Result {:?}", data);
+
+        let address = Self::decode_address(&data[0]).ok();
+        let avatar = Self::decode_avatar(&data[1]).ok();
+        let location = Self::decode_text(&data[2]).ok();
+
+        let records = BTreeMap::default();
+
+        
+
+        let display = match Self::decode_text(&data[3]).ok() {
+            Some(display) if display.to_lowercase() != name.to_lowercase() => display,
+            _ => name.to_string(),
+        };
 
         let value = Self {
-            avatar: Some("".to_string()),
             name: name.to_string(),
-            display: "".to_string(),
-            address: Some("".to_string()),
-            records: BTreeMap::default(),
-            fresh: chrono::offset::Utc::now().timestamp_millis()
+            address: address.map(|address| format!("{:?}", address)),
+            avatar,
+            display,
+
+            records,
+            fresh: chrono::offset::Utc::now().timestamp_millis(),
+            resolver: format!("{:?}", resolver),
         };
 
         let response = serde_json::to_string(&value).unwrap();
