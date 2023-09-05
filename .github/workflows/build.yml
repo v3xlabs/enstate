@@ -4,45 +4,58 @@ on:
     tags:
       - "v*.*.*"
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
   build:
+    name: Build Dispatcher 🚀
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
+
+      - run: |
+          rustup set auto-self-update disable
+          rustup toolchain install stable --profile minimal
 
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: |
-            ghcr.io/v3xlabs/enstate
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=edge
-            type=sha
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+            images: |
+                ghcr.io/v3xlabs/enstate
+            tags: |
+                type=semver,pattern={{version}}
+                type=semver,pattern={{major}}.{{minor}}
+                type=semver,pattern={{major}}
+                type=edge
+                type=sha
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+            registry: ghcr.io
+            username: ${{ github.actor }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "build-dispatcher-${{ matrix.os }}"
+
+      - run: cargo build --release
 
       - name: Build and push
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          file: .github/.deploy/Dockerfile
-          context: .
-          cache-from: type=registry,ref=ghcr.io/v3xlabs/enstate:edge
-          cache-to: type=inline
+            push: true
+            file: .github/.deploy/Dockerfile
+            context: .
+            tags: ${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}
+            cache-from: type=registry,ref=ghcr.io/v3xlabs/enstate:edge
+            cache-to: type=inline
