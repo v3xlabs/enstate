@@ -1,3 +1,5 @@
+use std::{time::{SystemTime, UNIX_EPOCH}, collections::BTreeMap};
+
 use redis::AsyncCommands;
 use tokio::join;
 use tracing::info;
@@ -10,39 +12,50 @@ impl Profile {
     pub async fn from_name(name: &str, state: &AppState) -> Result<Self, ProfileError> {
         let cache_key = format!("n:{name}");
         let mut redis = state.redis.clone();
-        let provider = state.get_random_rpc_provider().await;
 
         info!(name = name, cache_key = cache_key, "Looking up profile for {name}...");
 
         // If the value is in the cache, return it
-        if let Ok(value) = redis.get::<_, String>(&cache_key).await {
-            if !value.is_empty() {
-                let entry: Self = serde_json::from_str(value.as_str()).unwrap();
+        // if let Ok(value) = redis.get::<_, String>(&cache_key).await {
+        //     if !value.is_empty() {
+        //         let entry: Self = serde_json::from_str(value.as_str()).unwrap();
 
-                return Ok(entry);
-            }
+        //         return Ok(entry);
+        //     }
 
-            return Err(ProfileError::NotFound);
-        }
+        //     return Err(ProfileError::NotFound);
+        // }
+
+        let provider = state.get_random_rpc_provider().await;
 
         // Do it all
-        let (address, avatar, records, display) = join!(
-            Self::resolve_address(name, provider.clone()),
-            Self::resolve_avatar(name, provider.clone()),
-            Self::resolve_records(name, state),
-            Self::resolve_display(name, provider.clone())
-        );
+        // let (address, avatar, records, display) = join!(
+        //     Self::resolve_address(name, provider.clone()),
+        //     Self::resolve_avatar(name, provider.clone()),
+        //     Self::resolve_records(name, state),
+        //     Self::resolve_display(name, provider.clone())
+        // );
 
-        let Ok(address) = address else {
-            return Err(ProfileError::NotFound);
-        };
+        // let Ok(address) = address else {
+        //     return Err(ProfileError::NotFound);
+        // };
+
+        // let value = Self {
+        //     avatar,
+        //     name: name.to_string(),
+        //     display: display.unwrap_or_else(|| name.to_string()),
+        //     address: Some(format!("{address:?}")),
+        //     records,
+        //     fresh: chrono::offset::Utc::now().timestamp_millis()
+        // };
 
         let value = Self {
-            avatar,
+            avatar: Some("".to_string()),
             name: name.to_string(),
-            display: display.unwrap_or_else(|| name.to_string()),
-            address: Some(format!("{address:?}")),
-            records,
+            display: "".to_string(),
+            address: Some("".to_string()),
+            records: BTreeMap::default(),
+            fresh: chrono::offset::Utc::now().timestamp_millis()
         };
 
         let response = serde_json::to_string(&value).unwrap();

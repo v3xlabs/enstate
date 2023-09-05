@@ -13,10 +13,10 @@ impl Profile {
         name: &str,
         provider: CCIPReadMiddleware<Provider<Http>>,
     ) -> Result<H160, ProfileError> {
-        Ok(provider.resolve_name(name).await.map_err(|e| {
+        provider.resolve_name(name).await.map_err(|e| {
             println!("Error resolving name: {e:?}");
 
             ProfileError::NotFound
-        })?)
+        })
     }
 }
