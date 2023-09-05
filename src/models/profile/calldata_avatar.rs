@@ -1,5 +1,6 @@
 use std::convert::Infallible;
 
+use chrono::format;
 use ethers::types::H256;
 
 use crate::models::profile::Profile;
@@ -10,16 +11,22 @@ impl Profile {
     }
 
     pub async fn decode_avatar(name: &str, data: &[u8]) -> Result<String, Infallible> {
-        // TODO: Add ipfs & arweave support
         let raw_value = Self::decode_text(data).unwrap();
 
+        let ipfs = regex::Regex::new(r"ipfs://([0-9a-z]+)").unwrap();
+
+        if let Some(_captures) = ipfs.captures(&raw_value) {
+            let hash = _captures.get(1).unwrap().as_str();
+
+            return Ok(format!("https://ipfs.io/ipfs/{}", hash));
+        }
+
         // If the raw value is eip155 url
-        let regex =
+        let eip155 =
             regex::Regex::new(r"eip155:([0-9]+)/(erc1155|erc712):0x([0-9a-fA-F]{40})/([0-9]+)")
                 .unwrap();
 
-        if let Some(_captures) = regex.captures(&raw_value) {
-
+        if let Some(_captures) = eip155.captures(&raw_value) {
             // TODO: Remove naive approach
             return Ok(format!("https://metadata.ens.domains/mainnet/avatar/{}", name).to_string());
 
