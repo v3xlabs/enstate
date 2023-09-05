@@ -11,10 +11,6 @@ jobs:
   build:
     name: Build Dispatcher 🚀
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
 
@@ -44,7 +40,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: "build-dispatcher-${{ matrix.os }}"
+          shared-key: "build"
 
       - run: cargo build --release
 
