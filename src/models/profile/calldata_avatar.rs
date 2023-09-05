@@ -13,7 +13,7 @@ impl Profile {
     pub async fn decode_avatar(name: &str, data: &[u8]) -> Result<String, Infallible> {
         let raw_value = Self::decode_text(data).unwrap();
 
-        let ipfs = regex::Regex::new(r"ipfs://([0-9a-z]+)").unwrap();
+        let ipfs = regex::Regex::new(r"ipfs://([0-9a-zA-Z]+)").unwrap();
 
         if let Some(_captures) = ipfs.captures(&raw_value) {
             let hash = _captures.get(1).unwrap().as_str();
@@ -28,7 +28,7 @@ impl Profile {
 
         if let Some(_captures) = eip155.captures(&raw_value) {
             // TODO: Remove naive approach
-            return Ok(format!("https://metadata.ens.domains/mainnet/avatar/{}", name).to_string());
+            return Ok(format!("https://metadata.ens.domains/mainnet/avatar/{}", name));
 
             // let chain_id = captures.get(1).unwrap().as_str();
             // let contract_type = captures.get(2).unwrap().as_str();
