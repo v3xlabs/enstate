@@ -21,6 +21,7 @@ pub fn default_records() -> Vec<String> {
     vec![
         "url",
         "name",
+        "mail",
         "email",
         "header",
         "location",
@@ -36,6 +37,8 @@ pub fn default_records() -> Vec<String> {
         "social.bsky",
         "org.telegram",
         "social.mastodon",
+        "network.dm3.profile",
+        "network.dm3.deliveryService",
     ]
     .into_iter()
     .map(ToString::to_string)

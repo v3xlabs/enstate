@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use utoipa::ToSchema;
 
+pub mod calldata_multicoin;
 pub mod calldata_address;
 pub mod calldata_avatar;
 pub mod calldata_text;
@@ -17,6 +18,7 @@ pub struct Profile {
     pub avatar: Option<String>,
     pub display: String,
     pub records: BTreeMap<String, String>,
+    pub chains: BTreeMap<String, String>,
     // Unix Timestamp of date it was loaded
     pub fresh: i64,
     pub resolver: String,

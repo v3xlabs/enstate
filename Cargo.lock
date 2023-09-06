@@ -323,6 +323,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bs58"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5353f36341f7451062466f0b755b96ac3a9547e4d7f6b70d603fc721a7d7896"
+dependencies = [
+ "tinyvec",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -449,7 +458,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b30a84aab436fcb256a2ab3c80663d8aec686e6bae12827bb05fef3e1e439c9f"
 dependencies = [
  "bincode",
- "bs58",
+ "bs58 0.4.0",
  "coins-core",
  "digest 0.10.6",
  "getrandom",
@@ -486,7 +495,7 @@ checksum = "9b949a1c63fb7eb591eb7ba438746326aedf0ae843e51ec92ba6bec5bb382c4f"
 dependencies = [
  "base64 0.21.0",
  "bech32",
- "bs58",
+ "bs58 0.4.0",
  "digest 0.10.6",
  "generic-array",
  "hex",
@@ -860,6 +869,7 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "axum",
+ "bs58 0.5.0",
  "chrono",
  "dotenvy",
  "ethers",

@@ -51,6 +51,7 @@ impl Profile {
             Self::calldata_address(&namehash),
             Self::calldata_avatar(&namehash),
             Self::calldata_text(&namehash, "display"),
+            Self::calldata_multicoin(&namehash, 0.into()),
         ];
 
         let mut record_calldata = default_records()
@@ -62,8 +63,6 @@ impl Profile {
 
         let (data, resolver) = Self::resolve_universal(name, calldata, provider).await?;
 
-        info!("Result {:?}", data);
-
         let address = Self::decode_address(&data[0]).ok();
         let avatar = Self::decode_avatar(name, &data[1]).await.ok();
 
@@ -72,9 +71,19 @@ impl Profile {
             _ => name.to_string(),
         };
 
+        let btc = Self::decode_multicoin(&data[3], 0.into()).ok();
+
+        info!(
+            name = name,
+            address = ?address,
+            avatar = ?avatar,
+            btc = ?btc,
+            "Profile for {name} found"
+        );
+
         let mut records = BTreeMap::default();
 
-        for (index, record) in data[3..].iter().enumerate() {
+        for (index, record) in data[4..].iter().enumerate() {
             let record = Self::decode_text(record).ok();
 
             if let Some(record) = record {
@@ -84,6 +93,10 @@ impl Profile {
             }
         }
 
+        let mut chains = BTreeMap::default();
+
+        chains.insert("btc".to_string(), btc.unwrap_or(":shrug:".to_string()));
+
         let value = Self {
             name: name.to_string(),
             address: address.map(|address| format!("{:?}", address)),
@@ -91,6 +104,7 @@ impl Profile {
             display,
 
             records,
+            chains,
             fresh: chrono::offset::Utc::now().timestamp_millis(),
             resolver: format!("{:?}", resolver),
         };
