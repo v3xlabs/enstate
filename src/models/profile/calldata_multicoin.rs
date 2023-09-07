@@ -35,7 +35,9 @@ impl Profile {
 
         info!("value: {:?}", value);
 
-        Ok(Self::decode_btc(value.as_slice()).unwrap())
+        // Ok(Self::decode_btc(value.as_slice()))
+
+        Ok("".to_string())
     }
 
     pub fn decode_btc(data: &[u8]) -> Option<String> {
