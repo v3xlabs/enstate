@@ -1,10 +1,18 @@
+use std::sync::Arc;
+
 use axum::{
-    extract::{Path, State},
+    extract::{Path, State, Query},
     http::StatusCode,
     Json,
 };
+use serde::Deserialize;
 
 use crate::models::profile::Profile;
+
+#[derive(Deserialize)]
+pub struct NameQuery {
+    fresh: Option<bool>,
+}
 
 #[utoipa::path(
     get,
@@ -19,9 +27,12 @@ use crate::models::profile::Profile;
 )]
 pub async fn get(
     Path(name): Path<String>,
-    State(state): State<crate::AppState>,
+    Query(query): Query<NameQuery>,
+    State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<Profile>, StatusCode> {
-    let profile = Profile::from_name(&name, &state)
+    let name = name.to_lowercase();
+
+    let profile = Profile::from_name(&name, query.fresh.unwrap_or(false), &state)
         .await
         .map_err(|_| StatusCode::NOT_FOUND)?;
 

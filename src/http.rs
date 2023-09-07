@@ -1,10 +1,10 @@
 use crate::state::AppState;
 use axum::{routing::get, Router};
-use tracing::info;
-use std::net::SocketAddr;
+use std::{net::SocketAddr, sync::Arc};
 use tower_http::cors::CorsLayer;
-use utoipa::OpenApi;
 use tower_http::trace::TraceLayer;
+use tracing::info;
+use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 use crate::routes;
@@ -43,7 +43,7 @@ pub fn setup(state: AppState) -> App {
         .route("/n/:name", get(routes::name::get))
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())
-        .with_state(state);
+        .with_state(Arc::new(state));
 
     App { router }
 }
