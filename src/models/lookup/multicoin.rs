@@ -7,7 +7,10 @@ use ethers_core::{
 use hex_literal::hex;
 use tracing::info;
 
-use crate::models::multicoin::cointype::{coins::CoinType, evm::ChainId, slip44::SLIP44};
+use crate::models::multicoin::{
+    cointype::{coins::CoinType, evm::ChainId, slip44::SLIP44},
+    decoding::bitcoin::decode_btc,
+};
 
 use super::{ENSLookup, ENSLookupError};
 
@@ -28,8 +31,6 @@ impl ENSLookup for Multicoin {
     }
 
     fn decode(&self, data: &[u8]) -> Result<String, ENSLookupError> {
-        info!("Decoding: {:?}", data);
-
         let decoded_abi = ethers_core::abi::decode(&[ParamType::Bytes], data)
             .map_err(|_| ENSLookupError::AbiError)?;
         let value = decoded_abi
@@ -46,13 +47,12 @@ impl ENSLookup for Multicoin {
             // SLIP-044 Chain Address Decoding (see ensip-9)
             CoinType::Slip44(slip44) => match slip44 {
                 // Bitcoin Decoding
-                SLIP44::Bitcoin => Ok(format!("btc:{}", bs58::encode(value).into_string())),
+                SLIP44::Bitcoin => Ok(decode_btc(value.as_slice()).unwrap()),
                 // Lightcoin Decoding
                 SLIP44::Litecoin => {
                     Err(ENSLookupError::Unknown(anyhow!(
                         "Litecoin Decoding Not Implemented"
                     )))
-                    // Ok(format!("ltc:{}", bs58::encode(value).into_string()))
                 }
 
                 // Unsupported SLIP44 Chain
@@ -61,36 +61,22 @@ impl ENSLookup for Multicoin {
                     // Ok(format!("SLIP-{:?}", value))
 
                     // Unsupported
-                    Err(ENSLookupError::Unsupported("Chain Not Supported".to_string()))
+                    Err(ENSLookupError::Unsupported(
+                        "Chain Not Supported".to_string(),
+                    ))
                 }
             },
             // Implement EVM Chain Address Decoding (mostly ChecksummedHex, sometimes ChecksummedHex(chainId)) (see ensip-11)
-            CoinType::Evm(evm) => match evm {
-                // TODO: EVM Exceptions go here
-                // ChainId::Ethereum => {
-                //     // Verify length is 20 bytes
-                //     if value.len() != 20 {
-                //         // TODO: throw invalid length
-                //         return Ok("Invalid Length".to_string());
-                //     }
-
-                //     let address = hex::encode(value);
-
-                //     Ok(format!("0x{address}"))
-                // },
-
-                // Every EVM Chain
-                _ => {
-                    // Verify length is 20 bytes
-                    if value.len() != 20 {
-                        // TODO: throw invalid length
-                        return Ok("Invalid Length".to_string());
-                    }
-
-                    let address = hex::encode(value);
-
-                    Ok(format!("0x{address}"))
+            CoinType::Evm(_evm) => {
+                // Verify length is 20 bytes
+                if value.len() != 20 {
+                    // TODO: throw invalid length
+                    return Ok("Invalid Length".to_string());
                 }
+
+                let address = hex::encode(value);
+
+                Ok(format!("0x{address}"))
             },
         }
     }
