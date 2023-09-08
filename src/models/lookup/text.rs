@@ -1,4 +1,7 @@
-use ethers_core::{abi::{ParamType, Token}, types::H256};
+use ethers_core::{
+    abi::{ParamType, Token},
+    types::H256,
+};
 use hex_literal::hex;
 
 use super::{ENSLookup, ENSLookupError};
@@ -24,12 +27,16 @@ impl ENSLookup for Text {
         [fn_selector, data].concat()
     }
 
-    fn decode(&self, data: &[u8]) -> Result<Option<String>, ENSLookupError> {
+    fn decode(&self, data: &[u8]) -> Result<String, ENSLookupError> {
         let decoded_abi = ethers_core::abi::decode(&[ParamType::String], data)
             .map_err(|_| ENSLookupError::AbiError)?;
         let value = decoded_abi.get(0).ok_or(ENSLookupError::AbiError)?;
         let value = value.to_string();
 
-        Ok(Some(value))
+        Ok(value)
+    }
+
+    fn name(&self) -> String {
+        format!("records.{}", self.key)
     }
 }

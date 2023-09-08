@@ -1,4 +1,7 @@
-use ethers_core::{abi::{ParamType, Token}, types::H256};
+use ethers_core::{
+    abi::{ParamType, Token},
+    types::H256,
+};
 use hex_literal::hex;
 
 use super::{ENSLookup, ENSLookupError};
@@ -15,16 +18,21 @@ impl ENSLookup for Addr {
         [fn_selector, data].concat()
     }
 
-    fn decode(&self, data: &[u8]) -> Result<Option<String>, ENSLookupError> {
+    fn decode(&self, data: &[u8]) -> Result<String, ENSLookupError> {
         let decoded_abi = ethers_core::abi::decode(&[ParamType::Address], data)
             .map_err(|_| ENSLookupError::AbiError)?;
         let address = decoded_abi
             .get(0)
             .ok_or(ENSLookupError::AbiError)?
             .clone()
-            .into_address();
+            .into_address()
+            .ok_or(ENSLookupError::InvalidPayload("".to_string()));
 
-        Ok(address.map(|address| format!("{:?}", address)))
+        Ok(format!("{:?}", address))
+    }
+
+    fn name(&self) -> String {
+        "addr".to_string()
     }
 }
 

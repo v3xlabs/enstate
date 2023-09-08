@@ -1,6 +1,9 @@
 use super::{ENSLookup, ENSLookupError};
 
-use ethers_core::{abi::{ParamType, Token}, types::H256};
+use ethers_core::{
+    abi::{ParamType, Token},
+    types::H256,
+};
 use hex_literal::hex;
 use tracing::info;
 
@@ -23,7 +26,7 @@ impl ENSLookup for Avatar {
         [fn_selector, data].concat()
     }
 
-    fn decode(&self, data: &[u8]) -> Result<Option<String>, ENSLookupError> {
+    fn decode(&self, data: &[u8]) -> Result<String, ENSLookupError> {
         let decoded_abi = ethers_core::abi::decode(&[ParamType::String], data)
             .map_err(|_| ENSLookupError::AbiError)?;
         let value = decoded_abi.get(0).ok_or(ENSLookupError::AbiError)?;
@@ -34,7 +37,7 @@ impl ENSLookup for Avatar {
         if let Some(captures) = ipfs.captures(&value) {
             let hash = captures.get(1).unwrap().as_str();
 
-            return Ok(Some(format!("{}{hash}", self.ipfs_gateway)));
+            return Ok(format!("{}{hash}", self.ipfs_gateway));
         }
 
         // If the raw value is eip155 url
@@ -57,13 +60,17 @@ impl ENSLookup for Avatar {
             );
 
             // TODO: Remove naive approach
-            return Ok(Some(format!(
+            return Ok(format!(
                 "https://metadata.ens.domains/mainnet/avatar/{}",
                 self.name
-            )));
+            ));
         }
 
-        Ok(Some(value))
+        Ok(value)
+    }
+
+    fn name(&self) -> String {
+        "avatar".to_string()
     }
 }
 

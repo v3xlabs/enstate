@@ -9,7 +9,6 @@ use tracing::info;
 use crate::{
     models::{
         lookup::{addr::Addr, multicoin::Multicoin, text::Text, ENSLookup},
-        multicoin::cointype::coins::CoinType,
         profile::Profile,
         universal_resolver::resolve_universal,
     },
@@ -74,13 +73,22 @@ impl Profile {
         let (data, resolver) = resolve_universal(name.to_string(), &calldata, provider).await?;
 
         let mut results: Vec<Option<String>> = Vec::new();
+        let mut errors = BTreeMap::default();
 
         // Assume results & calldata have the same length
         // Look through all calldata and decode the results at the same index
         for (index, calldata) in calldata.iter().enumerate() {
-            let result = calldata.decode(&data[index]).unwrap();
+            let result = calldata.decode(&data[index]);
 
-            results.push(result);
+            match result {
+                Ok(result) => {
+                    results.push(Some(result));
+                }
+                Err(error) => {
+                    errors.insert(calldata.name(), error.to_string());
+                    results.push(None);
+                }
+            }
         }
 
         let address: Option<String> = results.get(0).unwrap_or(&None).clone();
@@ -132,6 +140,7 @@ impl Profile {
             chains,
             fresh: chrono::offset::Utc::now().timestamp_millis(),
             resolver: format!("{:?}", resolver),
+            errors,
         };
 
         let response = serde_json::to_string(&value).unwrap();
