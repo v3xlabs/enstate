@@ -26,9 +26,9 @@ impl ENSLookup for Addr {
             .ok_or(ENSLookupError::AbiError)?
             .clone()
             .into_address()
-            .ok_or(ENSLookupError::InvalidPayload("".to_string()));
+            .ok_or(ENSLookupError::InvalidPayload("yup".to_string()))?;
 
-        Ok(format!("{:?}", address))
+        Ok(format!("{address:?}"))
     }
 
     fn name(&self) -> String {

@@ -8,8 +8,8 @@ use hex_literal::hex;
 use tracing::info;
 
 pub struct Avatar {
-    ipfs_gateway: String,
-    name: String,
+    pub ipfs_gateway: String,
+    pub name: String,
 }
 
 impl Avatar {}

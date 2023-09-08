@@ -8,7 +8,7 @@ use tracing::info;
 
 use crate::{
     models::{
-        lookup::{addr::Addr, multicoin::Multicoin, text::Text, ENSLookup},
+        lookup::{addr::Addr, multicoin::Multicoin, text::Text, ENSLookup, avatar::Avatar},
         profile::Profile,
         universal_resolver::resolve_universal,
     },
@@ -51,7 +51,11 @@ impl Profile {
         // Preset Hardcoded Lookups
         let mut calldata: Vec<Box<dyn ENSLookup + Send + Sync>> = vec![
             Box::new(Addr {}),
-            Box::new(Text::new("avatar".to_string())),
+            Box::new(Avatar {
+                // TODO: Default IPFS Gateway
+                ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
+                name: name.to_string(),
+            }),
             Box::new(Text::new("display".to_string())),
         ];
 
@@ -102,7 +106,7 @@ impl Profile {
 
         info!(
             name = name,
-            address = ?address,
+            address,
             avatar = ?avatar,
             // btc = ?btc,
             "Profile for {name} found"
