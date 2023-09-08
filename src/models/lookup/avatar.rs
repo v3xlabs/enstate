@@ -1,5 +1,6 @@
-use super::*;
-use ethers_core::abi::{ParamType, Token};
+use super::{ENSLookup, ENSLookupError};
+
+use ethers_core::{abi::{ParamType, Token}, types::H256};
 use hex_literal::hex;
 use tracing::info;
 

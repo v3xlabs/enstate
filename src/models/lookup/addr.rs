@@ -1,10 +1,7 @@
-use ethers_core::{
-    abi::{ParamType, Token},
-    types::H160,
-};
+use ethers_core::{abi::{ParamType, Token}, types::H256};
 use hex_literal::hex;
 
-use super::*;
+use super::{ENSLookup, ENSLookupError};
 
 pub struct Addr {}
 
@@ -24,7 +21,8 @@ impl ENSLookup for Addr {
         let address = decoded_abi
             .get(0)
             .ok_or(ENSLookupError::AbiError)?
-            .clone().into_address();
+            .clone()
+            .into_address();
 
         Ok(address.map(|address| format!("{:?}", address)))
     }

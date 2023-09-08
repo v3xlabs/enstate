@@ -2,16 +2,18 @@ use std::collections::BTreeMap;
 
 use ethers::providers::{Http, Provider};
 
+use ethers_core::types::U256;
 use redis::AsyncCommands;
 use tracing::info;
 
 use crate::{
     models::{
-        lookup::{addr::Addr, text::Text, ENSLookup},
+        lookup::{addr::Addr, multicoin::Multicoin, text::Text, ENSLookup},
+        multicoin::cointype::coins::CoinType,
         profile::Profile,
         universal_resolver::resolve_universal,
     },
-    state::{default_records, AppState},
+    state::AppState,
 };
 
 use super::error::ProfileError;
@@ -56,15 +58,17 @@ impl Profile {
 
         // Lookup all Records
         let record_offset = calldata.len();
-        for record in default_records() {
+        for record in &state.profile_records {
             calldata.push(Box::new(Text::new(record.clone())));
         }
 
         // Lookup all chains
         let chain_offset = calldata.len();
-        // for chain in .iter() {
-        //     calldata.push(Box::new(Text::new(chain.clone())));
-        // }
+        for chain in &state.profile_chains {
+            calldata.push(Box::new(Multicoin {
+                coin_type: chain.clone(),
+            }));
+        }
 
         // Execute Universal Resolver Lookup
         let (data, resolver) = resolve_universal(name.to_string(), &calldata, provider).await?;
@@ -98,15 +102,24 @@ impl Profile {
 
         let mut records = BTreeMap::default();
 
-        for (index, value) in results[record_offset..].iter().enumerate() {
+        for (index, value) in results[record_offset..chain_offset].iter().enumerate() {
             if let Some(value) = value {
                 if !value.is_empty() {
-                    records.insert(default_records()[index].clone(), value.to_string());
+                    records.insert(state.profile_records[index].clone(), value.to_string());
                 }
             }
         }
 
         let mut chains = BTreeMap::default();
+
+        for (index, value) in results[chain_offset..].iter().enumerate() {
+            if let Some(value) = value {
+                if !value.is_empty() {
+                    let chain_id: U256 = state.profile_chains[index].clone().into();
+                    chains.insert(chain_id.to_string(), value.to_string());
+                }
+            }
+        }
 
         // chains.insert("btc".to_string(), btc.unwrap_or(":shrug:".to_string()));
 

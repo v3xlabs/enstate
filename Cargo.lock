@@ -891,6 +891,7 @@ dependencies = [
  "ethers-core",
  "hex",
  "hex-literal",
+ "lazy_static",
  "rand",
  "redis",
  "regex",

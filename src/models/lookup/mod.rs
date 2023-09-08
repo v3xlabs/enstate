@@ -4,6 +4,7 @@ use thiserror::Error;
 pub mod addr;
 pub mod text;
 pub mod avatar;
+pub mod multicoin;
 
 #[derive(Error, Debug)]
 pub enum ENSLookupError {
@@ -11,6 +12,9 @@ pub enum ENSLookupError {
     AbiError,
     #[error("Invalid payload: {0}")]
     InvalidPayload(String),
+
+    #[error("Empty payload")]
+    EmptyPayload(),
 
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),

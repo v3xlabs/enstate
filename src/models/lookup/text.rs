@@ -1,13 +1,13 @@
-use super::*;
-use ethers_core::abi::{ParamType, Token};
+use ethers_core::{abi::{ParamType, Token}, types::H256};
 use hex_literal::hex;
 
+use super::{ENSLookup, ENSLookupError};
 pub struct Text {
     key: String,
 }
 
 impl Text {
-    pub fn new(key: String) -> Self {
+    pub const fn new(key: String) -> Self {
         Self { key }
     }
 }
