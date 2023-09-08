@@ -47,13 +47,13 @@ impl ENSLookup for Multicoin {
             // SLIP-044 Chain Address Decoding (see ensip-9)
             CoinType::Slip44(slip44) => match slip44 {
                 // Bitcoin Decoding
-                SLIP44::Bitcoin => Ok(decode_btc(value.as_slice()).unwrap()),
-                // Lightcoin Decoding
-                SLIP44::Litecoin => {
-                    Err(ENSLookupError::Unknown(anyhow!(
-                        "Litecoin Decoding Not Implemented"
-                    )))
+                SLIP44::Bitcoin => {
+                    decode_btc(value.as_slice()).map_err(|x| ENSLookupError::Unknown(anyhow!(x)))
                 }
+                // Lightcoin Decoding
+                SLIP44::Litecoin => Err(ENSLookupError::Unknown(anyhow!(
+                    "Litecoin Decoding Not Implemented"
+                ))),
 
                 // Unsupported SLIP44 Chain
                 _ => {
@@ -77,7 +77,7 @@ impl ENSLookup for Multicoin {
                 let address = hex::encode(value);
 
                 Ok(format!("0x{address}"))
-            },
+            }
         }
     }
 
