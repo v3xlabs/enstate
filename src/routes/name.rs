@@ -5,6 +5,7 @@ use axum::{
     http::StatusCode,
     Json,
 };
+use axum_macros::debug_handler;
 use serde::Deserialize;
 
 use crate::models::profile::Profile;
@@ -25,6 +26,7 @@ pub struct NameQuery {
         ("name" = String, Path, description = "Name to lookup the address for."),
     )
 )]
+#[debug_handler]
 pub async fn get(
     Path(name): Path<String>,
     Query(query): Query<NameQuery>,

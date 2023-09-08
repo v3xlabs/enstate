@@ -2,14 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use utoipa::ToSchema;
 
-pub mod calldata_multicoin;
-pub mod calldata_address;
-pub mod calldata_avatar;
-pub mod calldata_text;
 pub mod error;
-pub mod from_address;
 pub mod from_name;
-pub mod resolve_universal;
+pub mod from_address;
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct Profile {
