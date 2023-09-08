@@ -1,57 +1,36 @@
-use ethers::{
-    prelude::rand::seq::SliceRandom,
-    providers::{Http, Provider},
-};
-use ethers_ccip_read::CCIPReadMiddleware;
 use redis::aio::ConnectionManager;
 use std::env;
 use tracing::info;
 
-use crate::{database, provider::RoundRobinProvider};
+use crate::{
+    database,
+    models::{multicoin::cointype::{coins::CoinType, Coins}, records::Records},
+    provider::RoundRobinProvider,
+};
 
 #[allow(clippy::module_name_repetitions)]
 pub struct AppState {
     pub redis: ConnectionManager,
     pub profile_records: Vec<String>,
+    pub profile_chains: Vec<CoinType>,
     pub rpc_urls: Vec<String>,
     pub provider: RoundRobinProvider,
 }
 
-pub fn default_records() -> Vec<String> {
-    vec![
-        "url",
-        "name",
-        "mail",
-        "email",
-        "header",
-        "location",
-        "timezone",
-        "language",
-        "pronouns",
-        "com.github",
-        "org.matrix",
-        "io.keybase",
-        "description",
-        "com.twitter",
-        "com.discord",
-        "social.bsky",
-        "org.telegram",
-        "social.mastodon",
-        "network.dm3.profile",
-        "network.dm3.deliveryService",
-    ]
-    .into_iter()
-    .map(ToString::to_string)
-    .collect()
-}
-
 impl AppState {
     pub async fn new() -> Self {
-        let profile_records = env::var("PROFILE_RECORDS")
-            .ok()
-            .map_or_else(default_records, |s| {
-                s.split(',').map(ToString::to_string).collect::<Vec<_>>()
-            });
+        let profile_records = env::var("PROFILE_RECORDS").map_or_else(
+            |_| Records::default().records,
+            |s| s.split(",").map(std::string::ToString::to_string).collect(),
+        );
+
+        let multicoin_chains: Vec<CoinType> = env::var("MULTICOIN_CHAINS").map_or_else(
+            |_| Coins::default().coins,
+            |_| {
+                // TODO: Implement chain parsing
+                vec![]
+            }, // |s| s.split(",").map(std::string::ToString::to_string).collect(),
+        );
 
         let raw_rpc_urls: String =
             env::var("RPC_URL").expect("RPC_URL environment variable not found.");
@@ -71,6 +50,7 @@ impl AppState {
         Self {
             redis,
             profile_records,
+            profile_chains: multicoin_chains,
             rpc_urls,
             provider,
         }
