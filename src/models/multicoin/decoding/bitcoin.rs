@@ -12,11 +12,12 @@ impl MulticoinDecoder for BitcoinDecoder {
             return P2SHDecoder { version: 0x05 }.decode(data);
         }
 
+        // bc
         if data.starts_with(&[0x98, 0x99]) {
             return Err(MulticoinDecoderError::NotSupported);
         }
 
-        Err(MulticoinDecoderError::NotSupported)
+        Err(MulticoinDecoderError::InvalidStructure(String::new()))
     }
 }
 

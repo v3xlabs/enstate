@@ -1,11 +1,11 @@
 use super::{MulticoinDecoder, MulticoinDecoderError};
 
-pub struct EvmDecoder {}
+pub struct SolanaDecoder {}
 
-impl MulticoinDecoder for EvmDecoder {
+impl MulticoinDecoder for SolanaDecoder {
     fn decode(&self, data: &[u8]) -> Result<String, MulticoinDecoderError> {
-        let hex = hex::encode(data);
-
-        Ok(format!("0x{hex}"))
+        Ok(bs58::encode(data).into_string())
     }
 }
+
+// TODO: tests

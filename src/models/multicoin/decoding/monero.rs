@@ -1,11 +1,11 @@
 use super::{MulticoinDecoder, MulticoinDecoderError};
 
-pub struct EvmDecoder {}
+pub struct MoneroDecoder {}
 
-impl MulticoinDecoder for EvmDecoder {
+impl MulticoinDecoder for MoneroDecoder {
     fn decode(&self, data: &[u8]) -> Result<String, MulticoinDecoderError> {
-        let hex = hex::encode(data);
-
-        Ok(format!("0x{hex}"))
+        Err(MulticoinDecoderError::NotSupported)
     }
 }
+
+// TODO: tests

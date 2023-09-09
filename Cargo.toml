@@ -40,6 +40,8 @@ digest = "0.10.7"
 hex-literal = "0.4.1"
 axum-macros = "0.3.8"
 lazy_static = "1.4.0"
+base32 = "0.4.0"
+crc16 = "0.4.0"
 
 
 [build-dependencies]
