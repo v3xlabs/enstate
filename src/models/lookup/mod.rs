@@ -16,6 +16,7 @@ pub enum ENSLookupError {
     #[error("MulticoinDecoderError: {0}")]
     MulticoinDecoder(#[from] MulticoinDecoderError),
 
+    #[allow(dead_code)]
     #[error("Unsupported: {0}")]
     Unsupported(String),
 

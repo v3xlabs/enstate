@@ -1,9 +1,10 @@
-use super::{p2pkh::P2PKHDecoder, p2sh::P2SHDecoder, MulticoinDecoder, MulticoinDecoderError};
+use super::{MulticoinDecoder, MulticoinDecoderError};
 
 pub struct RippleDecoder {}
 
 impl MulticoinDecoder for RippleDecoder {
     fn decode(&self, data: &[u8]) -> Result<String, MulticoinDecoderError> {
+        _ = data;
         Err(MulticoinDecoderError::NotSupported)
     }
 }

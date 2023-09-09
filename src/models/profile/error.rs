@@ -10,6 +10,7 @@ pub enum ProfileError {
     #[error("RPC Error {0}")]
     RPCError(#[from] ProviderError),
 
+    #[allow(dead_code)]
     #[error("Unknown")]
     Unknown,
 }

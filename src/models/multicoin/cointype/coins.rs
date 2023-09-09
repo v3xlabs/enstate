@@ -1,8 +1,4 @@
-use std::fmt::Display;
-
 use ethers_core::types::U256;
-
-use crate::models::multicoin::decoding::{MulticoinDecoder, MulticoinDecoderError};
 
 use super::{evm::ChainId, slip44::SLIP44};
 
@@ -32,9 +28,8 @@ impl ToString for CoinType {
 
 #[cfg(test)]
 mod tests {
-    use super::super::{evm::ChainId, slip44::SLIP44};
-
     use super::*;
+    use super::super::{evm::ChainId, slip44::SLIP44};
 
     #[test]
     fn test_coin_type() {
