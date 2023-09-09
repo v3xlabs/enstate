@@ -42,7 +42,7 @@ impl ENSLookup for Avatar {
 
         // If the raw value is eip155 url
         let eip155 =
-            regex::Regex::new(r"eip155:([0-9]+)/(erc1155|erc712):0x([0-9a-fA-F]{40})/([0-9]+)")
+            regex::Regex::new(r"eip155:([0-9]+)/(erc1155|erc721):0x([0-9a-fA-F]{40})/([0-9]+)")
                 .unwrap();
 
         if let Some(captures) = eip155.captures(&value) {
