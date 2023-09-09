@@ -1,6 +1,8 @@
 use ethers_core::types::H256;
 use thiserror::Error;
 
+use super::multicoin::decoding::MulticoinDecoderError;
+
 pub mod addr;
 pub mod avatar;
 pub mod multicoin;
@@ -9,10 +11,10 @@ pub mod text;
 #[derive(Error, Debug)]
 pub enum ENSLookupError {
     #[error("ABI error")]
-    AbiError,
+    AbiDecodeError,
 
-    #[error("Invalid payload: {0}")]
-    InvalidPayload(String),
+    #[error("MulticoinDecoderError: {0}")]
+    MulticoinDecoder(#[from] MulticoinDecoderError),
 
     #[error("Unsupported: {0}")]
     Unsupported(String),

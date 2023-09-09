@@ -17,6 +17,7 @@ impl Default for Coins {
                 SLIP44::Hedera.into(),
                 SLIP44::Stellar.into(),
                 ChainId::Polygon.into(),
+                ChainId::Optimism.into(),
             ]
         }
     }

@@ -8,7 +8,7 @@ use tracing::info;
 
 use crate::{
     models::{
-        lookup::{addr::Addr, multicoin::Multicoin, text::Text, ENSLookup, avatar::Avatar},
+        lookup::{addr::Addr, avatar::Avatar, text::Text, ENSLookup, multicoin::Multicoin},
         profile::Profile,
         universal_resolver::resolve_universal,
     },
@@ -127,13 +127,10 @@ impl Profile {
         for (index, value) in results[chain_offset..].iter().enumerate() {
             if let Some(value) = value {
                 if !value.is_empty() {
-                    let chain_id: U256 = state.profile_chains[index].clone().into();
-                    chains.insert(chain_id.to_string(), value.to_string());
+                    chains.insert( state.profile_chains[index].to_string(), value.to_string());
                 }
             }
         }
-
-        // chains.insert("btc".to_string(), btc.unwrap_or(":shrug:".to_string()));
 
         let value = Self {
             name: name.to_string(),

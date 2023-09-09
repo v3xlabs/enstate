@@ -42,3 +42,21 @@ impl From<ChainId> for CoinType {
         Self::Evm(val)
     }
 }
+
+impl ToString for ChainId {
+    fn to_string(&self) -> String {
+        match self {
+            ChainId::Ethereum => "eth".to_string(),
+            ChainId::Optimism => "optimism".to_string(),
+            ChainId::BinanceSmartChain => "bsc".to_string(),
+            ChainId::Gnosis => "gnosis".to_string(),
+            ChainId::Polygon => "polygon".to_string(),
+            ChainId::Fantom => "fantom".to_string(),
+            ChainId::Moonbeam => "moonbeam".to_string(),
+            ChainId::Arbitrum => "arbitrum".to_string(),
+            ChainId::Avalanche => "avalanche".to_string(),
+            ChainId::Celo => "celo".to_string(),
+            ChainId::Other(id) => format!("SLIP44:{}", id),
+        }
+    }
+}

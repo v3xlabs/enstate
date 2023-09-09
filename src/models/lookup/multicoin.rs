@@ -1,16 +1,10 @@
-use anyhow::anyhow;
 use ethers_core::{
     abi::{ParamType, Token},
-    k256::U256,
-    types::{H160, H256},
+    types::H256,
 };
 use hex_literal::hex;
-use tracing::info;
 
-use crate::models::multicoin::{
-    cointype::{coins::CoinType, evm::ChainId, slip44::SLIP44},
-    decoding::bitcoin::decode_btc,
-};
+use crate::models::multicoin::cointype::{coins::CoinType, evm::ChainId, slip44::SLIP44};
 
 use super::{ENSLookup, ENSLookupError};
 
@@ -32,56 +26,24 @@ impl ENSLookup for Multicoin {
 
     fn decode(&self, data: &[u8]) -> Result<String, ENSLookupError> {
         let decoded_abi = ethers_core::abi::decode(&[ParamType::Bytes], data)
-            .map_err(|_| ENSLookupError::AbiError)?;
+            .map_err(|_| ENSLookupError::AbiDecodeError)?;
         let value = decoded_abi
             .get(0)
-            .ok_or(ENSLookupError::AbiError)?
+            .ok_or(ENSLookupError::AbiDecodeError)?
             .clone()
             .into_bytes();
 
         let value = value.unwrap();
 
-        // TODO: If value is empty
-
-        match &self.coin_type {
-            // SLIP-044 Chain Address Decoding (see ensip-9)
-            CoinType::Slip44(slip44) => match slip44 {
-                // Bitcoin Decoding
-                SLIP44::Bitcoin => {
-                    decode_btc(value.as_slice()).map_err(|x| ENSLookupError::Unknown(anyhow!(x)))
-                }
-                // Lightcoin Decoding
-                SLIP44::Litecoin => Err(ENSLookupError::Unknown(anyhow!(
-                    "Litecoin Decoding Not Implemented"
-                ))),
-
-                // Unsupported SLIP44 Chain
-                _ => {
-                    // Raw Dump
-                    // Ok(format!("SLIP-{:?}", value))
-
-                    // Unsupported
-                    Err(ENSLookupError::Unsupported(
-                        "Chain Not Supported".to_string(),
-                    ))
-                }
-            },
-            // Implement EVM Chain Address Decoding (mostly ChecksummedHex, sometimes ChecksummedHex(chainId)) (see ensip-11)
-            CoinType::Evm(_evm) => {
-                // Verify length is 20 bytes
-                if value.len() != 20 {
-                    // TODO: throw invalid length
-                    return Ok("Invalid Length".to_string());
-                }
-
-                let address = hex::encode(value);
-
-                Ok(format!("0x{address}"))
-            }
+        if value.is_empty() {
+            // Empty field
+            return Ok(String::new());
         }
+
+        Ok(self.coin_type.decode(&value)?)
     }
 
     fn name(&self) -> String {
-        format!("chains.{:?}", self.coin_type)
+        format!("chains.{}", self.coin_type.to_string())
     }
 }

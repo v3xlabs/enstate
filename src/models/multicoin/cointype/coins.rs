@@ -1,4 +1,8 @@
+use std::fmt::Display;
+
 use ethers_core::types::U256;
+
+use crate::models::multicoin::decoding::{MulticoinDecoder, MulticoinDecoderError};
 
 use super::{evm::ChainId, slip44::SLIP44};
 
@@ -13,6 +17,15 @@ impl From<CoinType> for U256 {
         match value {
             CoinType::Slip44(slip44) => slip44.into(),
             CoinType::Evm(chain) => chain.as_ensip11().into(),
+        }
+    }
+}
+
+impl ToString for CoinType {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Slip44(slip44) => slip44.to_string(),
+            Self::Evm(chain) => chain.to_string(),
         }
     }
 }

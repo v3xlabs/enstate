@@ -44,3 +44,23 @@ impl From<SLIP44> for CoinType {
         CoinType::Slip44(val)
     }
 }
+
+impl ToString for SLIP44 {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Bitcoin => "btc".to_string(),
+            Self::Litecoin => "ltc".to_string(),
+            Self::Dogecoin => "doge".to_string(),
+            Self::Ethereum => "eth".to_string(),
+            Self::BitcoinCash => "bch".to_string(),
+            Self::EthereumClassic => "etc".to_string(),
+            Self::Monero => "xmr".to_string(),
+            Self::Ripple => "ripple".to_string(),
+            Self::Stellar => "stellar".to_string(),
+            Self::Tezos => "tezos".to_string(),
+            Self::Hedera => "hedera".to_string(),
+            Self::Cardano => "cardano".to_string(),
+            Self::Other(u256) => u256.to_string(),
+        }
+    }
+}

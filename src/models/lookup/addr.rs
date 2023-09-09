@@ -20,13 +20,13 @@ impl ENSLookup for Addr {
 
     fn decode(&self, data: &[u8]) -> Result<String, ENSLookupError> {
         let decoded_abi = ethers_core::abi::decode(&[ParamType::Address], data)
-            .map_err(|_| ENSLookupError::AbiError)?;
+            .map_err(|_| ENSLookupError::AbiDecodeError)?;
         let address = decoded_abi
             .get(0)
-            .ok_or(ENSLookupError::AbiError)?
+            .ok_or(ENSLookupError::AbiDecodeError)?
             .clone()
             .into_address()
-            .ok_or(ENSLookupError::InvalidPayload("yup".to_string()))?;
+            .ok_or(ENSLookupError::AbiDecodeError)?;
 
         Ok(format!("{address:?}"))
     }
