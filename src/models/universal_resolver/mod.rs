@@ -1,11 +1,13 @@
-use crate::models::lookup::ENSLookup;
 use ethers::{
-    providers::{namehash, Http, Middleware, Provider},
-    types::{transaction::eip2718::TypedTransaction, Address, Bytes},
+    providers::{Http, Middleware, namehash, Provider},
+    types::{Address, Bytes, transaction::eip2718::TypedTransaction},
 };
 use ethers_ccip_read::utils::dns_encode;
 use ethers_contract::abigen;
 use ethers_core::abi::{ParamType, Token};
+use lazy_static::lazy_static;
+
+use crate::models::lookup::ENSLookup;
 
 use super::profile::error::ProfileError;
 
@@ -16,17 +18,18 @@ abigen!(
     ]"#,
 );
 
+lazy_static! {
+    // Setup address of universal resolver
+    static ref UNIVERSAL_ADDRESS: Address = "0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62"
+        .parse::<Address>()
+        .unwrap();
+}
+
 pub async fn resolve_universal(
     name: String,
     data: &Vec<Box<dyn ENSLookup + Send + Sync>>,
     provider: Provider<Http>,
 ) -> Result<(Vec<Vec<u8>>, Address), ProfileError> {
-    // Setup address of universal resolver
-    // TODO: Figure out way to only have to do this once
-    let universal_address = "0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62"
-        .parse::<Address>()
-        .unwrap();
-
     let name_hash = namehash(name.as_str());
 
     // Prepare the variables
@@ -50,7 +53,7 @@ pub async fn resolve_universal(
     let transaction_data = [resolve_selector, encoded_data].concat();
 
     // Setup the transaction
-    typed_transaction.set_to(universal_address);
+    typed_transaction.set_to(*UNIVERSAL_ADDRESS);
     typed_transaction.set_data(Bytes::from(transaction_data));
 
     // Call the transaction
@@ -66,7 +69,7 @@ pub async fn resolve_universal(
         ],
         res_data.as_slice(),
     )
-    .unwrap();
+        .unwrap();
 
     let result_datas = result.get(0).unwrap().clone();
     let result_address = result.get(1).unwrap().clone();
@@ -84,9 +87,6 @@ pub async fn resolve_universal(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use ethers::providers::namehash;
-
     #[tokio::test]
     async fn test_resolve_universal() {
         // let namehash = namehash("luc.eth");

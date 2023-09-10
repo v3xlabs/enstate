@@ -42,7 +42,7 @@ axum-macros = "0.3.8"
 lazy_static = "1.4.0"
 base32 = "0.4.0"
 crc16 = "0.4.0"
-
+blake2 = "0.10.6"
 
 [build-dependencies]
 chrono = "0.4.24"

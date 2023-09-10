@@ -1,12 +1,6 @@
-use lazy_static::lazy_static;
-
 use super::{MulticoinDecoder, MulticoinDecoderError, p2pkh::P2PKHDecoder, p2sh::P2SHDecoder};
 
 pub struct BitcoinCashDecoder {}
-
-lazy_static! {
-    static ref BITCOIN_CASH_BYTES: &'static [u8] = "bitcoincash".as_bytes();
-}
 
 impl MulticoinDecoder for BitcoinCashDecoder {
     fn decode(&self, data: &[u8]) -> Result<String, MulticoinDecoderError> {
@@ -18,7 +12,7 @@ impl MulticoinDecoder for BitcoinCashDecoder {
             return P2SHDecoder { version: 0x05 }.decode(data);
         }
 
-        if data.starts_with(*BITCOIN_CASH_BYTES) {
+        if data.starts_with(b"bitcoincash") {
             return Err(MulticoinDecoderError::NotSupported);
         }
 
