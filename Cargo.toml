@@ -45,6 +45,9 @@ crc16 = "0.4.0"
 blake2 = "0.10.6"
 rustc-hex = "2.0.1"
 serde_with = "3.3.0"
+bech32 = "0.9.1"
+crc32fast = "1.3.2"
+ciborium = "0.2.1"
 
 [build-dependencies]
 chrono = "0.4.24"
