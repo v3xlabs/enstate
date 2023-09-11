@@ -45,15 +45,3 @@ impl MulticoinDecoder for TezosDecoder {
 }
 
 // TODO: tests
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_a() {
-        println!("{:?}", TezosDecoder {}.decode(&[1, 227, 201, 210, 54, 50, 195, 66, 162, 220, 156, 147, 249, 139, 79, 211, 149, 194, 64, 36, 222, 0]
-        ));
-
-        assert_eq!(1, 1);
-    }
-}
