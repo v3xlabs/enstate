@@ -1,4 +1,5 @@
 use bech32::{ToBase32, Variant};
+use bech32::primitives::hrp::Hrp;
 use bs58::Alphabet;
 use ciborium::Value;
 use ciborium::value::Integer;
@@ -16,7 +17,7 @@ fn encode_cardano_bryon(data: &[u8]) -> Result<String, MulticoinDecoderError> {
         Value::Tag(24, Box::new(Value::Bytes(data.to_vec()))),
         Value::Integer(Integer::from(checksum)),
     ], &mut cbor_encoded)
-        .map_err(|_| MulticoinDecoderError::InvalidStructure("faile to cbor encode".to_string()))?;
+        .map_err(|_| MulticoinDecoderError::InvalidStructure("failed to cbor encode".to_string()))?;
 
     let bs58_encoded = bs58::encode(cbor_encoded).with_alphabet(Alphabet::BITCOIN).into_string();
 
@@ -28,7 +29,7 @@ fn encode_cardano_bryon(data: &[u8]) -> Result<String, MulticoinDecoderError> {
 }
 
 fn encode_cardano_shelley(data: &[u8]) -> Result<String, MulticoinDecoderError> {
-    bech32::encode("addr", data.to_base32(), Variant::Bech32)
+    bech32::encode(Hrp::parse_unchecked("addr"), data.to_base32(), Variant::Bech32)
         .map_err(|_| MulticoinDecoderError::InvalidStructure("failed to bech32 encode".to_string()))
 }
 

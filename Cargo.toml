@@ -45,7 +45,7 @@ crc16 = "0.4.0"
 blake2 = "0.10.6"
 rustc-hex = "2.0.1"
 serde_with = "3.3.0"
-bech32 = "0.9.1"
+bech32 = "0.10.0-alpha"
 crc32fast = "1.3.2"
 ciborium = "0.2.1"
 

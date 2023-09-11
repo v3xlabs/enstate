@@ -36,6 +36,7 @@ pub mod polkadot;
 pub mod checksum_address;
 pub mod p2pkh;
 pub mod p2sh;
+pub mod segwit;
 
 #[derive(Debug, Error)]
 pub enum MulticoinDecoderError {

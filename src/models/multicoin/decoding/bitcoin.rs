@@ -1,20 +1,29 @@
-use super::{p2pkh::P2PKHDecoder, p2sh::P2SHDecoder, MulticoinDecoder, MulticoinDecoderError};
+use std::string::ToString;
+
+use lazy_static::lazy_static;
+
+use crate::models::multicoin::decoding::segwit::SegWitDecoder;
+
+use super::{MulticoinDecoder, MulticoinDecoderError, p2pkh::P2PKHDecoder, p2sh::P2SHDecoder};
+
+lazy_static! {
+    static ref BTC_SEGWIT_DECODER: SegWitDecoder = SegWitDecoder { human_readable_part: "bc".to_string() };
+}
 
 pub struct BitcoinDecoder {}
 
 impl MulticoinDecoder for BitcoinDecoder {
     fn decode(&self, data: &[u8]) -> Result<String, MulticoinDecoderError> {
+        if let Ok(address) = BTC_SEGWIT_DECODER.decode(data) {
+            return Ok(address);
+        }
+
         if data.len() == 25 {
             return P2PKHDecoder { version: 0x00 }.decode(data);
         }
 
         if data.len() == 23 {
             return P2SHDecoder { version: 0x05 }.decode(data);
-        }
-
-        // bc
-        if data.starts_with(&[0x98, 0x99]) {
-            return Err(MulticoinDecoderError::NotSupported);
         }
 
         Err(MulticoinDecoderError::InvalidStructure(String::new()))

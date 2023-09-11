@@ -12,10 +12,6 @@ impl MulticoinDecoder for BitcoinCashDecoder {
             return P2SHDecoder { version: 0x05 }.decode(data);
         }
 
-        if data.starts_with(b"bitcoincash") {
-            return Err(MulticoinDecoderError::NotSupported);
-        }
-
         Err(MulticoinDecoderError::InvalidStructure(String::new()))
     }
 }
