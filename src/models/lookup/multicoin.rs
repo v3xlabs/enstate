@@ -4,7 +4,7 @@ use ethers_core::{
 };
 use hex_literal::hex;
 
-use crate::models::multicoin::cointype::{coins::CoinType, evm::ChainId, slip44::SLIP44};
+use crate::models::multicoin::cointype::coins::CoinType;
 
 use super::{ENSLookup, ENSLookupError};
 

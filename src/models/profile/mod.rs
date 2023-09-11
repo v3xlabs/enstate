@@ -3,6 +3,8 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
+use crate::utils::eip55::EIP55Address;
+
 pub mod error;
 pub mod from_address;
 pub mod from_name;
@@ -12,7 +14,7 @@ pub struct Profile {
     // Name
     pub name: String,
     // Ethereum Mainnet Address
-    pub address: Option<String>,
+    pub address: Option<EIP55Address>,
     // Avatar URL
     pub avatar: Option<String>,
     // Preferred Capitalization of Name
@@ -24,7 +26,7 @@ pub struct Profile {
     // Unix Timestamp of date it was loaded
     pub fresh: i64,
     // Resolver the information was fetched from
-    pub resolver: String,
+    pub resolver: EIP55Address,
     // Errors encountered while fetching & decoding
     pub errors: BTreeMap<String, String>,
 }

@@ -1,19 +1,19 @@
 use std::collections::BTreeMap;
+use std::str::FromStr;
 
 use ethers::providers::{Http, Provider};
-
-use ethers_core::types::U256;
 use redis::AsyncCommands;
 use tracing::info;
 
 use crate::{
     models::{
-        lookup::{addr::Addr, avatar::Avatar, text::Text, ENSLookup, multicoin::Multicoin},
+        lookup::{addr::Addr, avatar::Avatar, ENSLookup, multicoin::Multicoin, text::Text},
         profile::Profile,
         universal_resolver::resolve_universal,
     },
     state::AppState,
 };
+use crate::utils::eip55::EIP55Address;
 
 use super::error::ProfileError;
 
@@ -108,7 +108,6 @@ impl Profile {
             name = name,
             address,
             avatar = ?avatar,
-            // btc = ?btc,
             "Profile for {name} found"
         );
 
@@ -127,20 +126,20 @@ impl Profile {
         for (index, value) in results[chain_offset..].iter().enumerate() {
             if let Some(value) = value {
                 if !value.is_empty() {
-                    chains.insert( state.profile_chains[index].to_string(), value.to_string());
+                    chains.insert(state.profile_chains[index].to_string(), value.to_string());
                 }
             }
         }
 
         let value = Self {
             name: name.to_string(),
-            address,
+            address: address.and_then(|it| EIP55Address::from_str(it.as_str()).ok()),
             avatar,
             display,
             records,
             chains,
             fresh: chrono::offset::Utc::now().timestamp_millis(),
-            resolver: format!("{:?}", resolver),
+            resolver: EIP55Address(resolver),
             errors,
         };
 
