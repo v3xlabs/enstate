@@ -13,6 +13,7 @@ use crate::models::multicoin::decoding::ripple::RippleDecoder;
 use crate::models::multicoin::decoding::solana::SolanaDecoder;
 use crate::models::multicoin::decoding::stellar::StellarDecoder;
 use crate::models::multicoin::decoding::tezos::TezosDecoder;
+use crate::utils::eip55::RSKIPChain;
 
 use super::cointype::{coins::CoinType, slip44::SLIP44};
 
@@ -54,8 +55,8 @@ impl CoinType {
         let decoder: Box<dyn MulticoinDecoder> = match self {
             Self::Slip44(slip44) => match slip44 {
                 SLIP44::Bitcoin => Box::new(BitcoinDecoder {}),
-                SLIP44::Ethereum | SLIP44::EthereumClassic => Box::new(EvmDecoder { chain_id: None }),
-                SLIP44::Rootstock => Box::new(EvmDecoder { chain_id: Some(30) }),
+                SLIP44::Ethereum | SLIP44::EthereumClassic => Box::new(EvmDecoder { chain: RSKIPChain::Ethereum }),
+                SLIP44::Rootstock => Box::new(EvmDecoder { chain: RSKIPChain::Other(30) }),
                 SLIP44::Litecoin => Box::new(LitecoinDecoder {}),
                 SLIP44::BitcoinCash => Box::new(BitcoinCashDecoder {}),
                 SLIP44::Solana => Box::new(SolanaDecoder {}),
@@ -71,7 +72,7 @@ impl CoinType {
                 SLIP44::Polkadot => Box::new(PolkadotDecoder {}),
                 _ => return Err(MulticoinDecoderError::NotSupported),
             },
-            Self::Evm(_) => Box::new(EvmDecoder { chain_id: None }),
+            Self::Evm(_) => Box::new(EvmDecoder { chain: RSKIPChain::Ethereum }),
         };
 
         decoder.decode(data)

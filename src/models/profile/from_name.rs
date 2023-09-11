@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::str::FromStr;
 
 use ethers::providers::{Http, Provider};
 use redis::AsyncCommands;
@@ -12,6 +13,7 @@ use crate::{
     },
     state::AppState,
 };
+use crate::utils::eip55::EIP55Address;
 
 use super::error::ProfileError;
 
@@ -106,7 +108,6 @@ impl Profile {
             name = name,
             address,
             avatar = ?avatar,
-            // btc = ?btc,
             "Profile for {name} found"
         );
 
@@ -132,13 +133,13 @@ impl Profile {
 
         let value = Self {
             name: name.to_string(),
-            address,
+            address: address.and_then(|it| EIP55Address::from_str(it.as_str()).ok()),
             avatar,
             display,
             records,
             chains,
             fresh: chrono::offset::Utc::now().timestamp_millis(),
-            resolver: format!("{:?}", resolver),
+            resolver: EIP55Address(resolver),
             errors,
         };
 

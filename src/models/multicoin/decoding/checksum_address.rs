@@ -1,14 +1,15 @@
 use crate::utils;
+use crate::utils::eip55::RSKIPChain;
 
 use super::{MulticoinDecoder, MulticoinDecoderError};
 
 pub struct EvmDecoder {
-    pub(crate) chain_id: Option<u64>
+    pub(crate) chain: RSKIPChain
 }
 
 impl MulticoinDecoder for EvmDecoder {
     fn decode(&self, data: &[u8]) -> Result<String, MulticoinDecoderError> {
-        let hex = utils::hex::encode_rskip60(data, self.chain_id);
+        let hex = utils::eip55::encode_rskip60(data, self.chain);
 
         Ok(format!("0x{hex}"))
     }
