@@ -9,6 +9,7 @@ mod state;
 mod provider;
 mod utils;
 
+use enstate_shared;
 use dotenvy::dotenv;
 use state::AppState;
 use tracing::{Level, info};

@@ -42,9 +42,22 @@ services:
       - 6379:6379
 ```
 
-## 🛣️ Roadmap
+### 🦀 Cloudflare Worker
 
-- Dockerize ✅
-- Internal Batching 👨‍🔧
-- Batching endpoints 👨‍🔧
-- TTL Specification 🔜
+```
+cd cloudflare && pnpm deploy
+```
+
+## Contributing
+
+### Standalone Server
+
+```
+cargo run -p enstate
+```
+
+### Cloudflare Worker
+
+```
+cd cloudflare && pnpm dev
+```
