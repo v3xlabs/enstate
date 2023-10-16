@@ -12,7 +12,7 @@ use crate::routes;
 #[derive(OpenApi)]
 #[openapi(
     paths(routes::address::get, routes::name::get),
-    components(schemas(crate::models::profile::Profile))
+    components(schemas(enstate_shared::models::profile::Profile))
 )]
 pub struct ApiDoc;
 

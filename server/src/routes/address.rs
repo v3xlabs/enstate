@@ -5,15 +5,19 @@ use axum::{
     http::StatusCode,
     Json,
 };
+use axum_macros::debug_handler;
 use serde::Deserialize;
 
-use crate::models::profile::Profile;
+use enstate_shared::models::profile::Profile;
 
+use crate::{cache::RedisCache};
+ 
 #[derive(Deserialize)]
 pub struct NameQuery {
     fresh: Option<bool>,
 }
 
+#[debug_handler]
 #[utoipa::path(
     get,
     path = "/a/{address}",
@@ -34,9 +38,19 @@ pub async fn get(
 ) -> Result<Json<Profile>, StatusCode> {
     let address = address.parse().map_err(|_| StatusCode::BAD_REQUEST)?;
 
-    let profile = Profile::from_address(address, query.fresh.unwrap_or(false), &state)
-        .await
-        .map_err(|_| StatusCode::NOT_FOUND)?;
+    let cache = Box::new(RedisCache::new(state.redis.clone()));
+    let rpc = state.provider.get_provider();
+
+    let profile = Profile::from_address(
+        address,
+        query.fresh.unwrap_or(false),
+        cache,
+        rpc,
+        &state.profile_records,
+        &state.profile_chains,
+    )
+    .await
+    .map_err(|_| StatusCode::NOT_FOUND)?;
 
     Ok(Json(profile))
 }

@@ -1,13 +1,13 @@
 [package]
 name = "enstate_shared"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
 
-[package.metadata.wasm-pack.profile.release]
-wasm-opt = false
+# [package.metadata.wasm-pack.profile.release]
+# wasm-opt = false
 
-[lib]
-crate-type = ["cdylib"]
+# [lib]
+# crate-type = ["cdylib"]
 
 [dependencies]
 ethers = "2"

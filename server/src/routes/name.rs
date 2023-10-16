@@ -1,12 +1,14 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, State, Query},
+    extract::{Path, Query, State},
     http::StatusCode,
     Json,
 };
 use enstate_shared::models::profile::Profile;
 use serde::Deserialize;
+
+use crate::cache::RedisCache;
 
 #[derive(Deserialize)]
 pub struct NameQuery {
@@ -31,9 +33,19 @@ pub async fn get(
 ) -> Result<Json<Profile>, StatusCode> {
     let name = name.to_lowercase();
 
-    let profile = Profile::from_name(&name, query.fresh.unwrap_or(false), &state)
-        .await
-        .map_err(|_| StatusCode::NOT_FOUND)?;
+    let cache = Box::new(RedisCache::new(state.redis.clone()));
+    let rpc = state.provider.get_provider();
+
+    let profile = Profile::from_name(
+        &name,
+        query.fresh.unwrap_or(false),
+        cache,
+        rpc,
+        &state.profile_records,
+        &state.profile_chains,
+    )
+    .await
+    .map_err(|_| StatusCode::NOT_FOUND)?;
 
     Ok(Json(profile))
 }

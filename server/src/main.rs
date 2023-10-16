@@ -6,8 +6,8 @@ mod http;
 mod routes;
 mod state;
 mod provider;
+mod cache;
 
-pub use enstate_shared as shared;
 use dotenvy::dotenv;
 use state::AppState;
 use tracing::{Level, info};

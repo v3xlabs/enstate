@@ -6,7 +6,7 @@ pub enum CacheError {
 }
 
 #[async_trait]
-pub trait CacheLayer {
+pub trait CacheLayer: Send + Sync {
     async fn get(&self, key: &str) -> Result<String, CacheError>;
     async fn set(&self, key: &str, value: &str, expires: u32) -> Result<(), CacheError>;
 }

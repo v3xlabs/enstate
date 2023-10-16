@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 worker = "0.0.18"
-enstate_shared = { path = "../shared" }
+enstate_shared = { path = "../enstate_shared" }
 
 [profile.release]
 lto = true
