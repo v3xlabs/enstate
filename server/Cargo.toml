@@ -12,7 +12,7 @@ authors = [
 ]
 
 [dependencies]
-enstate-shared = { path = "../shared" }
+enstate_shared = { path = "../shared" }
 
 ethers = "2"
 axum = "0.6.18"

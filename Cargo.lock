@@ -951,7 +951,7 @@ dependencies = [
  "crc32fast",
  "digest",
  "dotenvy",
- "enstate-shared",
+ "enstate_shared",
  "ethers",
  "ethers-ccip-read",
  "ethers-contract",
@@ -978,10 +978,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "enstate-shared"
+name = "enstate-worker"
+version = "0.0.1"
+dependencies = [
+ "enstate_shared",
+ "worker",
+]
+
+[[package]]
+name = "enstate_shared"
 version = "0.0.1"
 dependencies = [
  "anyhow",
+ "async-trait",
  "axum",
  "axum-macros",
  "base32",
@@ -1017,14 +1026,6 @@ dependencies = [
  "tracing-subscriber",
  "utoipa",
  "utoipa-swagger-ui",
-]
-
-[[package]]
-name = "enstate-worker"
-version = "0.0.1"
-dependencies = [
- "enstate-shared",
- "worker",
 ]
 
 [[package]]

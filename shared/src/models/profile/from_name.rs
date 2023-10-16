@@ -5,13 +5,10 @@ use ethers::providers::{Http, Provider};
 use redis::AsyncCommands;
 use tracing::info;
 
-use crate::{
-    models::{
-        lookup::{addr::Addr, avatar::Avatar, ENSLookup, multicoin::Multicoin, text::Text},
-        profile::Profile,
-        universal_resolver::resolve_universal,
-    },
-    state::AppState,
+use crate::models::{
+    lookup::{addr::Addr, avatar::Avatar, multicoin::Multicoin, text::Text, ENSLookup},
+    profile::Profile,
+    universal_resolver::resolve_universal, multicoin::cointype::coins::CoinType,
 };
 use crate::utils::eip55::EIP55Address;
 
@@ -21,10 +18,12 @@ impl Profile {
     pub async fn from_name(
         name: &str,
         fresh: bool,
-        state: &AppState,
+        cache: Box<dyn crate::cache::CacheLayer>,
+        rpc: Provider<Http>,
+        profile_records: &Vec<String>,
+        profile_chains: &Vec<CoinType>,
     ) -> Result<Self, ProfileError> {
         let cache_key = format!("n:{name}");
-        let mut redis = state.redis.clone();
 
         info!(
             name = name,
@@ -35,7 +34,7 @@ impl Profile {
 
         // If the value is in the cache, return it
         if !fresh {
-            if let Ok(value) = redis.get::<_, String>(&cache_key).await {
+            if let Ok(value) = cache.get(&cache_key).await {
                 if !value.is_empty() {
                     let entry: Self = serde_json::from_str(value.as_str()).unwrap();
 
@@ -45,8 +44,6 @@ impl Profile {
                 return Err(ProfileError::NotFound);
             }
         }
-
-        let provider: Provider<Http> = state.provider.get_provider();
 
         // Preset Hardcoded Lookups
         let mut calldata: Vec<Box<dyn ENSLookup + Send + Sync>> = vec![
@@ -61,20 +58,20 @@ impl Profile {
 
         // Lookup all Records
         let record_offset = calldata.len();
-        for record in &state.profile_records {
+        for record in profile_records {
             calldata.push(Box::new(Text::new(record.clone())));
         }
 
         // Lookup all chains
         let chain_offset = calldata.len();
-        for chain in &state.profile_chains {
+        for chain in profile_chains {
             calldata.push(Box::new(Multicoin {
                 coin_type: chain.clone(),
             }));
         }
 
         // Execute Universal Resolver Lookup
-        let (data, resolver) = resolve_universal(name.to_string(), &calldata, provider).await?;
+        let (data, resolver) = resolve_universal(name.to_string(), &calldata, rpc).await?;
 
         let mut results: Vec<Option<String>> = Vec::new();
         let mut errors = BTreeMap::default();
@@ -116,7 +113,7 @@ impl Profile {
         for (index, value) in results[record_offset..chain_offset].iter().enumerate() {
             if let Some(value) = value {
                 if !value.is_empty() {
-                    records.insert(state.profile_records[index].clone(), value.to_string());
+                    records.insert(profile_records[index].clone(), value.to_string());
                 }
             }
         }
@@ -126,7 +123,7 @@ impl Profile {
         for (index, value) in results[chain_offset..].iter().enumerate() {
             if let Some(value) = value {
                 if !value.is_empty() {
-                    chains.insert(state.profile_chains[index].to_string(), value.to_string());
+                    chains.insert(profile_chains[index].to_string(), value.to_string());
                 }
             }
         }
@@ -145,10 +142,11 @@ impl Profile {
 
         let response = serde_json::to_string(&value).unwrap();
 
-        redis
-            .set_ex::<_, _, ()>(&cache_key, &response, 3600)
-            .await
-            .unwrap();
+        cache.set(&cache_key, &response, 3600).await.unwrap();
+        // redis
+        //     .set_ex::<_, _, ()>(&cache_key, &response, 3600)
+        //     .await
+        //     .unwrap();
 
         Ok(value)
     }

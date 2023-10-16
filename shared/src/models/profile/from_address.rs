@@ -1,33 +1,35 @@
 use ethers::{
-    providers::{Middleware, ProviderError},
+    providers::{Http, Middleware, Provider, ProviderError},
     types::H160,
 };
-use redis::AsyncCommands;
 
-use crate::state::AppState;
+use crate::models::multicoin::cointype::coins::CoinType;
 
 use super::{error::ProfileError, Profile};
 
 impl Profile {
-    pub async fn from_address(address: H160, fresh: bool, state: &AppState) -> Result<Self, ProfileError> {
+    pub async fn from_address(
+        address: H160,
+        fresh: bool,
+        cache: Box<dyn crate::cache::CacheLayer>,
+        rpc: Provider<Http>,
+        profile_records: &Vec<String>,
+        profile_chains: &Vec<CoinType>,
+    ) -> Result<Self, ProfileError> {
         let cache_key = format!("a:{address:?}");
-        let mut redis = state.redis.clone();
 
         // Get value from the cache otherwise compute
-        let name = if let Ok(name) = redis.get(&cache_key).await {
+        let name = if let Ok(name) = cache.get(&cache_key).await {
             name
         } else {
-            let result = match state.provider.get_provider().lookup_address(address).await {
+            let result = match rpc.lookup_address(address).await {
                 Ok(result) => result,
                 Err(error) => {
                     println!("Error resolving address: {error:?}");
 
                     if let ProviderError::EnsError(_) = error {
                         // Cache the value, and expire it after 5 minutes
-                        redis
-                            .set_ex::<_, _, ()>(&cache_key, "", 3600)
-                            .await
-                            .unwrap();
+                        cache.set(&cache_key, "", 3600).await.unwrap();
                     };
 
                     return Err(ProfileError::NotFound);
@@ -35,10 +37,7 @@ impl Profile {
             };
 
             // Cache the value, and expire it after 5 minutes
-            redis
-                .set_ex::<_, _, ()>(&cache_key, &result, 3600)
-                .await
-                .unwrap();
+            cache.set(&cache_key, &result, 3600).await.unwrap();
 
             result
         };
@@ -47,6 +46,6 @@ impl Profile {
             return Err(ProfileError::NotFound);
         }
 
-        Self::from_name(&name, fresh, state).await
+        Self::from_name(&name, fresh, cache, rpc, profile_records, profile_chains).await
     }
 }

@@ -1,4 +1,4 @@
-use bech32::{ToBase32, Variant};
+// use bech32::{ToBase32, Variant};
 use bech32::primitives::hrp::Hrp;
 use bs58::Alphabet;
 use ciborium::Value;
@@ -29,8 +29,10 @@ fn encode_cardano_bryon(data: &[u8]) -> Result<String, MulticoinDecoderError> {
 }
 
 fn encode_cardano_shelley(data: &[u8]) -> Result<String, MulticoinDecoderError> {
-    bech32::encode(Hrp::parse_unchecked("addr"), data.to_base32(), Variant::Bech32)
-        .map_err(|_| MulticoinDecoderError::InvalidStructure("failed to bech32 encode".to_string()))
+    // bech32::encode(Hrp::parse_unchecked("addr"), data.to_base32(), Variant::Bech32)
+    //     .map_err(|_| MulticoinDecoderError::InvalidStructure("failed to bech32 encode".to_string()))
+    // TODO: reimplement
+    Ok("".to_string())
 }
 
 impl MulticoinDecoder for CardanoDecoder {

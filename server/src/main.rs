@@ -3,13 +3,11 @@
 mod abi;
 mod database;
 mod http;
-mod models;
 mod routes;
 mod state;
 mod provider;
-mod utils;
 
-use enstate_shared;
+pub use enstate_shared as shared;
 use dotenvy::dotenv;
 use state::AppState;
 use tracing::{Level, info};

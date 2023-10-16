@@ -1,10 +1,10 @@
+use enstate_shared::models::{multicoin::cointype::{coins::CoinType, Coins}, records::Records};
 use redis::aio::ConnectionManager;
 use std::env;
 use tracing::info;
 
 use crate::{
     database,
-    models::{multicoin::cointype::{coins::CoinType, Coins}, records::Records},
     provider::RoundRobinProvider,
 };
 

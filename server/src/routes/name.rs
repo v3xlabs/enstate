@@ -5,9 +5,8 @@ use axum::{
     http::StatusCode,
     Json,
 };
+use enstate_shared::models::profile::Profile;
 use serde::Deserialize;
-
-use crate::models::profile::Profile;
 
 #[derive(Deserialize)]
 pub struct NameQuery {
