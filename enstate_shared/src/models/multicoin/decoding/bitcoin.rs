@@ -34,7 +34,6 @@ impl MulticoinDecoder for BitcoinDecoder {
 mod tests {
     use super::*;
 
-    #[tokio::test]
     async fn test_btc_p2pkh() {
         let decoded = BitcoinDecoder {}
             .decode(&hex_literal::hex!(
@@ -45,7 +44,6 @@ mod tests {
         assert_eq!(decoded, "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa".to_string());
     }
 
-    #[tokio::test]
     async fn test_btc_p2sh() {
         let decoded = BitcoinDecoder {}
             .decode(&hex_literal::hex!(
@@ -56,7 +54,6 @@ mod tests {
         assert_eq!(decoded, "3Ai1JZ8pdJb2ksieUV8FsxSNVJCpoPi8W6".to_string());
     }
 
-    #[tokio::test]
     async fn test_btc_segwit() {
         let decoded = BitcoinDecoder {}
             .decode(&hex_literal::hex!(

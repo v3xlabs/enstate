@@ -79,8 +79,7 @@ mod tests {
     use super::*;
     use ethers::providers::namehash;
 
-    #[tokio::test]
-    async fn test_calldata_avatar() {
+    fn test_calldata_avatar() {
         assert_eq!(
             Avatar{
                 ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),

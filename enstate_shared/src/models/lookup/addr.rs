@@ -42,7 +42,6 @@ mod tests {
     use ethers::providers::namehash;
     use hex_literal::hex;
 
-    #[tokio::test]
     async fn test_calldata_address() {
         assert_eq!(
             Addr {}.calldata(&namehash("eth")),

@@ -1,7 +1,6 @@
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 
 use crate::utils::eip55::EIP55Address;
 
@@ -9,7 +8,7 @@ pub mod error;
 pub mod from_address;
 pub mod from_name;
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Profile {
     // Name
     pub name: String,

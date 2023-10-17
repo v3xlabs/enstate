@@ -2,7 +2,6 @@ use std::collections::BTreeMap;
 use std::str::FromStr;
 
 use ethers::providers::{Http, Provider};
-use redis::AsyncCommands;
 use tracing::info;
 
 use crate::models::{
@@ -143,10 +142,6 @@ impl Profile {
         let response = serde_json::to_string(&value).unwrap();
 
         cache.set(&cache_key, &response, 3600).await.unwrap();
-        // redis
-        //     .set_ex::<_, _, ()>(&cache_key, &response, 3600)
-        //     .await
-        //     .unwrap();
 
         Ok(value)
     }

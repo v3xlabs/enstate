@@ -1,7 +1,7 @@
 [workspace]
 
 members = [
-    "enstate_shared",
-    "cloudflare",
-    "server",
+    # "enstate_shared",
+    "worker",
+    # "server",
 ]

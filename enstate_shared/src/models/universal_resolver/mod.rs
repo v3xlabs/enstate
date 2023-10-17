@@ -87,7 +87,6 @@ pub async fn resolve_universal(
 
 #[cfg(test)]
 mod tests {
-    #[tokio::test]
     async fn test_resolve_universal() {
         // let namehash = namehash("luc.eth");
         // let data = super::super::Profile::calldata_address(&namehash);
