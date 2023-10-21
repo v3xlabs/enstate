@@ -1,1 +1,4 @@
+node_modules/
+.wrangler
 target/
+.env

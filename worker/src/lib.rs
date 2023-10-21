@@ -24,7 +24,7 @@ async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
                 let profile_chains = Coins::default().coins;
 
                 let rpc = Provider::<Http>::try_from(
-                    "https://rpc.ankr.com/eth/17c7bd60d262bc06008f0a111ca740955ee09d4bb33ecb57d2700214c8f625f1",
+                    "https://rpc.enstate.rs/v1/mainnet",
                 )
                 .unwrap();
 

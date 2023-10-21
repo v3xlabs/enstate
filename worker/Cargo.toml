@@ -17,7 +17,7 @@ target = "wasm32-unknown-unknown"
 worker = "0.0.18"
 ethers = "2"
 
-enstate_shared = { path = "../enstate_shared" }
+enstate_shared = { path = "../shared" }
 
 wasm-bindgen-futures = "0.4.36"
 wasm-bindgen = { version = "0.2.86", features = ["serde-serialize"] }
