@@ -19,7 +19,7 @@ pub struct NameQuery {
     get,
     path = "/n/{name}",
     responses(
-        (status = 200, description = "Successfully found name.", body = ProfileData),
+        (status = 200, description = "Successfully found name.", body = SProfile),
         (status = NOT_FOUND, description = "No name could be found."),
     ),
     params(

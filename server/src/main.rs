@@ -7,6 +7,7 @@ mod routes;
 mod state;
 mod provider;
 mod cache;
+mod models;
 
 use dotenvy::dotenv;
 use state::AppState;

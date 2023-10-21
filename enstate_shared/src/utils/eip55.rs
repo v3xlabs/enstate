@@ -19,7 +19,7 @@ impl From<RSKIPChain> for u64 {
     }
 }
 
-#[derive(SerializeDisplay, DeserializeFromStr)]
+#[derive(SerializeDisplay, DeserializeFromStr, Clone, PartialEq)]
 pub struct EIP55Address(pub Address);
 
 impl Display for EIP55Address {

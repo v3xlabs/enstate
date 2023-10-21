@@ -22,7 +22,7 @@ pub struct NameQuery {
     get,
     path = "/a/{address}",
     responses(
-        (status = 200, description = "Successfully found address", body = ProfileData),
+        (status = 200, description = "Successfully found address", body = SProfile),
         (status = BAD_REQUEST, description = "Invalid address."),
         (status = NOT_FOUND, description = "No name was associated with this address."),
         (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address."),

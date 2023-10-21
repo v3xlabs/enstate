@@ -6,13 +6,14 @@ use tower_http::trace::TraceLayer;
 use tracing::info;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
+use crate::models::profile::SProfile;
 
 use crate::routes;
 
 #[derive(OpenApi)]
 #[openapi(
     paths(routes::address::get, routes::name::get),
-    components(schemas(enstate_shared::models::profile::Profile))
+    components(schemas(SProfile))
 )]
 pub struct ApiDoc;
 
