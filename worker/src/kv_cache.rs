@@ -1,6 +1,6 @@
 use std::{
     num::TryFromIntError,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex}, future::Future, pin::Pin,
 };
 
 use async_trait::async_trait;
@@ -10,15 +10,14 @@ use worker_kv::KvStore;
 
 #[derive(Clone, Debug)]
 pub struct CloudflareKVCache {
-    v: String
+    v: String,
 }
 
 impl CloudflareKVCache {
     pub fn new() -> Self {
 
         Self {
-            // kv: store,
-            v: "Hello".to_string()
+            v: "Hello World".to_string()
         }
     }
 }
