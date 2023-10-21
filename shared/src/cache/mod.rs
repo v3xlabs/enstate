@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 #[derive(Debug)]
 pub enum CacheError {
-    Other(String)
+    Other(String),
 }
 
 #[async_trait]

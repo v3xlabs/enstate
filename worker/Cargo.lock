@@ -825,6 +825,7 @@ dependencies = [
  "ethers",
  "getrandom",
  "log",
+ "once_cell",
  "serde",
  "serde_json",
  "wasm-bindgen",

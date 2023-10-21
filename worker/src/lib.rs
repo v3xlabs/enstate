@@ -1,10 +1,10 @@
+use std::sync::Arc;
+
 use worker::*;
 
 use enstate_shared::models::{multicoin::cointype::Coins, profile::Profile, records::Records};
 use ethers::providers::{Http, Provider};
 use kv_cache::CloudflareKVCache;
-
-use crate::kv_cache::SyncKvStore;
 
 mod kv_cache;
 
@@ -16,9 +16,11 @@ async fn main(req: Request, env: Env, _ctx: Context) -> Result<Response> {
         .get_async("/n/:name", |_req, ctx: RouteContext<()>| async move {
             if let Some(name) = ctx.param("name") {
                 console_log!("name: {}", name);
-                let kvstore = ctx.kv("enstate-1").unwrap();
 
-                let cache = Box::new(CloudflareKVCache::new(SyncKvStore::new(kvstore)));
+                // TODO: Figure out a way to pass this into CloudflareKVCache
+                let _kvstore = ctx.kv("enstate-1").unwrap();
+
+                let cache = Box::new(CloudflareKVCache::new());
                 let profile_records = Records::default().records;
                 let profile_chains = Coins::default().coins;
 
