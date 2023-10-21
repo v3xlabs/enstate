@@ -2,7 +2,7 @@ use ethers::{
     providers::{Http, Middleware, namehash, Provider},
     types::{Address, Bytes, transaction::eip2718::TypedTransaction},
 };
-use ethers_ccip_read::utils::dns_encode;
+use crate::utils::dns::dns_encode;
 use ethers_contract::abigen;
 use ethers_core::abi::{ParamType, Token};
 use lazy_static::lazy_static;

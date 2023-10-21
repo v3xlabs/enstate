@@ -3,6 +3,10 @@ name = "enstate_shared"
 version = "0.0.2"
 edition = "2021"
 
+# https://github.com/rustwasm/wasm-pack/issues/1247
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
 [dependencies]
 ethers = "2"
 anyhow = "1.0.71"
@@ -29,6 +33,15 @@ rustc-hex = "2.0.1"
 serde_json = "1.0.96"
 crc32fast = "1.3.2"
 hex = "0.4.3"
+
+# ethers-ccip-read = { git = "https://github.com/ensdomains/ethers-ccip-read" }
+
+# needed to enable the "js" feature for compatibility with wasm,
+# see https://docs.rs/getrandom/#webassembly-support
+getrandom = { version = "0.2", features = ["js"] }
+wasm-bindgen-futures = "0.4.36"
+wasm-bindgen = { version = "0.2.86", features = ["serde-serialize"] }
+web-sys = { version = "0.3.63", features = ["console"] }
 
 [profile.release]
 lto = true

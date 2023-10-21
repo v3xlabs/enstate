@@ -10,20 +10,28 @@ wasm-opt = false
 [lib]
 crate-type = ["cdylib"]
 
+[build]
+target = "wasm32-unknown-unknown"
+
 [dependencies]
 worker = "0.0.18"
 ethers = "2"
 
-wasm-bindgen-futures = "0.4.36"
-wasm-bindgen = { version = "0.2.86", features = ["serde-serialize"] }
+enstate_shared = { path = "../enstate_shared" }
 
-web-sys = { version = "0.3.63", features = ["console"] }
+# wasm-bindgen-futures = "0.4.36"
+# wasm-bindgen = { version = "0.2.86", features = ["serde-serialize"] }
+
+# web-sys = { version = "0.3.63", features = ["console"] }
 
 # needed to enable the "js" feature for compatibility with wasm,
 # see https://docs.rs/getrandom/#webassembly-support
 getrandom = { version = "0.2", features = ["js"] }
+axum = "0.6.20"
+worker-kv = "0.6.0"
+async-trait = "0.1.74"
 
-[profile.release]
-lto = true
-strip = true
-codegen-units = 1
+# [profile.release]
+# lto = true
+# strip = true
+# codegen-units = 1
