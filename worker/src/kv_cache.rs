@@ -5,18 +5,19 @@ use std::{
 
 use async_trait::async_trait;
 use enstate_shared::cache::{CacheError, CacheLayer};
-use worker::Env;
+use worker::{Env, console_log};
 use worker_kv::KvStore;
 
 #[derive(Clone, Debug)]
 pub struct CloudflareKVCache {
-    // kv: Box<KvStore>,
     v: String
 }
 
 impl CloudflareKVCache {
     pub fn new() -> Self {
+
         Self {
+            // kv: store,
             v: "Hello".to_string()
         }
     }

@@ -4,7 +4,7 @@ use enstate_shared::{
     cache::CacheLayer,
     models::{multicoin::cointype::Coins, profile::Profile, records::Records},
 };
-use ethers::providers::{Http, Middleware, Provider};
+use ethers::providers::{Http, Provider};
 use kv_cache::CloudflareKVCache;
 
 mod kv_cache;
