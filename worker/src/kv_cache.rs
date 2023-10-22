@@ -3,19 +3,19 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use enstate_shared::cache::{CacheError, CacheLayer};
 use js_sys::{Function, Promise};
-use wasm_bindgen::{prelude::Closure, JsCast, JsValue};
+use serde::Serialize;
+use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
-use worker::{console_log, Env, RouteContext};
-use worker_kv::KvStore;
+use worker::Env;
 
 use crate::getJS;
 
 pub struct CloudflareKVCache {
-    ctx: Arc<RouteContext<()>>,
+    ctx: Arc<Env>,
 }
 
 impl CloudflareKVCache {
-    pub fn new(ctx: Arc<RouteContext<()>>) -> Self {
+    pub fn new(ctx: Arc<Env>) -> Self {
         Self { ctx }
     }
 }
@@ -23,10 +23,18 @@ impl CloudflareKVCache {
 unsafe impl Send for CloudflareKVCache {}
 unsafe impl Sync for CloudflareKVCache {}
 
+#[derive(Debug, Clone, Serialize)]
+struct PutOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "expirationTtl")]
+    pub(crate) expiration_ttl: Option<u64>,
+}
+
+// #[cfg(target_arch = "wasm32")]
 #[async_trait(?Send)]
 impl CacheLayer for CloudflareKVCache {
     async fn get(&self, key: &str) -> Result<String, CacheError> {
-        let kv_store = getJS(&self.ctx.env, "enstate-1").unwrap();
+        let kv_store = getJS(&self.ctx, "enstate-1").unwrap();
         let get_function_value = getJS(&kv_store, "get").unwrap();
 
         let get_function = get_function_value.dyn_into::<Function>().unwrap();
@@ -50,15 +58,24 @@ impl CacheLayer for CloudflareKVCache {
     }
 
     async fn set(&self, key: &str, value: &str, expires: u32) -> Result<(), CacheError> {
-        let kv_store = getJS(&self.ctx.env, "enstate-1").unwrap();
+        let kv_store = getJS(&self.ctx, "enstate-1").unwrap();
         let put_function_value = getJS(&kv_store, "put").unwrap();
 
         let put_function = put_function_value.dyn_into::<Function>().unwrap();
 
-        let options = JsValue::default();
+        let options = PutOptions {
+            expiration_ttl: Some(expires as u64),
+        };
+
+        let options_obj = serde_wasm_bindgen::to_value(&options).unwrap();
 
         let put_function_promise: Promise = put_function
-            .call3(&kv_store, &JsValue::from_str(key), &JsValue::from_str(value), &options)
+            .call3(
+                &kv_store,
+                &JsValue::from_str(key),
+                &JsValue::from_str(value),
+                &options_obj,
+            )
             .unwrap()
             .into();
 
