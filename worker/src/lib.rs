@@ -1,8 +1,10 @@
+use std::{ops::Deref, process, sync::Arc};
+
 use wasm_bindgen::{JsCast, JsValue};
 
 use enstate_shared::models::{multicoin::cointype::Coins, profile::Profile, records::Records};
 use ethers::providers::{Http, Provider};
-use js_sys::{global, Function, Object, Promise, Reflect, Uint8Array};
+use js_sys::{global, Array, Function, Object, Promise, Reflect, Uint8Array};
 use kv_cache::CloudflareKVCache;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::console;
@@ -21,62 +23,32 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
     let router = Router::new();
 
     router
-        .get_async("/n/:name", |_req, ctx: RouteContext<()>| async move {
-            if let Some(name) = ctx.param("name") {
+        .get_async("/n/:name", |req, ctx2: RouteContext<()>| async move {
+            let ctx = Arc::new(ctx2);
+            let ctx3 = ctx.clone();
+            if let Some(name) = ctx3.param("name") {
                 console_log!("name: {}", name);
 
-                let kvStore = getJS(&ctx.env, "enstate-1").unwrap();
+                let x = req.url().unwrap();
 
-                console_log!("xx: {:?}", kvStore);
+                let query = x.query().unwrap_or("");
+                console_log!("query: {}", query);
+               
+                let querys = querystring::querify(query);
 
-                let getFunctionValue = getJS(&kvStore, "get").unwrap();
+                let fresh = {
+                    querys.into_iter().find(|(k, _)| *k == "fresh").map(|(_, v)| v == "true").unwrap_or(false)
+                };
 
-                let getFunction = getFunctionValue.dyn_into::<Function>().unwrap();
+                console_log!("fresh: {}", fresh);
 
-                console_log!("xz: {:?}", getFunction);
-                let options = JsValue::default();
-
-                let getFunctionPromise: Promise = getFunction
-                    .call2(
-                        &kvStore,
-                        &JsValue::from_str("test"),
-                        &options,
-                    )
-                    .unwrap()
-                    .into();
-
-                let getFunctionResult = JsFuture::from(getFunctionPromise).await.unwrap();
-
-                console_log!("pxxxz: {:?}", getFunctionResult);
-
-                let putFunctionValue = getJS(&kvStore, "put").unwrap();
-
-                let putFunction = putFunctionValue.dyn_into::<Function>().unwrap();
-
-                console_log!("pxz: {:?}", putFunction);
-                let options = JsValue::default();
-
-                let putFunctionPromise: Promise = putFunction
-                    .call3(
-                        &kvStore,
-                        &JsValue::from_str("test"),
-                        &JsValue::from_str("data-lol"),
-                        &options,
-                    )
-                    .unwrap()
-                    .into();
-
-                let putFunctionResult = JsFuture::from(putFunctionPromise).await.unwrap();
-
-                console_log!("pxxxz: {:?}", putFunctionResult);
-
-                let cache = Box::new(CloudflareKVCache::new());
+                let cache = Box::new(CloudflareKVCache::new(ctx.clone()));
                 let profile_records = Records::default().records;
                 let profile_chains = Coins::default().coins;
 
                 let rpc = Provider::<Http>::try_from("https://rpc.enstate.rs/v1/mainnet").unwrap();
 
-                match Profile::from_name(name, false, cache, rpc, &profile_records, &profile_chains)
+                match Profile::from_name(name, fresh, cache, rpc, &profile_records, &profile_chains)
                     .await
                 {
                     Ok(data) => {

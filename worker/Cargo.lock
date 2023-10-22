@@ -827,6 +827,7 @@ dependencies = [
  "js-sys",
  "log",
  "once_cell",
+ "querystring",
  "serde",
  "serde-wasm-bindgen 0.6.0",
  "serde_json",
@@ -2402,6 +2403,12 @@ checksum = "134c189feb4956b20f6f547d2cf727d4c0fe06722b20a0eec87ed445a97f92da"
 dependencies = [
  "unicode-ident",
 ]
+
+[[package]]
+name = "querystring"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9318ead08c799aad12a55a3e78b82e0b6167271ffd1f627b758891282f739187"
 
 [[package]]
 name = "quote"

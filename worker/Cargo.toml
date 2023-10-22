@@ -35,6 +35,7 @@ serde = "1.0.189"
 once_cell = "1.18.0"
 js-sys = "*"
 serde-wasm-bindgen = "0.6.0"
+querystring = "1.1.0"
 
 [profile.release]
 lto = true
