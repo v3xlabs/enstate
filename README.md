@@ -44,20 +44,23 @@ services:
 
 ### 🦀 Cloudflare Worker
 
-```
-cd cloudflare && pnpm deploy
+Running the cloudflare worker is as easy as running the following command:
+Additionally, there is a hosted instance available at [worker.enstate.rs](https://worker.enstate.rs).
+
+```sh
+cd worker && pnpx wrangler deploy
 ```
 
 ## Contributing
 
 ### Standalone Server
 
-```
+```sh
 cargo run -p enstate
 ```
 
 ### Cloudflare Worker
 
-```
-cd cloudflare && pnpm dev
+```sh
+cd worker && pnpm dev
 ```
