@@ -9,7 +9,7 @@ use ethers::{
 };
 use js_sys::Reflect;
 use kv_cache::CloudflareKVCache;
-use worker::{console_error, console_log, event, Context, Cors, Env, Request, Response};
+use worker::{console_error, console_log, event, Context, Cors, Env, Method, Request, Response};
 
 mod kv_cache;
 
@@ -69,6 +69,10 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
     let query = querystring::querify(url.query().unwrap_or(""));
     let fresh = query.into_iter().find(|(k, _)| *k == "fresh").is_some();
 
+    let cors = Cors::default()
+        .with_origins(vec!["*"])
+        .with_methods(Method::all());
+
     match LookupType::from_path(req.path()) {
         LookupType::NameLookup(name) => {
             console_log!("Name Lookup {}", name);
@@ -119,5 +123,5 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
             Response::error("Unknown Lookup", 501)
         }
     }
-    .map(|x| x.with_cors(&Cors::default()).unwrap())
+    .map(|x| x.with_cors(&cors).unwrap())
 }
