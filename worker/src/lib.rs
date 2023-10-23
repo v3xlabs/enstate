@@ -3,7 +3,11 @@ use std::{collections::VecDeque, str::FromStr, sync::Arc};
 use empty_cache::EmptyCache;
 use wasm_bindgen::JsValue;
 
-use enstate_shared::models::{multicoin::cointype::Coins, profile::Profile, records::Records};
+use enstate_shared::models::{
+    multicoin::cointype::Coins,
+    profile::{error::ProfileError, Profile},
+    records::Records,
+};
 use ethers::{
     providers::{Http, Provider},
     types::H160,
@@ -66,102 +70,110 @@ impl LookupType {
             _ => return LookupType::Unknown,
         }
     }
+
+    async fn process(&self, req: Request) -> Result<Response, Response> {
+        let cache = Box::new(EmptyCache::new());
+        let profile_records = Records::default().records;
+        let profile_chains = Coins::default().coins;
+        let rpc = Provider::<Http>::try_from("https://rpc.enstate.rs/v1/mainnet")
+            .map_err(|_| Response::error("RPC Failure", 500).unwrap())?;
+
+        let url = req.url().unwrap();
+        let query = querystring::querify(url.query().unwrap_or(""));
+        let fresh = query.into_iter().find(|(k, _)| *k == "fresh").is_some();
+
+        match self {
+            LookupType::NameLookup(name) => {
+                console_log!("Name Lookup {}", name);
+
+                let profile = Profile::from_name(
+                    name.as_str(),
+                    fresh,
+                    cache,
+                    rpc,
+                    &profile_records,
+                    &profile_chains,
+                )
+                .await;
+
+                match profile {
+                    Ok(x) => Ok(Response::from_json(&x).map_err(|e| {
+                        console_error!("error: {}", e.to_string());
+                        Response::error(e.to_string(), 404).unwrap()
+                    })?),
+                    Err(e) => {
+                        console_error!("error: {}", e.to_string());
+                        return Err(Response::error(e.to_string(), 404).unwrap());
+                    }
+                }
+            }
+            LookupType::AddressLookup(address) => {
+                console_log!("Address Lookup {}", address);
+                let address = H160::from_str(address.as_str()).unwrap();
+
+                let profile = Profile::from_address(
+                    address,
+                    fresh,
+                    cache,
+                    rpc,
+                    &profile_records,
+                    &profile_chains,
+                )
+                .await;
+
+                match profile {
+                    Ok(x) => Ok(Response::from_json(&x).unwrap()),
+                    Err(e) => {
+                        console_error!("error: {}", e.to_string());
+                        return Err(Response::error(e.to_string(), 404).unwrap());
+                    }
+                }
+            }
+            LookupType::ImageLookup(name) => {
+                console_log!("Avatar Lookup {}", name);
+
+                let profile = Profile::from_name(
+                    name.as_str(),
+                    fresh,
+                    cache,
+                    rpc,
+                    &profile_records,
+                    &profile_chains,
+                )
+                .await;
+
+                if let Ok(profile) = profile {
+                    if let Some(avatar) = profile.avatar {
+                        let url = Url::parse(avatar.as_str()).unwrap();
+
+                        return Ok(Response::redirect(url).unwrap());
+                    }
+                }
+
+                Err(Response::error("Not Found", 404).unwrap())
+            }
+            _ => {
+                console_log!("Unknown Lookup");
+                Err(Response::error("Unknown Lookup", 501).unwrap())
+            }
+        }
+    }
 }
 
 #[event(fetch, respond_with_errors)]
 async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response> {
-    let env = Arc::new(env);
-    let cache = Box::new(EmptyCache::new());
-    let profile_records = Records::default().records;
-    let profile_chains = Coins::default().coins;
-    let rpc = Provider::<Http>::try_from("https://rpc.enstate.rs/v1/mainnet").unwrap();
-
-    let url = req.url().unwrap();
-    let query = querystring::querify(url.query().unwrap_or(""));
-    let fresh = query.into_iter().find(|(k, _)| *k == "fresh").is_some();
-
     let cors = Cors::default()
         .with_origins(vec!["*"])
         .with_methods(Method::all());
 
-    match LookupType::from_path(req.path()) {
-        LookupType::NameLookup(name) => {
-            console_log!("Name Lookup {}", name);
+    let response = LookupType::from_path(req.path())
+        .process(req)
+        .await
+        .unwrap_or_else(|f| f);
 
-            match Profile::from_name(
-                name.as_str(),
-                fresh,
-                cache,
-                rpc,
-                &profile_records,
-                &profile_chains,
-            )
-            .await
-            {
-                Ok(data) => {
-                    console_log!("data: {:?}", data);
+    let mut headers = response.headers().clone();
 
-                    return Response::from_json(&data);
-                }
-                Err(e) => {
-                    console_error!("error: {}", e.to_string());
-                    return Response::error(e.to_string(), 500);
-                }
-            }
-        }
-        LookupType::AddressLookup(address) => {
-            console_log!("Address Lookup {}", address);
-            let address = H160::from_str(address.as_str()).unwrap();
+    headers.set("Cache-Control", "max-age=600, stale-while-revalidate=30");
 
-            Profile::from_address(
-                address,
-                fresh,
-                cache,
-                rpc,
-                &profile_records,
-                &profile_chains,
-            )
-            .await
-            .map(|x| Response::from_json(&x))
-            .map_err(|e| {
-                console_error!("error: {}", e.to_string());
-                return Response::error(e.to_string(), 500);
-            })
-            .unwrap()
-        }
-        LookupType::ImageLookup(name) => {
-            console_log!("Avatar Lookup {}", name);
-
-            let profile = Profile::from_name(
-                name.as_str(),
-                fresh,
-                cache,
-                rpc,
-                &profile_records,
-                &profile_chains,
-            )
-            .await;
-
-            if let Ok(profile) = profile {
-                if let Some(avatar) = profile.avatar {
-                    let url = Url::parse(avatar.as_str()).unwrap();
-
-                    return Response::redirect(url);
-                }
-            }
-
-            Response::error("Not Found", 404)
-        }
-        _ => {
-            console_log!("Unknown Lookup");
-            Response::error("Unknown Lookup", 501)
-        }
-    }
-    .map(|x| {
-        let mut headers = x.headers().clone();
-
-        headers.set("Cache-Control", "max-age=600, stale-while-revalidate=30");
-
-        x.with_cors(&cors).unwrap().with_headers(headers)
-    })
+    response.with_headers(headers).with_cors(&cors)
 }
