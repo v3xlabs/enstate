@@ -6,7 +6,12 @@ The API specification is available [on enstate.rs](https://enstate.rs/docs) or l
 
 ## 🌐 Hosted version
 
-For demonstration purposes (and one-off usage), a hosted instance is made available at [https://enstate.rs/](https://enstate.rs). This instance is provided as-is and as a gift to the community. Please do not abuse it.
+For demonstration purposes (and one-off usage), a hosted instance is made available at [https://enstate.rs](https://enstate.rs) and a cloudflare worker at [https://worker.enstate.rs](https://worker.enstate.rs). This instance is provided as-is and as a gift to the community. Please do not abuse it.
+
+### 📌 Example
+
+> [name/luc.eth](https://worker.enstate.rs/n/luc.eth) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [name/rescueorg.eth](https://worker.enstate.rs/n/rescueorg.eth) &nbsp;&nbsp;&nbsp; [name/antony.sh](https://worker.enstate.rs/n/antony.sh)<br />
+> [image/vitalik.eth](https://worker.enstate.rs/i/vitalik.eth)&nbsp;&nbsp;&nbsp; [name/khori.eth](https://worker.enstate.rs/n/khori.eth) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [name/helgesson.eth](https://worker.enstate.rs/n/helgesson.eth)
 
 ## 🚀 Getting Started
 
@@ -23,23 +28,23 @@ docker run \
 ```
 
 ### 🐳 Docker Compose
-    
+
 ```yaml
 version: "3.8"
 services:
-  enstate:
-    image: ghcr.io/v3xlabs/enstate:0.0.1
-    ports:
-     - 3000:3000
-    environment:
-     - REDIS_URL=redis://redis:6379
-     - RPC_URL=https://rpc.ankr.com/eth
-    depends_on:
-     - redis
-  redis:
-    image: redis:6.2.5-alpine
-    ports:
-      - 6379:6379
+    enstate:
+        image: ghcr.io/v3xlabs/enstate:0.0.1
+        ports:
+            - 3000:3000
+        environment:
+            - REDIS_URL=redis://redis:6379
+            - RPC_URL=https://rpc.ankr.com/eth
+        depends_on:
+            - redis
+    redis:
+        image: redis:6.2.5-alpine
+        ports:
+            - 6379:6379
 ```
 
 ### 🦀 Cloudflare Worker
