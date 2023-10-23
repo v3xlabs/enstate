@@ -42,9 +42,25 @@ services:
       - 6379:6379
 ```
 
-## 🛣️ Roadmap
+### 🦀 Cloudflare Worker
 
-- Dockerize ✅
-- Internal Batching 👨‍🔧
-- Batching endpoints 👨‍🔧
-- TTL Specification 🔜
+Running the cloudflare worker is as easy as running the following command:
+Additionally, there is a hosted instance available at [worker.enstate.rs](https://worker.enstate.rs).
+
+```sh
+cd worker && pnpx wrangler deploy
+```
+
+## Contributing
+
+### Standalone Server
+
+```sh
+cargo run -p enstate
+```
+
+### Cloudflare Worker
+
+```sh
+cd worker && pnpm dev
+```

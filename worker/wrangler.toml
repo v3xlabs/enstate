@@ -1,0 +1,14 @@
+name = "enstate-worker"
+main = "build/worker/shim.mjs"
+compatibility_date = "2023-03-22"
+
+routes = [
+    { pattern = "worker.enstate.rs", custom_domain = true }
+]
+
+kv_namespaces = [
+    { binding = "enstate-1", id = "0f25618e4c134916a2d817fa63d31177" }
+]
+
+[build]
+command = "cargo install -q worker-build && worker-build --release"

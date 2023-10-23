@@ -23,6 +23,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - run: cargo build --release
+        working-directory: server
 
       - name: Docker meta
         id: meta
@@ -52,8 +53,8 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          file: .github/.deploy/Dockerfile
-          context: .
+          file: .github/.docker/Dockerfile
+          context: server
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=ghcr.io/v3xlabs/enstate:edge
