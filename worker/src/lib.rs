@@ -1,5 +1,6 @@
 use std::{collections::VecDeque, str::FromStr, sync::Arc};
 
+use empty_cache::EmptyCache;
 use wasm_bindgen::JsValue;
 
 use enstate_shared::models::{multicoin::cointype::Coins, profile::Profile, records::Records};
@@ -9,8 +10,11 @@ use ethers::{
 };
 use js_sys::Reflect;
 use kv_cache::CloudflareKVCache;
-use worker::{console_error, console_log, event, Context, Cors, Env, Method, Request, Response, Url};
+use worker::{
+    console_error, console_log, event, Context, Cors, Env, Method, Request, Response, Url,
+};
 
+mod empty_cache;
 mod kv_cache;
 
 fn get_js(target: &JsValue, name: &str) -> Result<JsValue, JsValue> {
@@ -67,7 +71,7 @@ impl LookupType {
 #[event(fetch, respond_with_errors)]
 async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response> {
     let env = Arc::new(env);
-    let cache = Box::new(CloudflareKVCache::new(env));
+    let cache = Box::new(EmptyCache::new());
     let profile_records = Records::default().records;
     let profile_chains = Coins::default().coins;
     let rpc = Provider::<Http>::try_from("https://rpc.enstate.rs/v1/mainnet").unwrap();
@@ -153,5 +157,11 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
             Response::error("Unknown Lookup", 501)
         }
     }
-    .map(|x| x.with_cors(&cors).unwrap())
+    .map(|x| {
+        let mut headers = x.headers().clone();
+
+        headers.set("Cache-Control", "max-age=600, stale-while-revalidate=30");
+
+        x.with_cors(&cors).unwrap().with_headers(headers)
+    })
 }

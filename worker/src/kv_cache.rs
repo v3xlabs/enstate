@@ -30,7 +30,7 @@ struct PutOptions {
     pub(crate) expiration_ttl: Option<u64>,
 }
 
-// #[cfg(target_arch = "wasm32")]
+#[cfg(target_arch = "wasm32")]
 #[async_trait(?Send)]
 impl CacheLayer for CloudflareKVCache {
     async fn get(&self, key: &str) -> Result<String, CacheError> {
