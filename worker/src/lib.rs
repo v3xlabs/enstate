@@ -1,23 +1,19 @@
-use std::{collections::VecDeque, ops::Deref, process, str::FromStr, sync::Arc};
+use std::{collections::VecDeque, str::FromStr, sync::Arc};
 
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::JsValue;
 
 use enstate_shared::models::{multicoin::cointype::Coins, profile::Profile, records::Records};
 use ethers::{
     providers::{Http, Provider},
     types::H160,
 };
-use js_sys::{global, Array, Function, Object, Promise, Reflect, Uint8Array};
+use js_sys::Reflect;
 use kv_cache::CloudflareKVCache;
-use wasm_bindgen_futures::JsFuture;
-use web_sys::console;
-use worker::{
-    console_error, console_log, event, Context, Env, Request, Response, RouteContext, Router,
-};
+use worker::{console_error, console_log, event, Context, Cors, Env, Request, Response};
 
 mod kv_cache;
 
-fn getJS(target: &JsValue, name: &str) -> Result<JsValue, JsValue> {
+fn get_js(target: &JsValue, name: &str) -> Result<JsValue, JsValue> {
     Reflect::get(target, &JsValue::from(name))
 }
 
@@ -69,26 +65,13 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
     let profile_chains = Coins::default().coins;
     let rpc = Provider::<Http>::try_from("https://rpc.enstate.rs/v1/mainnet").unwrap();
 
+    let url = req.url().unwrap();
+    let query = querystring::querify(url.query().unwrap_or(""));
+    let fresh = query.into_iter().find(|(k, _)| *k == "fresh").is_some();
+
     match LookupType::from_path(req.path()) {
         LookupType::NameLookup(name) => {
             console_log!("Name Lookup {}", name);
-
-            let x = req.url().unwrap();
-
-            let query = x.query().unwrap_or("");
-            console_log!("query: {}", query);
-
-            let querys = querystring::querify(query);
-
-            let fresh = {
-                querys
-                    .into_iter()
-                    .find(|(k, _)| *k == "fresh")
-                    .map(|(_, v)| v == "true")
-                    .unwrap_or(false)
-            };
-
-            console_log!("fresh: {}", fresh);
 
             match Profile::from_name(
                 name.as_str(),
@@ -115,22 +98,6 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
             console_log!("Address Lookup {}", address);
             let address = H160::from_str(address.as_str()).unwrap();
 
-            let x = req.url().unwrap();
-            let query = x.query().unwrap_or("");
-            console_log!("query: {}", query);
-
-            let querys = querystring::querify(query);
-
-            let fresh = {
-                querys
-                    .into_iter()
-                    .find(|(k, _)| *k == "fresh")
-                    .map(|(_, v)| v == "true")
-                    .unwrap_or(false)
-            };
-
-            console_log!("fresh: {}", fresh);
-
             Profile::from_address(
                 address,
                 fresh,
@@ -144,11 +111,13 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
             .map_err(|e| {
                 console_error!("error: {}", e.to_string());
                 return Response::error(e.to_string(), 500);
-            }).unwrap()
+            })
+            .unwrap()
         }
         _ => {
             console_log!("Unknown Lookup");
             Response::error("Unknown Lookup", 501)
         }
     }
+    .map(|x| x.with_cors(&Cors::default()).unwrap())
 }

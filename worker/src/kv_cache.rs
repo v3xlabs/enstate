@@ -8,7 +8,7 @@ use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use worker::Env;
 
-use crate::getJS;
+use crate::get_js;
 
 pub struct CloudflareKVCache {
     ctx: Arc<Env>,
@@ -34,8 +34,8 @@ struct PutOptions {
 #[async_trait(?Send)]
 impl CacheLayer for CloudflareKVCache {
     async fn get(&self, key: &str) -> Result<String, CacheError> {
-        let kv_store = getJS(&self.ctx, "enstate-1").unwrap();
-        let get_function_value = getJS(&kv_store, "get").unwrap();
+        let kv_store = get_js(&self.ctx, "enstate-1").unwrap();
+        let get_function_value = get_js(&kv_store, "get").unwrap();
 
         let get_function = get_function_value.dyn_into::<Function>().unwrap();
 
@@ -58,8 +58,8 @@ impl CacheLayer for CloudflareKVCache {
     }
 
     async fn set(&self, key: &str, value: &str, expires: u32) -> Result<(), CacheError> {
-        let kv_store = getJS(&self.ctx, "enstate-1").unwrap();
-        let put_function_value = getJS(&kv_store, "put").unwrap();
+        let kv_store = get_js(&self.ctx, "enstate-1").unwrap();
+        let put_function_value = get_js(&kv_store, "put").unwrap();
 
         let put_function = put_function_value.dyn_into::<Function>().unwrap();
 
