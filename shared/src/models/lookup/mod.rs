@@ -1,5 +1,8 @@
+use std::sync::Arc;
+
 use ethers_core::types::H256;
 use thiserror::Error;
+use ethers::providers::{Provider, Http};
 
 use super::multicoin::decoding::MulticoinDecoderError;
 
@@ -24,8 +27,13 @@ pub enum ENSLookupError {
     Unknown(#[from] anyhow::Error),
 }
 
+#[async_trait::async_trait]
 pub trait ENSLookup {
     fn calldata(&self, namehash: &H256) -> Vec<u8>;
-    fn decode(&self, data: &[u8]) -> Result<String, ENSLookupError>;
+    async fn decode(&self, data: &[u8], state: Arc<LookupState>) -> Result<String, ENSLookupError>;
     fn name(&self) -> String;
+}
+
+pub struct LookupState {
+    pub rpc: Arc<Provider<Http>>,
 }

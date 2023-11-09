@@ -1,13 +1,16 @@
+use std::sync::Arc;
+
 use ethers_core::{
     abi::{ParamType, Token},
     types::H256,
 };
 use hex_literal::hex;
 
-use super::{ENSLookup, ENSLookupError};
+use super::{ENSLookup, ENSLookupError, LookupState};
 
 pub struct Addr {}
 
+#[async_trait::async_trait]
 impl ENSLookup for Addr {
     fn calldata(&self, namehash: &H256) -> Vec<u8> {
         let fn_selector = hex!("3b3b57de").to_vec();
@@ -18,7 +21,7 @@ impl ENSLookup for Addr {
         [fn_selector, data].concat()
     }
 
-    fn decode(&self, data: &[u8]) -> Result<String, ENSLookupError> {
+    async fn decode(&self, data: &[u8], _: Arc<LookupState>) -> Result<String, ENSLookupError> {
         let decoded_abi = ethers_core::abi::decode(&[ParamType::Address], data)
             .map_err(|_| ENSLookupError::AbiDecodeError)?;
         let address = decoded_abi

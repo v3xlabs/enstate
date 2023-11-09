@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use ethers::{
     providers::{Http, Middleware, namehash, Provider},
     types::{Address, Bytes, transaction::eip2718::TypedTransaction},
@@ -28,7 +30,7 @@ lazy_static! {
 pub async fn resolve_universal(
     name: String,
     data: &Vec<Box<dyn ENSLookup + Send + Sync>>,
-    provider: Provider<Http>,
+    provider: Arc<Provider<Http>>,
 ) -> Result<(Vec<Vec<u8>>, Address), ProfileError> {
     let name_hash = namehash(name.as_str());
 

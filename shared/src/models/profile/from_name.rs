@@ -1,13 +1,16 @@
-use std::collections::BTreeMap;
 use std::str::FromStr;
+use std::{collections::BTreeMap, sync::Arc};
 
 use ethers::providers::{Http, Provider};
 use tracing::info;
 
 use crate::models::{
-    lookup::{addr::Addr, avatar::Avatar, multicoin::Multicoin, text::Text, ENSLookup},
+    lookup::{
+        addr::Addr, avatar::Avatar, multicoin::Multicoin, text::Text, ENSLookup, LookupState,
+    },
+    multicoin::cointype::coins::CoinType,
     profile::Profile,
-    universal_resolver::resolve_universal, multicoin::cointype::coins::CoinType,
+    universal_resolver::resolve_universal,
 };
 use crate::utils::eip55::EIP55Address;
 
@@ -68,17 +71,20 @@ impl Profile {
                 coin_type: chain.clone(),
             }));
         }
+        let rpc = Arc::new(rpc);
 
         // Execute Universal Resolver Lookup
-        let (data, resolver) = resolve_universal(name.to_string(), &calldata, rpc).await?;
+        let (data, resolver) = resolve_universal(name.to_string(), &calldata, rpc.clone()).await?;
 
         let mut results: Vec<Option<String>> = Vec::new();
         let mut errors = BTreeMap::default();
 
+        let state = Arc::new(LookupState { rpc });
+
         // Assume results & calldata have the same length
         // Look through all calldata and decode the results at the same index
         for (index, calldata) in calldata.iter().enumerate() {
-            let result = calldata.decode(&data[index]);
+            let result = calldata.decode(&data[index], state.clone()).await;
 
             match result {
                 Ok(result) => {

@@ -161,7 +161,7 @@ impl LookupType {
 }
 
 #[event(fetch, respond_with_errors)]
-async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response> {
+async fn main(req: Request, _env: Env, _ctx: Context) -> worker::Result<Response> {
     let cors = Cors::default()
         .with_origins(vec!["*"])
         .with_methods(Method::all());

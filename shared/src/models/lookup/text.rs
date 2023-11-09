@@ -1,10 +1,12 @@
+use std::sync::Arc;
+
 use ethers_core::{
     abi::{ParamType, Token},
     types::H256,
 };
 use hex_literal::hex;
 
-use super::{ENSLookup, ENSLookupError};
+use super::{ENSLookup, ENSLookupError, LookupState};
 pub struct Text {
     key: String,
 }
@@ -15,6 +17,7 @@ impl Text {
     }
 }
 
+#[async_trait::async_trait]
 impl ENSLookup for Text {
     fn calldata(&self, namehash: &H256) -> Vec<u8> {
         let fn_selector = hex!("59d1d43c").to_vec();
@@ -27,7 +30,7 @@ impl ENSLookup for Text {
         [fn_selector, data].concat()
     }
 
-    fn decode(&self, data: &[u8]) -> Result<String, ENSLookupError> {
+    async fn decode(&self, data: &[u8], _: Arc<LookupState>) -> Result<String, ENSLookupError> {
         let decoded_abi = ethers_core::abi::decode(&[ParamType::String], data)
             .map_err(|_| ENSLookupError::AbiDecodeError)?;
         let value = decoded_abi.get(0).ok_or(ENSLookupError::AbiDecodeError)?;

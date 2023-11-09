@@ -1,4 +1,8 @@
-use super::{ENSLookup, ENSLookupError};
+use std::sync::Arc;
+
+use crate::models::eip155::resolve_eip155;
+
+use super::{ENSLookup, ENSLookupError, LookupState};
 
 use ethers_core::{
     abi::{ParamType, Token},
@@ -14,6 +18,7 @@ pub struct Avatar {
 
 impl Avatar {}
 
+#[async_trait::async_trait]
 impl ENSLookup for Avatar {
     fn calldata(&self, namehash: &H256) -> Vec<u8> {
         let fn_selector = hex!("59d1d43c").to_vec();
@@ -26,7 +31,7 @@ impl ENSLookup for Avatar {
         [fn_selector, data].concat()
     }
 
-    fn decode(&self, data: &[u8]) -> Result<String, ENSLookupError> {
+    async fn decode(&self, data: &[u8], state: Arc<LookupState>) -> Result<String, ENSLookupError> {
         let decoded_abi = ethers_core::abi::decode(&[ParamType::String], data)
             .map_err(|_| ENSLookupError::AbiDecodeError)?;
         let value = decoded_abi.get(0).ok_or(ENSLookupError::AbiDecodeError)?;
@@ -59,11 +64,18 @@ impl ENSLookup for Avatar {
                 token_id = token_id
             );
 
+            let resolved_uri = resolve_eip155(
+                chain_id,
+                contract_type,
+                contract_address,
+                token_id,
+                state.rpc.clone(),
+            )
+            .await
+            .unwrap();
+
             // TODO: Remove naive approach
-            return Ok(format!(
-                "https://metadata.ens.domains/mainnet/avatar/{}",
-                self.name
-            ));
+            return Ok(resolved_uri);
         }
 
         Ok(value)
@@ -88,4 +100,6 @@ mod tests {
             hex_literal::hex!("59d1d43ce1e7bcf2ca33c28a806ee265cfedf02fedf1b124ca73b2203ca80cc7c91a02ad000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000066176617461720000000000000000000000000000000000000000000000000000")
         );
     }
+
+    fn test_eip155_avatar() {}
 }
