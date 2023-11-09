@@ -4,9 +4,10 @@ use std::{collections::BTreeMap, sync::Arc};
 use ethers::providers::{Http, Provider};
 use tracing::info;
 
+use crate::models::lookup::avatar::Image;
 use crate::models::{
     lookup::{
-        addr::Addr, avatar::Avatar, multicoin::Multicoin, text::Text, ENSLookup, LookupState,
+        addr::Addr, multicoin::Multicoin, text::Text, ENSLookup, LookupState,
     },
     multicoin::cointype::coins::CoinType,
     profile::Profile,
@@ -50,10 +51,17 @@ impl Profile {
         // Preset Hardcoded Lookups
         let mut calldata: Vec<Box<dyn ENSLookup + Send + Sync>> = vec![
             Box::new(Addr {}),
-            Box::new(Avatar {
+            Box::new(Image {
                 // TODO: Default IPFS Gateway
                 ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
                 name: name.to_string(),
+                record: "avatar".to_string(),
+            }),
+            Box::new(Image {
+                // TODO: Default IPFS Gateway
+                ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
+                name: name.to_string(),
+                record: "header".to_string(),
             }),
             Box::new(Text::new("display".to_string())),
         ];
@@ -99,7 +107,8 @@ impl Profile {
 
         let address: Option<String> = results.get(0).unwrap_or(&None).clone();
         let avatar: Option<String> = results.get(1).unwrap_or(&None).clone();
-        let display_record: Option<String> = results.get(3).unwrap_or(&None).clone();
+        let header: Option<String> = results.get(2).unwrap_or(&None).clone();
+        let display_record: Option<String> = results.get(4).unwrap_or(&None).clone();
 
         let display = match display_record {
             Some(display) if display.to_lowercase() == name.to_lowercase() => display,
@@ -110,6 +119,7 @@ impl Profile {
             name = name,
             address,
             avatar = ?avatar,
+            header = ?header,
             "Profile for {name} found"
         );
 
@@ -137,6 +147,7 @@ impl Profile {
             name: name.to_string(),
             address: address.and_then(|it| EIP55Address::from_str(it.as_str()).ok()),
             avatar,
+            header,
             display,
             records,
             chains,

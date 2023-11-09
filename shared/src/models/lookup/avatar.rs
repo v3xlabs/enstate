@@ -11,21 +11,20 @@ use ethers_core::{
 use hex_literal::hex;
 use tracing::info;
 
-pub struct Avatar {
+pub struct Image {
     pub ipfs_gateway: String,
     pub name: String,
+    pub record: String,
 }
 
-impl Avatar {}
-
 #[async_trait::async_trait]
-impl ENSLookup for Avatar {
+impl ENSLookup for Image {
     fn calldata(&self, namehash: &H256) -> Vec<u8> {
         let fn_selector = hex!("59d1d43c").to_vec();
 
         let data = ethers_core::abi::encode(&[
             Token::FixedBytes(namehash.as_fixed_bytes().to_vec()),
-            Token::String("avatar".to_string()),
+            Token::String(self.record.clone()),
         ]);
 
         [fn_selector, data].concat()
@@ -71,8 +70,7 @@ impl ENSLookup for Avatar {
                 token_id,
                 state.rpc.clone(),
             )
-            .await
-            .unwrap();
+            .await?;
 
             // TODO: Remove naive approach
             return Ok(resolved_uri);
@@ -82,7 +80,7 @@ impl ENSLookup for Avatar {
     }
 
     fn name(&self) -> String {
-        "avatar".to_string()
+        self.record.clone()
     }
 }
 
@@ -93,9 +91,10 @@ mod tests {
 
     fn test_calldata_avatar() {
         assert_eq!(
-            Avatar{
+            Image {
                 ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
                 name: "luc.eth".to_string(),
+                record: "avatar".to_string()
             }.calldata(&namehash("luc.eth")),
             hex_literal::hex!("59d1d43ce1e7bcf2ca33c28a806ee265cfedf02fedf1b124ca73b2203ca80cc7c91a02ad000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000066176617461720000000000000000000000000000000000000000000000000000")
         );

@@ -9,6 +9,7 @@ impl Default for Records {
             "name",
             "mail",
             "email",
+            "avatar",
             "header",
             "location",
             "timezone",
@@ -25,7 +26,10 @@ impl Default for Records {
             "social.mastodon",
             "network.dm3.profile",
             "network.dm3.deliveryService",
-        ].into_iter().map(|s| s.to_string()).collect();
+        ]
+        .into_iter()
+        .map(|s| s.to_string())
+        .collect();
 
         Self { records }
     }
