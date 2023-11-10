@@ -41,6 +41,7 @@ pub async fn resolve_eip155(
     contract_address: &str,
     token_id: &str,
     provider: Arc<Provider<Http>>,
+    opensea_api_key: &str,
 ) -> Result<String, EIP155Error> {
     let chain_id: u64 = chain_id
         .parse()
@@ -92,21 +93,21 @@ pub async fn resolve_eip155(
     // TODO: Validate URL here
     let token_metadata_url = IPFSURLUnparsed::from_unparsed(token_metadata_url);
 
-    let token_metadata = token_metadata_url.fetch().await.unwrap();
+    let token_metadata = token_metadata_url.fetch(&opensea_api_key).await.unwrap();
 
     let image = token_metadata.image.ok_or(EIP155Error::Other)?;
 
     info!("Image: {}", image);
 
-    let token_image_url =
-        IPFSURLUnparsed::from_unparsed(image)
-            .to_url_or_gateway();
+    let token_image_url = IPFSURLUnparsed::from_unparsed(image).to_url_or_gateway();
 
     Ok(token_image_url)
 }
 
 #[cfg(test)]
 mod tests {
+    use std::env;
+
     use super::*;
 
     // #[tokio::test]
@@ -128,12 +129,15 @@ mod tests {
     #[tokio::test]
     async fn test_calldata_avatar() {
         let provider = Arc::new(Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap());
+        let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
+
         let data = resolve_eip155(
             "1",
             "erc721",
             "0xc92ceddfb8dd984a89fb494c376f9a48b999aafc",
             "2257",
             provider,
+            &opensea_api_key,
         )
         .await
         .unwrap();

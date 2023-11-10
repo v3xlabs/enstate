@@ -71,7 +71,7 @@ impl LookupType {
         }
     }
 
-    async fn process(&self, req: Request) -> Result<Response, Response> {
+    async fn process(&self, req: Request, opensea_api_key: &str) -> Result<Response, Response> {
         let cache = Box::new(EmptyCache::new());
         let profile_records = Records::default().records;
         let profile_chains = Coins::default().coins;
@@ -91,6 +91,7 @@ impl LookupType {
                     fresh,
                     cache,
                     rpc,
+                    &opensea_api_key,
                     &profile_records,
                     &profile_chains,
                 )
@@ -116,6 +117,7 @@ impl LookupType {
                     fresh,
                     cache,
                     rpc,
+                    &opensea_api_key,
                     &profile_records,
                     &profile_chains,
                 )
@@ -137,6 +139,7 @@ impl LookupType {
                     fresh,
                     cache,
                     rpc,
+                    &opensea_api_key,
                     &profile_records,
                     &profile_chains,
                 )
@@ -161,19 +164,21 @@ impl LookupType {
 }
 
 #[event(fetch, respond_with_errors)]
-async fn main(req: Request, _env: Env, _ctx: Context) -> worker::Result<Response> {
+async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response> {
     let cors = Cors::default()
         .with_origins(vec!["*"])
         .with_methods(Method::all());
 
+    let opensea_api_key = env.var("OPENSEA_API_KEY").unwrap().to_string();
+
     let response = LookupType::from_path(req.path())
-        .process(req)
+        .process(req, &opensea_api_key)
         .await
         .unwrap_or_else(|f| f);
 
     let mut headers = response.headers().clone();
 
-    headers.set("Cache-Control", "max-age=600, stale-while-revalidate=30");
+    let _ = headers.set("Cache-Control", "max-age=600, stale-while-revalidate=30");
 
     response.with_headers(headers).with_cors(&cors)
 }

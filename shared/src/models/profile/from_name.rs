@@ -6,9 +6,7 @@ use tracing::info;
 
 use crate::models::lookup::avatar::Image;
 use crate::models::{
-    lookup::{
-        addr::Addr, multicoin::Multicoin, text::Text, ENSLookup, LookupState,
-    },
+    lookup::{addr::Addr, multicoin::Multicoin, text::Text, ENSLookup, LookupState},
     multicoin::cointype::coins::CoinType,
     profile::Profile,
     universal_resolver::resolve_universal,
@@ -23,6 +21,7 @@ impl Profile {
         fresh: bool,
         cache: Box<dyn crate::cache::CacheLayer>,
         rpc: Provider<Http>,
+        opensea_api_key: &str,
         profile_records: &Vec<String>,
         profile_chains: &Vec<CoinType>,
     ) -> Result<Self, ProfileError> {
@@ -87,7 +86,10 @@ impl Profile {
         let mut results: Vec<Option<String>> = Vec::new();
         let mut errors = BTreeMap::default();
 
-        let state = Arc::new(LookupState { rpc });
+        let state = Arc::new(LookupState {
+            rpc,
+            opensea_api_key: opensea_api_key.to_string(),
+        });
 
         // Assume results & calldata have the same length
         // Look through all calldata and decode the results at the same index

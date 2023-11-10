@@ -4,6 +4,7 @@ use crate::models::eip155::resolve_eip155;
 
 use super::{ENSLookup, ENSLookupError, LookupState};
 
+use async_trait::async_trait;
 use ethers_core::{
     abi::{ParamType, Token},
     types::H256,
@@ -17,7 +18,8 @@ pub struct Image {
     pub record: String,
 }
 
-#[async_trait::async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl ENSLookup for Image {
     fn calldata(&self, namehash: &H256) -> Vec<u8> {
         let fn_selector = hex!("59d1d43c").to_vec();
@@ -35,6 +37,8 @@ impl ENSLookup for Image {
             .map_err(|_| ENSLookupError::AbiDecodeError)?;
         let value = decoded_abi.get(0).ok_or(ENSLookupError::AbiDecodeError)?;
         let value = value.to_string();
+
+        let opensea_api_key = state.opensea_api_key.clone();
 
         // If IPFS
         let ipfs = regex::Regex::new(r"ipfs://([0-9a-zA-Z]+)").unwrap();
@@ -69,6 +73,7 @@ impl ENSLookup for Image {
                 contract_address,
                 token_id,
                 state.rpc.clone(),
+                &opensea_api_key,
             )
             .await?;
 

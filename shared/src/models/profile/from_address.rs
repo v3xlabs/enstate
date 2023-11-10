@@ -13,6 +13,7 @@ impl Profile {
         fresh: bool,
         cache: Box<dyn crate::cache::CacheLayer>,
         rpc: Provider<Http>,
+        opensea_api_key: &str,
         profile_records: &Vec<String>,
         profile_chains: &Vec<CoinType>,
     ) -> Result<Self, ProfileError> {
@@ -46,6 +47,6 @@ impl Profile {
             return Err(ProfileError::NotFound);
         }
 
-        Self::from_name(&name, fresh, cache, rpc, profile_records, profile_chains).await
+        Self::from_name(&name, fresh, cache, rpc, opensea_api_key, profile_records, profile_chains).await
     }
 }

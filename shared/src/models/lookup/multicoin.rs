@@ -5,6 +5,7 @@ use ethers_core::{
     types::H256,
 };
 use hex_literal::hex;
+use async_trait::async_trait;
 
 use crate::models::multicoin::cointype::coins::CoinType;
 
@@ -14,7 +15,8 @@ pub struct Multicoin {
     pub coin_type: CoinType,
 }
 
-#[async_trait::async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl ENSLookup for Multicoin {
     fn calldata(&self, namehash: &H256) -> Vec<u8> {
         let fn_selector = hex!("f1cb7e06").to_vec();

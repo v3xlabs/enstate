@@ -14,12 +14,8 @@ pub enum IPFSURLUnparsed {
 impl IPFSURLUnparsed {
     // Given an arbitrary value initializes the ipfsurlunparsed
     pub fn from_unparsed(value: String) -> Self {
-        info!("Parsing: {}", value);
-
         let raw_ipfs = regex::Regex::new(r"^Qm[1-9A-HJ-NP-Za-km-z]{44,}|b[A-Za-z2-7]{58,}|B[A-Z2-7]{58,}|z[1-9A-HJ-NP-Za-km-z]{48,}|F[0-9A-F]{50,}$").unwrap();
         if raw_ipfs.is_match(&value) {
-            info!("IPFS: {}", value);
-
             return IPFSURLUnparsed::IPFS(value);
         }
 
@@ -27,8 +23,6 @@ impl IPFSURLUnparsed {
         let ipfs = regex::Regex::new(r"^ipfs://(ip[fn]s/)?([0-9a-zA-Z]+(/.*)?)").unwrap();
         if let Some(captures) = ipfs.captures(&value) {
             let hash = captures.get(2).unwrap().as_str();
-
-            info!("IPFS: {}", hash);
 
             return IPFSURLUnparsed::IPFS(hash.to_string());
         }
@@ -48,18 +42,16 @@ impl IPFSURLUnparsed {
         }
     }
 
-    pub async fn fetch(&self) -> Result<NFTMetadata, ()> {
+    pub async fn fetch(&self, opensea_api_key: &str) -> Result<NFTMetadata, ()> {
         let url = self.to_url_or_gateway();
         let mut client_headers = reqwest::header::HeaderMap::new();
 
         if url.starts_with("https://api.opensea.io/") {
             client_headers.insert(
                 "X-API-KEY",
-                env::var("OPENSEA_API_KEY").unwrap().parse().unwrap(),
+                opensea_api_key.parse().unwrap(),
             );
         }
-
-        info!("Fetching: {}", url);
 
         let client = reqwest::Client::builder()
             .default_headers(client_headers)
@@ -68,11 +60,7 @@ impl IPFSURLUnparsed {
 
         let res = client.get(&url).send().await.unwrap();
 
-        info!("Status: {}", res.status());
-
         let body = res.text().await.unwrap();
-
-        // info!("Body:\n\n{}", body);
 
         let metadata: NFTMetadata = serde_json::from_str(&body).unwrap();
 
@@ -114,8 +102,9 @@ mod tests {
     #[tokio::test]
     async fn test_ipfs_url_unparsed() {
         let url = IPFSURLUnparsed::from_unparsed("https://creature.mypinata.cloud/ipfs/QmVDNzQNuD5jBKHmJ2nmVP35HsXUqhGRX9V2KVHvRznLg8/2257".to_string());
+        let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
-        let result = url.fetch().await.unwrap();
+        let result = url.fetch(&opensea_api_key).await.unwrap();
 
         assert_eq!(result.name.unwrap(), "Creature #2257");
         assert_eq!(result.image.unwrap(), "https://creature.mypinata.cloud/ipfs/QmeZGc1CL3eb9QJatKXTGT7ekgLMq9FyZUWckQ4oWdc53a/2257.jpg");
@@ -124,8 +113,9 @@ mod tests {
     #[tokio::test]
     async fn test_ipfs_url() {
         let url = IPFSURLUnparsed::URL("https://api.opensea.io/api/v1/metadata/0x495f947276749Ce646f68AC8c248420045cb7b5e/20709508835757291459772958604787444705400082683953919595999414934333676322817".to_string());
+        let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
-        let result = url.fetch().await.unwrap();
+        let result = url.fetch(&opensea_api_key).await.unwrap();
 
         assert_eq!(result.name.unwrap(), "choob");
     }
