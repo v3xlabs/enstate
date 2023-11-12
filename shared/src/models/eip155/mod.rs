@@ -13,7 +13,7 @@ use super::{ipfs::IPFSURLUnparsed, lookup::ENSLookupError};
 
 #[derive(Error, Debug)]
 pub enum EIP155Error {
-    #[error("Unsupported chain: {0}")]
+    #[error("Unparsable chain: {0}")]
     UnparsableChain(String),
     #[error("Unsupported chain: {0}")]
     UnsupportedChain(u64),

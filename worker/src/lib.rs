@@ -40,8 +40,6 @@ impl LookupType {
         let _ = split.pop_front();
         let first = split.pop_front().unwrap_or("");
 
-        console_log!("first: {}, path {}", first, path);
-
         match first {
             "n" => {
                 if let Some(name) = split.pop_front() {

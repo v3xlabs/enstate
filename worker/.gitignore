@@ -4,3 +4,4 @@ target/
 .env
 .dev.vars
 .idea/
+.dev.vars
