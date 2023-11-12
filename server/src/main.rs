@@ -30,7 +30,6 @@ async fn main() {
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
     info!("📦 enstate.rs v{}", env!("CARGO_PKG_VERSION"));
-    // println!("📦 enstate.rs v{}", env!("CARGO_PKG_VERSION"));
 
     let state = AppState::new().await;
 

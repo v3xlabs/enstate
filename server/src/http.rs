@@ -26,8 +26,6 @@ impl App {
         let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
         info!("Listening http on {}", addr);
-        // println!("   Listening on http://{addr}\n");
-        //       ^^^ Three spaces here to align with enstate.rs header :)
 
         axum::Server::bind(&addr)
             .serve(self.router.into_make_service())

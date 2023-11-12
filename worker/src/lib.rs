@@ -1,11 +1,11 @@
-use std::{collections::VecDeque, str::FromStr, sync::Arc};
+use std::{collections::VecDeque, str::FromStr};
+use std::sync::Arc;
 
-use empty_cache::EmptyCache;
 use wasm_bindgen::JsValue;
 
 use enstate_shared::models::{
     multicoin::cointype::Coins,
-    profile::{error::ProfileError, Profile},
+    profile::{Profile},
     records::Records,
 };
 use ethers::{
@@ -69,8 +69,8 @@ impl LookupType {
         }
     }
 
-    async fn process(&self, req: Request, opensea_api_key: &str) -> Result<Response, Response> {
-        let cache = Box::new(EmptyCache::new());
+    async fn process(&self, req: Request, env: Arc<Env>, opensea_api_key: &str) -> Result<Response, Response> {
+        let cache = Box::new(CloudflareKVCache::new(env));
         let profile_records = Records::default().records;
         let profile_chains = Coins::default().coins;
         let rpc = Provider::<Http>::try_from("https://rpc.enstate.rs/v1/mainnet")
@@ -169,8 +169,10 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
 
     let opensea_api_key = env.var("OPENSEA_API_KEY").unwrap().to_string();
 
+    let env_arc = Arc::new(env);
+
     let response = LookupType::from_path(req.path())
-        .process(req, &opensea_api_key)
+        .process(req, env_arc, &opensea_api_key)
         .await
         .unwrap_or_else(|f| f);
 
