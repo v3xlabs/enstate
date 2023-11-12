@@ -6,7 +6,7 @@ use js_sys::{Function, Promise};
 use serde::Serialize;
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
-use worker::{Env};
+use worker::Env;
 
 use crate::get_js;
 
