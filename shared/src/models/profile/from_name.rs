@@ -1,13 +1,15 @@
-use std::collections::BTreeMap;
 use std::str::FromStr;
+use std::{collections::BTreeMap, sync::Arc};
 
 use ethers::providers::{Http, Provider};
 use tracing::info;
 
+use crate::models::lookup::avatar::Image;
 use crate::models::{
-    lookup::{addr::Addr, avatar::Avatar, multicoin::Multicoin, text::Text, ENSLookup},
+    lookup::{addr::Addr, multicoin::Multicoin, text::Text, ENSLookup, LookupState},
+    multicoin::cointype::coins::CoinType,
     profile::Profile,
-    universal_resolver::resolve_universal, multicoin::cointype::coins::CoinType,
+    universal_resolver::resolve_universal,
 };
 use crate::utils::eip55::EIP55Address;
 
@@ -19,6 +21,7 @@ impl Profile {
         fresh: bool,
         cache: Box<dyn crate::cache::CacheLayer>,
         rpc: Provider<Http>,
+        opensea_api_key: &str,
         profile_records: &Vec<String>,
         profile_chains: &Vec<CoinType>,
     ) -> Result<Self, ProfileError> {
@@ -47,10 +50,17 @@ impl Profile {
         // Preset Hardcoded Lookups
         let mut calldata: Vec<Box<dyn ENSLookup + Send + Sync>> = vec![
             Box::new(Addr {}),
-            Box::new(Avatar {
+            Box::new(Image {
                 // TODO: Default IPFS Gateway
                 ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
                 name: name.to_string(),
+                record: "avatar".to_string(),
+            }),
+            Box::new(Image {
+                // TODO: Default IPFS Gateway
+                ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
+                name: name.to_string(),
+                record: "header".to_string(),
             }),
             Box::new(Text::new("display".to_string())),
         ];
@@ -68,17 +78,23 @@ impl Profile {
                 coin_type: chain.clone(),
             }));
         }
+        let rpc = Arc::new(rpc);
 
         // Execute Universal Resolver Lookup
-        let (data, resolver) = resolve_universal(name.to_string(), &calldata, rpc).await?;
+        let (data, resolver) = resolve_universal(name.to_string(), &calldata, rpc.clone()).await?;
 
         let mut results: Vec<Option<String>> = Vec::new();
         let mut errors = BTreeMap::default();
 
+        let state = Arc::new(LookupState {
+            rpc,
+            opensea_api_key: opensea_api_key.to_string(),
+        });
+
         // Assume results & calldata have the same length
         // Look through all calldata and decode the results at the same index
         for (index, calldata) in calldata.iter().enumerate() {
-            let result = calldata.decode(&data[index]);
+            let result = calldata.decode(&data[index], state.clone()).await;
 
             match result {
                 Ok(result) => {
@@ -93,7 +109,8 @@ impl Profile {
 
         let address: Option<String> = results.get(0).unwrap_or(&None).clone();
         let avatar: Option<String> = results.get(1).unwrap_or(&None).clone();
-        let display_record: Option<String> = results.get(3).unwrap_or(&None).clone();
+        let header: Option<String> = results.get(2).unwrap_or(&None).clone();
+        let display_record: Option<String> = results.get(4).unwrap_or(&None).clone();
 
         let display = match display_record {
             Some(display) if display.to_lowercase() == name.to_lowercase() => display,
@@ -104,6 +121,7 @@ impl Profile {
             name = name,
             address,
             avatar = ?avatar,
+            header = ?header,
             "Profile for {name} found"
         );
 
@@ -131,6 +149,7 @@ impl Profile {
             name: name.to_string(),
             address: address.and_then(|it| EIP55Address::from_str(it.as_str()).ok()),
             avatar,
+            header,
             display,
             records,
             chains,

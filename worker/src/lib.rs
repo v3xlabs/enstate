@@ -1,11 +1,11 @@
-use std::{collections::VecDeque, str::FromStr, sync::Arc};
+use std::{collections::VecDeque, str::FromStr};
+use std::sync::Arc;
 
-use empty_cache::EmptyCache;
 use wasm_bindgen::JsValue;
 
 use enstate_shared::models::{
     multicoin::cointype::Coins,
-    profile::{error::ProfileError, Profile},
+    profile::{Profile},
     records::Records,
 };
 use ethers::{
@@ -40,8 +40,6 @@ impl LookupType {
         let _ = split.pop_front();
         let first = split.pop_front().unwrap_or("");
 
-        console_log!("first: {}, path {}", first, path);
-
         match first {
             "n" => {
                 if let Some(name) = split.pop_front() {
@@ -71,8 +69,8 @@ impl LookupType {
         }
     }
 
-    async fn process(&self, req: Request) -> Result<Response, Response> {
-        let cache = Box::new(EmptyCache::new());
+    async fn process(&self, req: Request, env: Arc<Env>, opensea_api_key: &str) -> Result<Response, Response> {
+        let cache = Box::new(CloudflareKVCache::new(env));
         let profile_records = Records::default().records;
         let profile_chains = Coins::default().coins;
         let rpc = Provider::<Http>::try_from("https://rpc.enstate.rs/v1/mainnet")
@@ -91,6 +89,7 @@ impl LookupType {
                     fresh,
                     cache,
                     rpc,
+                    &opensea_api_key,
                     &profile_records,
                     &profile_chains,
                 )
@@ -116,6 +115,7 @@ impl LookupType {
                     fresh,
                     cache,
                     rpc,
+                    &opensea_api_key,
                     &profile_records,
                     &profile_chains,
                 )
@@ -137,6 +137,7 @@ impl LookupType {
                     fresh,
                     cache,
                     rpc,
+                    &opensea_api_key,
                     &profile_records,
                     &profile_chains,
                 )
@@ -166,14 +167,18 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
         .with_origins(vec!["*"])
         .with_methods(Method::all());
 
+    let opensea_api_key = env.var("OPENSEA_API_KEY").unwrap().to_string();
+
+    let env_arc = Arc::new(env);
+
     let response = LookupType::from_path(req.path())
-        .process(req)
+        .process(req, env_arc, &opensea_api_key)
         .await
         .unwrap_or_else(|f| f);
 
     let mut headers = response.headers().clone();
 
-    headers.set("Cache-Control", "max-age=600, stale-while-revalidate=30");
+    let _ = headers.set("Cache-Control", "max-age=600, stale-while-revalidate=30");
 
     response.with_headers(headers).with_cors(&cors)
 }

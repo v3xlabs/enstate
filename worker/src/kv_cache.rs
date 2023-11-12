@@ -81,8 +81,9 @@ impl CacheLayer for CloudflareKVCache {
 
         let put_function_result = JsFuture::from(put_function_promise);
 
-        let _ = put_function_result
+        put_function_result
             .await
+            .map(|_| ())
             .map_err(|_| CacheError::Other("Not Found".to_string()))?;
 
         Ok(())

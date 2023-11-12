@@ -12,3 +12,6 @@ kv_namespaces = [
 
 [build]
 command = "cargo install -q worker-build && worker-build --release"
+
+[vars]
+OPENSEA_API_KEY="xxxx"

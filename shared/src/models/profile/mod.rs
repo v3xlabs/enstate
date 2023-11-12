@@ -16,6 +16,8 @@ pub struct Profile {
     pub address: Option<EIP55Address>,
     // Avatar URL
     pub avatar: Option<String>,
+    // Header URL
+    pub header: Option<String>,
     // Preferred Capitalization of Name
     pub display: String,
     // Records

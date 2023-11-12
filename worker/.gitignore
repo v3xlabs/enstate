@@ -2,3 +2,5 @@ node_modules/
 .wrangler
 target/
 .env
+.idea/
+.dev.vars

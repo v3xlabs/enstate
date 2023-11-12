@@ -1,12 +1,12 @@
-use enstate_shared::models::{multicoin::cointype::{coins::CoinType, Coins}, records::Records};
+use enstate_shared::models::{
+    multicoin::cointype::{coins::CoinType, Coins},
+    records::Records,
+};
 use redis::aio::ConnectionManager;
 use std::env;
 use tracing::info;
 
-use crate::{
-    database,
-    provider::RoundRobinProvider,
-};
+use crate::{database, provider::RoundRobinProvider};
 
 #[allow(clippy::module_name_repetitions)]
 pub struct AppState {
@@ -14,6 +14,7 @@ pub struct AppState {
     pub profile_records: Vec<String>,
     pub profile_chains: Vec<CoinType>,
     pub rpc_urls: Vec<String>,
+    pub opensea_api_key: String,
     pub provider: RoundRobinProvider,
 }
 
@@ -47,10 +48,13 @@ impl AppState {
 
         let provider = RoundRobinProvider::new(rpc_urls.clone());
 
+        let opensea_api_key = env::var("OPENSEA_API_KEY").expect("OPENSEA_API_KEY not found.");
+
         Self {
             redis,
             profile_records,
             profile_chains: multicoin_chains,
+            opensea_api_key,
             rpc_urls,
             provider,
         }

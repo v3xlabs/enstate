@@ -41,11 +41,14 @@ pub async fn get(
     let cache = Box::new(RedisCache::new(state.redis.clone()));
     let rpc = state.provider.get_provider();
 
+    let opensea_api_key = state.opensea_api_key.clone();
+
     let profile = Profile::from_address(
         address,
         query.fresh.unwrap_or(false),
         cache,
         rpc,
+        &opensea_api_key,
         &state.profile_records,
         &state.profile_chains,
     )

@@ -977,6 +977,7 @@ dependencies = [
  "hex-literal",
  "lazy_static",
  "regex",
+ "reqwest",
  "rustc-hex",
  "serde",
  "serde_json",
