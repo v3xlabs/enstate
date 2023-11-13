@@ -1,12 +1,14 @@
+use std::fmt::Display;
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use ethers::providers::{Http, Provider};
 use ethers_core::types::H256;
 use thiserror::Error;
 
-use super::multicoin::decoding::MulticoinDecoderError;
 use crate::models::eip155::EIP155Error;
-use async_trait::async_trait;
+
+use super::multicoin::decoding::MulticoinDecoderError;
 
 pub mod addr;
 pub mod avatar;
@@ -37,6 +39,12 @@ pub trait ENSLookup {
     fn calldata(&self, namehash: &H256) -> Vec<u8>;
     async fn decode(&self, data: &[u8], state: Arc<LookupState>) -> Result<String, ENSLookupError>;
     fn name(&self) -> String;
+}
+
+impl Display for dyn ENSLookup + Send + Sync {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(f, "ENSLookup({})", self.name())
+    }
 }
 
 pub struct LookupState {

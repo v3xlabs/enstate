@@ -4,6 +4,7 @@ use std::{collections::BTreeMap, sync::Arc};
 use ethers::providers::{Http, Provider};
 use tracing::info;
 
+use crate::cache::CacheError;
 use crate::models::lookup::avatar::Image;
 use crate::models::{
     lookup::{addr::Addr, multicoin::Multicoin, text::Text, ENSLookup, LookupState},
@@ -88,7 +89,7 @@ impl Profile {
         let mut results: Vec<Option<String>> = Vec::new();
         let mut errors = BTreeMap::default();
 
-        let state = Arc::new(LookupState {
+        let lookup_state = Arc::new(LookupState {
             rpc,
             opensea_api_key: opensea_api_key.to_string(),
         });
@@ -96,7 +97,7 @@ impl Profile {
         // Assume results & calldata have the same length
         // Look through all calldata and decode the results at the same index
         for (index, calldata) in calldata.iter().enumerate() {
-            let result = calldata.decode(&data[index], state.clone()).await;
+            let result = calldata.decode(&data[index], lookup_state.clone()).await;
 
             match result {
                 Ok(result) => {
@@ -166,7 +167,9 @@ impl Profile {
         cache
             .set(&cache_key, &response, 600)
             .await
-            .map_err(|_| ProfileError::Other("cache set failed".to_string()))?;
+            .map_err(|CacheError::Other(err)| {
+                ProfileError::Other(format!("cache set failed: {}", err))
+            })?;
 
         Ok(value)
     }

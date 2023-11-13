@@ -1,3 +1,4 @@
+use ethers::prelude::ProviderError::JsonRpcClientError;
 use ethers::{
     providers::{namehash, Http, Middleware, Provider},
     types::{transaction::eip2718::TypedTransaction, Address, Bytes},
@@ -24,6 +25,9 @@ lazy_static! {
         .parse::<Address>()
         .unwrap();
 }
+
+const MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE: &str =
+    "execution reverted: UniversalResolver: Wildcard on non-extended resolvers is not supported";
 
 pub async fn resolve_universal(
     name: &str,
@@ -58,7 +62,20 @@ pub async fn resolve_universal(
     typed_transaction.set_data(Bytes::from(transaction_data));
 
     // Call the transaction
-    let res = provider.call(&typed_transaction, None).await?;
+    let res = provider
+        .call(&typed_transaction, None)
+        .await
+        .map_err(|err| {
+            if let JsonRpcClientError(rpc_err) = &err {
+                if let Some(rpc_err_raw) = rpc_err.as_error_response() {
+                    if rpc_err_raw.message == MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE {
+                        return ProfileError::NotFound;
+                    }
+                }
+            }
+
+            ProfileError::RPCError(err)
+        })?;
 
     let res_data = res.to_vec();
 
@@ -80,6 +97,12 @@ pub async fn resolve_universal(
     let result_data = result.get(0).unwrap().clone();
     let result_address = result.get(1).unwrap().clone();
 
+    let resolver = result_address.into_address().unwrap();
+
+    if resolver.is_zero() {
+        return Err(ProfileError::NotFound);
+    }
+
     Ok((
         result_data
             .into_array()
@@ -87,13 +110,14 @@ pub async fn resolve_universal(
             .into_iter()
             .map(|t| t.into_bytes().unwrap())
             .collect(),
-        result_address.into_address().unwrap(),
+        resolver,
     ))
 }
 
 #[cfg(test)]
 mod tests {
     use ethers::providers::{Http, Provider};
+    use ethers_core::abi::ParamType;
 
     use crate::models::universal_resolver;
 

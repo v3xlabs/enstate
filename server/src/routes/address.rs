@@ -7,14 +7,9 @@ use axum::{
 };
 use axum_macros::debug_handler;
 use enstate_shared::models::profile::Profile;
-use serde::Deserialize;
 
 use crate::cache::RedisCache;
-
-#[derive(Deserialize)]
-pub struct NameQuery {
-    fresh: Option<bool>,
-}
+use crate::routes::{http_simple_status_error, profile_http_error_mapper, FreshQuery, RouteError};
 
 #[debug_handler]
 #[utoipa::path(
@@ -32,27 +27,29 @@ pub struct NameQuery {
 )]
 pub async fn get(
     Path(address): Path<String>,
-    Query(query): Query<NameQuery>,
+    Query(query): Query<FreshQuery>,
     State(state): State<Arc<crate::AppState>>,
-) -> Result<Json<Profile>, StatusCode> {
-    let address = address.parse().map_err(|_| StatusCode::BAD_REQUEST)?;
+) -> Result<Json<Profile>, RouteError> {
+    let address = address
+        .parse()
+        .map_err(|_| http_simple_status_error(StatusCode::BAD_REQUEST))?;
 
     let cache = Box::new(RedisCache::new(state.redis.clone()));
     let rpc = state.provider.get_provider();
 
-    let opensea_api_key = state.opensea_api_key.clone();
+    let opensea_api_key = &state.opensea_api_key;
 
     let profile = Profile::from_address(
         address,
         query.fresh.unwrap_or(false),
         cache,
         rpc,
-        &opensea_api_key,
+        opensea_api_key,
         &state.profile_records,
         &state.profile_chains,
     )
     .await
-    .map_err(|_| StatusCode::NOT_FOUND)?;
+    .map_err(profile_http_error_mapper)?;
 
     Ok(Json(profile))
 }

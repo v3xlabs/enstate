@@ -12,13 +12,13 @@ use ethers::{
     providers::{Http, Provider},
     types::H160,
 };
+use ethers::types::Address;
 use js_sys::Reflect;
 use kv_cache::CloudflareKVCache;
 use worker::{
     console_error, console_log, event, Context, Cors, Env, Method, Request, Response, Url,
 };
 
-mod empty_cache;
 mod kv_cache;
 
 fn get_js(target: &JsValue, name: &str) -> Result<JsValue, JsValue> {
@@ -123,6 +123,49 @@ impl LookupType {
 
                 match profile {
                     Ok(x) => Ok(Response::from_json(&x).unwrap()),
+                    Err(e) => {
+                        console_error!("error: {}", e.to_string());
+                        return Err(Response::error(e.to_string(), 404).unwrap());
+                    }
+                }
+            },
+            LookupType::NameOrAddressLookup(name_or_address) => {
+                console_log!("Universal Lookup {}", name_or_address);
+
+                let address_option: Option<Address> = name_or_address.parse().ok();
+
+                let profile = match address_option {
+                    Some(address) => {
+                        Profile::from_address(
+                            address,
+                            fresh,
+                            cache,
+                            rpc,
+                            &opensea_api_key,
+                            &profile_records,
+                            &profile_chains,
+                        )
+                            .await
+                    }
+                    None => {
+                        Profile::from_name(
+                            &name_or_address.to_lowercase(),
+                            fresh,
+                            cache,
+                            rpc,
+                            &opensea_api_key,
+                            &profile_records,
+                            &profile_chains,
+                        )
+                            .await
+                    }
+                };
+
+                match profile {
+                    Ok(x) => Ok(Response::from_json(&x).map_err(|e| {
+                        console_error!("error: {}", e.to_string());
+                        Response::error(e.to_string(), 404).unwrap()
+                    })?),
                     Err(e) => {
                         console_error!("error: {}", e.to_string());
                         return Err(Response::error(e.to_string(), 404).unwrap());

@@ -2,18 +2,12 @@ use std::sync::Arc;
 
 use axum::{
     extract::{Path, Query, State},
-    http::StatusCode,
     Json,
 };
 use enstate_shared::models::profile::Profile;
-use serde::Deserialize;
 
 use crate::cache::RedisCache;
-
-#[derive(Deserialize)]
-pub struct NameQuery {
-    fresh: Option<bool>,
-}
+use crate::routes::{profile_http_error_mapper, FreshQuery, RouteError};
 
 #[utoipa::path(
     get,
@@ -28,9 +22,9 @@ pub struct NameQuery {
 )]
 pub async fn get(
     Path(name): Path<String>,
-    Query(query): Query<NameQuery>,
+    Query(query): Query<FreshQuery>,
     State(state): State<Arc<crate::AppState>>,
-) -> Result<Json<Profile>, StatusCode> {
+) -> Result<Json<Profile>, RouteError> {
     let name = name.to_lowercase();
 
     let cache = Box::new(RedisCache::new(state.redis.clone()));
@@ -48,7 +42,7 @@ pub async fn get(
         &state.profile_chains,
     )
     .await
-    .map_err(|_| StatusCode::NOT_FOUND)?;
+    .map_err(profile_http_error_mapper)?;
 
     Ok(Json(profile))
 }
