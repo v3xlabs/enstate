@@ -1,9 +1,5 @@
 use std::sync::Arc;
 
-use crate::models::eip155::resolve_eip155;
-
-use super::{ENSLookup, ENSLookupError, LookupState};
-
 use async_trait::async_trait;
 use ethers_core::{
     abi::{ParamType, Token},
@@ -11,6 +7,10 @@ use ethers_core::{
 };
 use hex_literal::hex;
 use tracing::info;
+
+use crate::models::eip155::resolve_eip155;
+
+use super::{ENSLookup, ENSLookupError, LookupState};
 
 pub struct Image {
     pub ipfs_gateway: String,
@@ -72,7 +72,7 @@ impl ENSLookup for Image {
                 contract_type,
                 contract_address,
                 token_id,
-                state.rpc.clone(),
+                &state.rpc,
                 &opensea_api_key,
             )
             .await?;
@@ -91,8 +91,9 @@ impl ENSLookup for Image {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use ethers::providers::namehash;
+
+    use super::*;
 
     fn test_calldata_avatar() {
         assert_eq!(

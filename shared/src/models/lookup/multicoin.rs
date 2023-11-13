@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use ethers_core::{
     abi::{ParamType, Token},
     types::H256,
 };
 use hex_literal::hex;
-use async_trait::async_trait;
 
 use crate::models::multicoin::cointype::coins::CoinType;
 
@@ -32,6 +32,7 @@ impl ENSLookup for Multicoin {
     async fn decode(&self, data: &[u8], _: Arc<LookupState>) -> Result<String, ENSLookupError> {
         let decoded_abi = ethers_core::abi::decode(&[ParamType::Bytes], data)
             .map_err(|_| ENSLookupError::AbiDecodeError)?;
+
         let value = decoded_abi
             .get(0)
             .ok_or(ENSLookupError::AbiDecodeError)?

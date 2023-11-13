@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use enstate_shared::{models::profile::Profile, utils::eip55::EIP55Address};
+use enstate_shared::models::profile::Profile;
 use utoipa::ToSchema;
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, ToSchema)]

@@ -19,24 +19,24 @@ use super::cointype::{coins::CoinType, slip44::SLIP44};
 
 use self::{bitcoin::BitcoinDecoder, checksum_address::EvmDecoder};
 
-pub mod bitcoin;
-pub mod solana;
-pub mod litecoin;
-pub mod dogecoin;
-pub mod monacoin;
-pub mod ripple;
-pub mod bitcoin_cash;
 pub mod binance;
-pub mod hedera;
-pub mod stellar;
-pub mod monero;
-pub mod tezos;
+pub mod bitcoin;
+pub mod bitcoin_cash;
 pub mod cardano;
-pub mod polkadot;
 pub mod checksum_address;
+pub mod dogecoin;
+pub mod hedera;
+pub mod litecoin;
+pub mod monacoin;
+pub mod monero;
 pub mod p2pkh;
 pub mod p2sh;
+pub mod polkadot;
+pub mod ripple;
 pub mod segwit;
+pub mod solana;
+pub mod stellar;
+pub mod tezos;
 
 #[derive(Debug, Error)]
 pub enum MulticoinDecoderError {
@@ -56,8 +56,12 @@ impl CoinType {
         let decoder: Box<dyn MulticoinDecoder> = match self {
             Self::Slip44(slip44) => match slip44 {
                 SLIP44::Bitcoin => Box::new(BitcoinDecoder {}),
-                SLIP44::Ethereum | SLIP44::EthereumClassic => Box::new(EvmDecoder { chain: RSKIPChain::Ethereum }),
-                SLIP44::Rootstock => Box::new(EvmDecoder { chain: RSKIPChain::Other(30) }),
+                SLIP44::Ethereum | SLIP44::EthereumClassic => Box::new(EvmDecoder {
+                    chain: RSKIPChain::Ethereum,
+                }),
+                SLIP44::Rootstock => Box::new(EvmDecoder {
+                    chain: RSKIPChain::Other(30),
+                }),
                 SLIP44::Litecoin => Box::new(LitecoinDecoder {}),
                 SLIP44::BitcoinCash => Box::new(BitcoinCashDecoder {}),
                 SLIP44::Solana => Box::new(SolanaDecoder {}),
@@ -73,7 +77,9 @@ impl CoinType {
                 SLIP44::Polkadot => Box::new(PolkadotDecoder {}),
                 _ => return Err(MulticoinDecoderError::NotSupported),
             },
-            Self::Evm(_) => Box::new(EvmDecoder { chain: RSKIPChain::Ethereum }),
+            Self::Evm(_) => Box::new(EvmDecoder {
+                chain: RSKIPChain::Ethereum,
+            }),
         };
 
         decoder.decode(data)

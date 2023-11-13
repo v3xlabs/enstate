@@ -1,15 +1,13 @@
-use std::sync::Arc;
-
 use ethers::{
-    providers::{Http, Middleware, namehash, Provider},
-    types::{Address, Bytes, transaction::eip2718::TypedTransaction},
+    providers::{namehash, Http, Middleware, Provider},
+    types::{transaction::eip2718::TypedTransaction, Address, Bytes},
 };
-use crate::utils::dns::dns_encode;
 use ethers_contract::abigen;
 use ethers_core::abi::{ParamType, Token};
 use lazy_static::lazy_static;
 
 use crate::models::lookup::ENSLookup;
+use crate::utils::dns::dns_encode;
 
 use super::profile::error::ProfileError;
 
@@ -28,16 +26,17 @@ lazy_static! {
 }
 
 pub async fn resolve_universal(
-    name: String,
-    data: &Vec<Box<dyn ENSLookup + Send + Sync>>,
-    provider: Arc<Provider<Http>>,
+    name: &str,
+    data: &[Box<dyn ENSLookup + Send + Sync>],
+    provider: &Provider<Http>,
 ) -> Result<(Vec<Vec<u8>>, Address), ProfileError> {
-    let name_hash = namehash(name.as_str());
+    let name_hash = namehash(name);
 
     // Prepare the variables
-    let dns_encoded_node = dns_encode(name.as_str()).unwrap();
+    let dns_encoded_node = dns_encode(name).map_err(ProfileError::DNSEncodeError)?;
+
     let wildcard_data = data
-        .into_iter()
+        .iter()
         .map(|x| x.calldata(&name_hash))
         .map(Token::Bytes)
         .collect();
@@ -59,7 +58,7 @@ pub async fn resolve_universal(
     typed_transaction.set_data(Bytes::from(transaction_data));
 
     // Call the transaction
-    let res = provider.call(&typed_transaction, None).await.unwrap();
+    let res = provider.call(&typed_transaction, None).await?;
 
     let res_data = res.to_vec();
 
@@ -71,13 +70,18 @@ pub async fn resolve_universal(
         ],
         res_data.as_slice(),
     )
-        .unwrap();
+    .map_err(|_| ProfileError::ImplementationError("ABI decode failed".to_string()))?;
 
-    let result_datas = result.get(0).unwrap().clone();
+    if result.len() < 2 {
+        // should never trigger
+        return Err(ProfileError::ImplementationError("".to_string()));
+    }
+
+    let result_data = result.get(0).unwrap().clone();
     let result_address = result.get(1).unwrap().clone();
 
     Ok((
-        result_datas
+        result_data
             .into_array()
             .unwrap()
             .into_iter()
@@ -89,42 +93,34 @@ pub async fn resolve_universal(
 
 #[cfg(test)]
 mod tests {
+    use ethers::providers::{Http, Provider};
+
+    use crate::models::universal_resolver;
+
     async fn test_resolve_universal() {
-        // let namehash = namehash("luc.eth");
-        // let data = super::super::Profile::calldata_address(&namehash);
-        // let data2 = super::super::Profile::calldata_text(&namehash, "avatar");
-        // let data3 = super::super::Profile::calldata_text(&namehash, "com.github");
-        // let data4 = super::super::Profile::calldata_text(&namehash, "com.discord");
-        // let data5 = super::super::Profile::calldata_text(&namehash, "com.twitter");
-        // let data6 = super::super::Profile::calldata_text(&namehash, "timezone");
+        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
 
-        // let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
+        let res = universal_resolver::resolve_universal("luc.eth", &[], &provider)
+            .await
+            .unwrap();
 
-        // let res = Profile::resolve_universal(
-        //     "luc.eth",
-        //     vec![],
-        //     provider,
-        // )
-        // .await
-        // .unwrap();
+        println!("{:?}", res);
 
-        // println!("{:?}", res);
+        let text_response: Vec<String> = res.0[1..]
+            .iter()
+            .map(|t| {
+                ethers_core::abi::decode(&[ParamType::String], t)
+                    .unwrap()
+                    .get(0)
+                    .unwrap()
+                    .clone()
+                    .into_string()
+                    .unwrap()
+            })
+            .collect();
 
-        // let text_response: Vec<String> = res.0[1..]
-        //     .iter()
-        //     .map(|t| {
-        //         ethers_core::abi::decode(&[ParamType::String], t)
-        //             .unwrap()
-        //             .get(0)
-        //             .unwrap()
-        //             .clone()
-        //             .into_string()
-        //             .unwrap()
-        //     })
-        //     .collect();
+        println!("{:?}", text_response);
 
-        // println!("{:?}", text_response);
-
-        // // assert_eq!(res, Err(ProfileError::NotFound));
+        // assert_eq!(res, Err(ProfileError::NotFound));
     }
 }

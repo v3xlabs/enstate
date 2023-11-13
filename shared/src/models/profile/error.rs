@@ -7,10 +7,15 @@ pub enum ProfileError {
     #[error("Not Found")]
     NotFound,
 
-    #[error("RPC Error {0}")]
+    #[error("RPC error {0}")]
     RPCError(#[from] ProviderError),
 
-    #[allow(dead_code)]
-    #[error("Unknown")]
-    Unknown,
+    #[error("DNS encode error: {0}")]
+    DNSEncodeError(String),
+
+    #[error("Implementation error: {0}")]
+    ImplementationError(String),
+
+    #[error("Other: {0}")]
+    Other(String),
 }

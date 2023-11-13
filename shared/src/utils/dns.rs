@@ -15,7 +15,7 @@
 /// # Example
 ///
 /// ```
-/// use ethers_ccip_read::utils::{dns_encode};
+/// use crate::utils::dns::dns_encode;
 ///
 /// let encoded = dns_encode("tanrikulu.eth").unwrap();
 /// assert_eq!(encoded, vec![9, b't', b'a', b'n', b'r', b'i', b'k', b'u', b'l', b'u', 3, b'e', b't', b'h', 0]);
@@ -27,7 +27,7 @@ pub fn dns_encode(domain: &str) -> Result<Vec<u8>, String> {
     for label in labels {
         let label_len = label.len();
         if label_len > 63 {
-            return Err(format!("Label is too long: {}", label));
+            return Err(format!("label is too long: {}", label));
         }
 
         encoded.push(label_len as u8);

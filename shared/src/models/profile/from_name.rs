@@ -37,13 +37,14 @@ impl Profile {
         // If the value is in the cache, return it
         if !fresh {
             if let Ok(value) = cache.get(&cache_key).await {
-                if !value.is_empty() {
-                    let entry: Self = serde_json::from_str(value.as_str()).unwrap();
-
-                    return Ok(entry);
+                if value.is_empty() {
+                    return Err(ProfileError::NotFound);
                 }
 
-                return Err(ProfileError::NotFound);
+                let entry_result: Result<Self, _> = serde_json::from_str(value.as_str());
+                if let Ok(entry) = entry_result {
+                    return Ok(entry);
+                }
             }
         }
 
@@ -78,10 +79,11 @@ impl Profile {
                 coin_type: chain.clone(),
             }));
         }
+
         let rpc = Arc::new(rpc);
 
         // Execute Universal Resolver Lookup
-        let (data, resolver) = resolve_universal(name.to_string(), &calldata, rpc.clone()).await?;
+        let (data, resolver) = resolve_universal(name, &calldata, &rpc).await?;
 
         let mut results: Vec<Option<String>> = Vec::new();
         let mut errors = BTreeMap::default();
@@ -107,10 +109,10 @@ impl Profile {
             }
         }
 
-        let address: Option<String> = results.get(0).unwrap_or(&None).clone();
-        let avatar: Option<String> = results.get(1).unwrap_or(&None).clone();
-        let header: Option<String> = results.get(2).unwrap_or(&None).clone();
-        let display_record: Option<String> = results.get(4).unwrap_or(&None).clone();
+        let address = results.get(0).unwrap_or(&None).clone();
+        let avatar = results.get(1).unwrap_or(&None).clone();
+        let header = results.get(2).unwrap_or(&None).clone();
+        let display_record = results.get(4).unwrap_or(&None).clone();
 
         let display = match display_record {
             Some(display) if display.to_lowercase() == name.to_lowercase() => display,
@@ -158,9 +160,13 @@ impl Profile {
             errors,
         };
 
-        let response = serde_json::to_string(&value).unwrap();
+        let response =
+            serde_json::to_string(&value).map_err(|err| ProfileError::Other(err.to_string()))?;
 
-        cache.set(&cache_key, &response, 3600).await.unwrap();
+        cache
+            .set(&cache_key, &response, 600)
+            .await
+            .map_err(|_| ProfileError::Other("cache set failed".to_string()))?;
 
         Ok(value)
     }

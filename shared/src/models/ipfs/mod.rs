@@ -1,7 +1,3 @@
-use std::env;
-
-use tracing::info;
-
 use super::erc721::metadata::NFTMetadata;
 
 #[derive(Debug, PartialEq)]
@@ -10,6 +6,8 @@ pub enum IPFSURLUnparsed {
     IPFS(String),
     // IPNS(String),
 }
+
+pub const OPENSEA_BASE_PREFIX: &'static str = "https://api.opensea.io/";
 
 impl IPFSURLUnparsed {
     // Given an arbitrary value initializes the ipfsurlunparsed
@@ -42,15 +40,12 @@ impl IPFSURLUnparsed {
         }
     }
 
-    pub async fn fetch(&self, opensea_api_key: &str) -> Result<NFTMetadata, ()> {
+    pub async fn fetch(&self, opensea_api_key: &str) -> Result<NFTMetadata, reqwest::Error> {
         let url = self.to_url_or_gateway();
         let mut client_headers = reqwest::header::HeaderMap::new();
 
-        if url.starts_with("https://api.opensea.io/") {
-            client_headers.insert(
-                "X-API-KEY",
-                opensea_api_key.parse().unwrap(),
-            );
+        if url.starts_with(OPENSEA_BASE_PREFIX) {
+            client_headers.insert("X-API-KEY", opensea_api_key.parse().unwrap());
         }
 
         let client = reqwest::Client::builder()
@@ -58,9 +53,9 @@ impl IPFSURLUnparsed {
             .build()
             .unwrap();
 
-        let res = client.get(&url).send().await.unwrap();
+        let res = client.get(&url).send().await?;
 
-        let body = res.text().await.unwrap();
+        let body = res.text().await?;
 
         let metadata: NFTMetadata = serde_json::from_str(&body).unwrap();
 

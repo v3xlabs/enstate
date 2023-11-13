@@ -6,12 +6,11 @@ use axum::{
     Json,
 };
 use axum_macros::debug_handler;
+use enstate_shared::models::profile::Profile;
 use serde::Deserialize;
 
-use enstate_shared::models::profile::Profile;
+use crate::cache::RedisCache;
 
-use crate::{cache::RedisCache};
- 
 #[derive(Deserialize)]
 pub struct NameQuery {
     fresh: Option<bool>,

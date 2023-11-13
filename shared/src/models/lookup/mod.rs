@@ -5,6 +5,7 @@ use ethers_core::types::H256;
 use thiserror::Error;
 
 use super::multicoin::decoding::MulticoinDecoderError;
+use crate::models::eip155::EIP155Error;
 use async_trait::async_trait;
 
 pub mod addr;
@@ -20,9 +21,11 @@ pub enum ENSLookupError {
     #[error("MulticoinDecoderError: {0}")]
     MulticoinDecoder(#[from] MulticoinDecoderError),
 
-    #[allow(dead_code)]
     #[error("Unsupported: {0}")]
     Unsupported(String),
+
+    #[error("EIP155: {0}")]
+    EIP155Error(#[from] EIP155Error),
 
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),

@@ -1,14 +1,15 @@
-use crate::state::AppState;
-use axum::{routing::get, Router};
 use std::{net::SocketAddr, sync::Arc};
+
+use axum::{routing::get, Router};
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing::info;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
-use crate::models::profile::SProfile;
 
+use crate::models::profile::SProfile;
 use crate::routes;
+use crate::state::AppState;
 
 #[derive(OpenApi)]
 #[openapi(
