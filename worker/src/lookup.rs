@@ -1,7 +1,6 @@
-use enstate_shared::cache::CacheLayer;
-use std::str::FromStr;
 use std::sync::Arc;
 
+use enstate_shared::cache::CacheLayer;
 use enstate_shared::models::multicoin::cointype::coins::CoinType;
 use enstate_shared::models::profile::error::ProfileError;
 use enstate_shared::models::{multicoin::cointype::Coins, profile::Profile, records::Records};
@@ -59,7 +58,9 @@ impl LookupType {
         let rpc = Provider::<Http>::try_from("https://rpc.enstate.rs/v1/mainnet")
             .map_err(|_| Response::error("RPC Failure", 500).unwrap())?;
 
-        let url = req.url().unwrap();
+        let url = req
+            .url()
+            .map_err(|_| Response::error("Worker error", 500).unwrap())?;
         let query = querystring::querify(url.query().unwrap_or(""));
         let fresh = query
             .into_iter()
@@ -83,9 +84,12 @@ impl LookupType {
 
                 if let Ok(profile) = profile {
                     if let Some(avatar) = profile.avatar {
-                        let url = Url::parse(avatar.as_str()).unwrap();
+                        // TODO: find better status code
+                        let url = Url::parse(avatar.as_str())
+                            .map_err(|_| Response::error("Invalid avatar URL", 400).unwrap())?;
 
-                        return Ok(Response::redirect(url).unwrap());
+                        return Ok(Response::redirect(url)
+                            .map_err(|_| Response::error("Worker error", 500).unwrap())?);
                     }
                 }
 
@@ -109,18 +113,24 @@ impl LookupType {
                     }
                     LookupType::AddressLookup(address) => {
                         console_log!("Address Lookup {}", address);
-                        let address = H160::from_str(address).unwrap();
 
-                        Profile::from_address(
-                            address,
-                            fresh,
-                            cache,
-                            rpc,
-                            &opensea_api_key,
-                            &profile_records,
-                            &profile_chains,
-                        )
-                        .await
+                        let address = address.parse::<H160>();
+
+                        match address {
+                            Ok(address) => {
+                                Profile::from_address(
+                                    address,
+                                    fresh,
+                                    cache,
+                                    rpc,
+                                    &opensea_api_key,
+                                    &profile_records,
+                                    &profile_chains,
+                                )
+                                .await
+                            }
+                            Err(_) => Err(ProfileError::NotFound),
+                        }
                     }
                     LookupType::NameOrAddressLookup(name_or_address) => {
                         console_log!("Universal Lookup {}", name_or_address);

@@ -13,7 +13,10 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
         .with_origins(vec!["*"])
         .with_methods(Method::all());
 
-    let opensea_api_key = env.var("OPENSEA_API_KEY").unwrap().to_string();
+    let opensea_api_key = env
+        .var("OPENSEA_API_KEY")
+        .expect("OPENSEA_API_KEY should've been set")
+        .to_string();
 
     let env_arc = Arc::new(env);
 
