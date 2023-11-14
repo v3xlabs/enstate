@@ -6,7 +6,7 @@ use ethers_core::{
 use thiserror::Error;
 use tracing::info;
 
-use crate::models::ipfs::OPENSEA_BASE_PREFIX;
+use crate::models::ipfs::{URLFetchError, OPENSEA_BASE_PREFIX};
 
 use super::ipfs::IPFSURLUnparsed;
 
@@ -22,8 +22,8 @@ pub enum EIP155Error {
     #[error("RPC error: {0}")]
     RPCError(#[from] ProviderError),
 
-    #[error("HTTP error: {0}")]
-    HTTPError(#[from] reqwest::Error),
+    #[error("Metadata fetch error: {0}")]
+    MetadataFetchError(#[from] URLFetchError),
 
     #[error("Implementation error: {0}")]
     ImplementationError(String),

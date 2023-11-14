@@ -124,8 +124,6 @@ impl Profile {
         let header = results.get(2).cloned().unwrap_or(None);
         let display_record = results.get(3).cloned().unwrap_or(None);
 
-        println!("{address:?} {avatar:?} {header:?} {display_record:?}");
-
         let display = match display_record {
             Some(display) => display,
             _ => name.to_string(),

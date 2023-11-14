@@ -37,9 +37,8 @@ impl ENSLookup for Multicoin {
             .get(0)
             .ok_or(ENSLookupError::AbiDecodeError)?
             .clone()
-            .into_bytes();
-
-        let value = value.unwrap();
+            .into_bytes()
+            .expect("token should be bytes");
 
         if value.is_empty() {
             // Empty field

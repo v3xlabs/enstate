@@ -1,5 +1,6 @@
 use lazy_static::lazy_static;
 use reqwest::header::HeaderValue;
+use thiserror::Error;
 
 use super::erc721::metadata::NFTMetadata;
 
@@ -10,11 +11,25 @@ pub enum IPFSURLUnparsed {
     // IPNS(String),
 }
 
-pub const OPENSEA_BASE_PREFIX: &'static str = "https://api.opensea.io/";
+#[derive(Debug, Error)]
+pub enum URLFetchError {
+    #[error("HTTP error: {0}")]
+    HTTPError(#[from] reqwest::Error),
+
+    #[error("Parse error: {0}")]
+    ParseError(#[from] serde_json::Error),
+}
+
+pub const OPENSEA_BASE_PREFIX: &str = "https://api.opensea.io/";
 
 lazy_static! {
-    static ref RAW_IPFS_REGEX: regex::Regex = regex::Regex::new(r"^Qm[1-9A-HJ-NP-Za-km-z]{44,}|b[A-Za-z2-7]{58,}|B[A-Z2-7]{58,}|z[1-9A-HJ-NP-Za-km-z]{48,}|F[0-9A-F]{50,}$").unwrap();
-    static ref IPFS_REGEX: regex::Regex = regex::Regex::new(r"^ipfs://(ip[fn]s/)?([0-9a-zA-Z]+(/.*)?)").unwrap();
+    static ref RAW_IPFS_REGEX: regex::Regex =
+        regex::Regex::new(r"^Qm[1-9A-HJ-NP-Za-km-z]{44,}|b[A-Za-z2-7]{58,}|B[A-Z2-7]{58,}|z[1-9A-HJ-NP-Za-km-z]{48,}|F[0-9A-F]{50,}$")
+            .expect("should be a valid regex");
+
+    static ref IPFS_REGEX: regex::Regex =
+        regex::Regex::new(r"^ipfs://(ip[fn]s/)?([0-9a-zA-Z]+(/.*)?)")
+            .expect("should be a valid regex");
 }
 
 impl IPFSURLUnparsed {
@@ -46,7 +61,7 @@ impl IPFSURLUnparsed {
         }
     }
 
-    pub async fn fetch(&self, opensea_api_key: &str) -> Result<NFTMetadata, reqwest::Error> {
+    pub async fn fetch(&self, opensea_api_key: &str) -> Result<NFTMetadata, URLFetchError> {
         let url = self.to_url_or_gateway();
         let mut client_headers = reqwest::header::HeaderMap::new();
 
@@ -66,8 +81,7 @@ impl IPFSURLUnparsed {
 
         let body = res.text().await?;
 
-        // TODO: make an error struct for this
-        let metadata: NFTMetadata = serde_json::from_str(&body).unwrap();
+        let metadata: NFTMetadata = serde_json::from_str(&body)?;
 
         Ok(metadata)
     }

@@ -6,6 +6,7 @@ use ethers_core::{
     types::H256,
 };
 use hex_literal::hex;
+use lazy_static::lazy_static;
 use tracing::info;
 
 use crate::models::eip155::resolve_eip155;
@@ -16,6 +17,14 @@ pub struct Image {
     pub ipfs_gateway: String,
     pub name: String,
     pub record: String,
+}
+
+lazy_static! {
+    static ref IPFS_REGEX: regex::Regex =
+        regex::Regex::new(r"ipfs://([0-9a-zA-Z]+)").expect("should be a valid regex");
+    static ref EIP155_REGEX: regex::Regex =
+        regex::Regex::new(r"eip155:([0-9]+)/(erc1155|erc721):0x([0-9a-fA-F]{40})/([0-9]+)")
+            .expect("should be a valid regex");
 }
 
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
@@ -40,20 +49,14 @@ impl ENSLookup for Image {
 
         let opensea_api_key = state.opensea_api_key.clone();
 
-        // If IPFS
-        let ipfs = regex::Regex::new(r"ipfs://([0-9a-zA-Z]+)").unwrap();
-        if let Some(captures) = ipfs.captures(&value) {
+        if let Some(captures) = IPFS_REGEX.captures(&value) {
             let hash = captures.get(1).unwrap().as_str();
 
             return Ok(format!("{}{hash}", self.ipfs_gateway));
         }
 
-        // If the raw value is eip155 url
-        let eip155 =
-            regex::Regex::new(r"eip155:([0-9]+)/(erc1155|erc721):0x([0-9a-fA-F]{40})/([0-9]+)")
-                .unwrap();
-
-        if let Some(captures) = eip155.captures(&value) {
+        if let Some(captures) = EIP155_REGEX.captures(&value) {
+            // damn, that's ugly
             let chain_id = captures.get(1).unwrap().as_str();
             let contract_type = captures.get(2).unwrap().as_str();
             let contract_address = captures.get(3).unwrap().as_str();
