@@ -116,19 +116,41 @@ pub async fn resolve_universal(
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use ethers::providers::{Http, Provider};
     use ethers_core::abi::ParamType;
+    use ethers_core::types::Address;
 
+    use crate::models::lookup::addr::Addr;
+    use crate::models::lookup::text::Text;
+    use crate::models::lookup::ENSLookup;
     use crate::models::universal_resolver;
 
+    #[tokio::test]
     async fn test_resolve_universal() {
         let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
 
-        let res = universal_resolver::resolve_universal("luc.eth", &[], &provider)
+        let calldata: Vec<Box<dyn ENSLookup + Send + Sync>> = vec![
+            Addr {}.to_boxed(),
+            Text::from("com.discord").to_boxed(),
+            Text::from("com.github").to_boxed(),
+            Text::from("com.twitter").to_boxed(),
+            Text::from("org.telegram").to_boxed(),
+            Text::from("location").to_boxed(),
+        ];
+
+        let res = universal_resolver::resolve_universal("antony.sh", &calldata, &provider)
             .await
             .unwrap();
 
-        println!("{:?}", res);
+        let address = ethers_core::abi::decode(&[ParamType::Address], &res.0[0])
+            .unwrap()
+            .get(0)
+            .unwrap()
+            .clone()
+            .into_address()
+            .unwrap();
 
         let text_response: Vec<String> = res.0[1..]
             .iter()
@@ -143,8 +165,22 @@ mod tests {
             })
             .collect();
 
-        println!("{:?}", text_response);
+        // yes, I did make this test completely dependant on me 😈
+        // TODO: make less dependant on a single person
 
-        // assert_eq!(res, Err(ProfileError::NotFound));
+        assert_eq!(
+            address,
+            Address::from_str("0x2B5c7025998f88550Ef2fEce8bf87935f542C190").unwrap()
+        );
+        assert_eq!(
+            text_response,
+            vec![
+                "antony.sh",
+                "Antony1060",
+                "AntonyThe1060",
+                "Antony1060",
+                "Croatia"
+            ]
+        );
     }
 }

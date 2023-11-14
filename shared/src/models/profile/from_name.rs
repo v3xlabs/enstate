@@ -5,7 +5,7 @@ use ethers::providers::{Http, Provider};
 use tracing::info;
 
 use crate::cache::CacheError;
-use crate::models::lookup::avatar::Image;
+use crate::models::lookup::image::Image;
 use crate::models::{
     lookup::{addr::Addr, multicoin::Multicoin, text::Text, ENSLookup, LookupState},
     multicoin::cointype::coins::CoinType,
@@ -51,20 +51,22 @@ impl Profile {
 
         // Preset Hardcoded Lookups
         let mut calldata: Vec<Box<dyn ENSLookup + Send + Sync>> = vec![
-            Box::new(Addr {}),
-            Box::new(Image {
+            Addr {}.to_boxed(),
+            Image {
                 // TODO: Default IPFS Gateway
                 ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
                 name: name.to_string(),
                 record: "avatar".to_string(),
-            }),
-            Box::new(Image {
+            }
+            .to_boxed(),
+            Image {
                 // TODO: Default IPFS Gateway
                 ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
                 name: name.to_string(),
                 record: "header".to_string(),
-            }),
-            Box::new(Text::new("display".to_string())),
+            }
+            .to_boxed(),
+            Text::new("display".to_string()).to_boxed(),
         ];
 
         // Lookup all Records

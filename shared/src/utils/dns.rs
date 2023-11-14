@@ -15,7 +15,7 @@
 /// # Example
 ///
 /// ```
-/// use crate::utils::dns::dns_encode;
+/// use crate::enstate_shared::utils::dns::dns_encode;
 ///
 /// let encoded = dns_encode("tanrikulu.eth").unwrap();
 /// assert_eq!(encoded, vec![9, b't', b'a', b'n', b'r', b'i', b'k', b'u', b'l', b'u', 3, b'e', b't', b'h', 0]);
@@ -69,7 +69,7 @@ mod tests {
 
         assert_eq!(
             encoded_name.unwrap_err(),
-            format!("Label is too long: {}", labels.next().unwrap()),
+            format!("label is too long: {}", labels.next().unwrap()),
         );
     }
 }

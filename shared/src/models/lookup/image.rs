@@ -95,6 +95,7 @@ mod tests {
 
     use super::*;
 
+    #[test]
     fn test_calldata_avatar() {
         assert_eq!(
             Image {
@@ -106,5 +107,9 @@ mod tests {
         );
     }
 
-    fn test_eip155_avatar() {}
+    #[test]
+    fn test_eip155_avatar() {
+        // TODO: implement
+        assert_eq!(0, 0);
+    }
 }

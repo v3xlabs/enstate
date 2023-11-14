@@ -11,7 +11,7 @@ use crate::models::eip155::EIP155Error;
 use super::multicoin::decoding::MulticoinDecoderError;
 
 pub mod addr;
-pub mod avatar;
+pub mod image;
 pub mod multicoin;
 pub mod text;
 
@@ -39,6 +39,13 @@ pub trait ENSLookup {
     fn calldata(&self, namehash: &H256) -> Vec<u8>;
     async fn decode(&self, data: &[u8], state: Arc<LookupState>) -> Result<String, ENSLookupError>;
     fn name(&self) -> String;
+
+    fn to_boxed(self) -> Box<Self>
+    where
+        Self: Sized,
+    {
+        Box::new(self)
+    }
 }
 
 impl Display for dyn ENSLookup + Send + Sync {

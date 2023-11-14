@@ -76,6 +76,7 @@ pub fn encode_rskip60(data: &[u8], chain: RSKIPChain) -> String {
 mod tests {
     use super::*;
 
+    #[test]
     fn test_rskip60_eth() {
         assert_eq!(
             encode_rskip60(
@@ -98,6 +99,7 @@ mod tests {
         );
     }
 
+    #[test]
     fn test_rskip60_rootstock() {
         assert_eq!(
             encode_rskip60(
@@ -120,6 +122,7 @@ mod tests {
         );
     }
 
+    #[test]
     fn test_eip55address_display() {
         assert_eq!(
             EIP55Address(Address::from_str("0x2b5c7025998f88550ef2fece8bf87935f542c190").unwrap())
