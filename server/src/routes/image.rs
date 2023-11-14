@@ -3,6 +3,7 @@ use std::sync::Arc;
 use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::Redirect;
+use tokio::sync::Mutex;
 
 use crate::routes::{
     http_simple_status_error, profile_http_error_mapper, universal_profile_resolve, FreshQuery,
@@ -23,11 +24,21 @@ use crate::routes::{
 pub async fn get(
     Path(name_or_address): Path<String>,
     Query(query): Query<FreshQuery>,
-    State(state): State<Arc<crate::AppState>>,
+    State(state): State<Arc<Mutex<crate::AppState>>>,
 ) -> Result<Redirect, RouteError> {
-    let profile = universal_profile_resolve(&name_or_address, query.fresh.unwrap_or(false), state)
-        .await
-        .map_err(profile_http_error_mapper)?;
+    let state_cloned = state.clone();
+    let mut state = state_cloned.lock().await;
+
+    let rpc = state
+        .provider
+        .get_provider()
+        .ok_or_else(|| http_simple_status_error(StatusCode::INTERNAL_SERVER_ERROR))?
+        .clone();
+
+    let profile =
+        universal_profile_resolve(&name_or_address, query.fresh.unwrap_or(false), rpc, &state)
+            .await
+            .map_err(profile_http_error_mapper)?;
 
     if let Some(avatar) = profile.avatar {
         return Ok(Redirect::to(avatar.as_str()));

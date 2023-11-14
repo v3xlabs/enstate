@@ -1,9 +1,8 @@
-use std::sync::Arc;
-
 use axum::http::StatusCode;
 use axum::Json;
 use enstate_shared::models::profile::error::ProfileError;
 use enstate_shared::models::profile::Profile;
+use ethers::providers::{Http, Provider};
 use ethers_core::types::Address;
 use serde::{Deserialize, Serialize};
 
@@ -59,10 +58,10 @@ pub fn http_simple_status_error(status: StatusCode) -> RouteError {
 pub async fn universal_profile_resolve(
     name_or_address: &str,
     fresh: bool,
-    state: Arc<crate::AppState>,
+    rpc: Provider<Http>,
+    state: &crate::AppState,
 ) -> Result<Profile, ProfileError> {
     let cache = Box::new(RedisCache::new(state.redis.clone()));
-    let rpc = state.provider.get_provider();
 
     let opensea_api_key = &state.opensea_api_key;
 
