@@ -44,5 +44,7 @@ pub async fn get(
     .await
     .map_err(profile_http_error_mapper)?;
 
+    println!("{:?}", profile);
+
     Ok(Json(profile))
 }

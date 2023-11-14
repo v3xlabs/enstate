@@ -13,10 +13,13 @@ pub struct Profile {
     // Name
     pub name: String,
     // Ethereum Mainnet Address
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub address: Option<EIP55Address>,
     // Avatar URL
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
     // Header URL
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub header: Option<String>,
     // Preferred Capitalization of Name
     pub display: String,

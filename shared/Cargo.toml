@@ -25,7 +25,7 @@ lazy_static = "1.4.0"
 # ethers-ccip-read = { git = "https://github.com/ensdomains/ethers-ccip-read", branch = "main" }
 serde = { version = "1.0", features = ["derive"] }
 ethers-contract = "2.0.9"
-serde_with = "*"
+serde_with = "3.4.0"
 async-trait = "0.1.74"
 regex = "1.9.5"
 chrono = "0.4.24"

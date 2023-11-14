@@ -21,9 +21,9 @@ abigen!(
 
 lazy_static! {
     // Setup address of universal resolver
-    static ref UNIVERSAL_ADDRESS: Address = "0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62"
+    static ref UNIVERSAL_RESOLVER_ADDRESS: Address = "0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62"
         .parse::<Address>()
-        .unwrap();
+        .expect("UNIVERSAL_RESOLVER_ADDRESS should be a valid address");
 }
 
 const MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE: &str =
@@ -58,7 +58,7 @@ pub async fn resolve_universal(
     let transaction_data = [resolve_selector, encoded_data].concat();
 
     // Setup the transaction
-    typed_transaction.set_to(*UNIVERSAL_ADDRESS);
+    typed_transaction.set_to(*UNIVERSAL_RESOLVER_ADDRESS);
     typed_transaction.set_data(Bytes::from(transaction_data));
 
     // Call the transaction
@@ -94,10 +94,12 @@ pub async fn resolve_universal(
         return Err(ProfileError::ImplementationError("".to_string()));
     }
 
-    let result_data = result.get(0).unwrap().clone();
-    let result_address = result.get(1).unwrap().clone();
+    let result_data = result.get(0).expect("result[0] should exist").clone();
+    let result_address = result.get(1).expect("result[1] should exist").clone();
 
-    let resolver = result_address.into_address().unwrap();
+    let resolver = result_address
+        .into_address()
+        .expect("result[1] should be an address");
 
     if resolver.is_zero() {
         return Err(ProfileError::NotFound);
@@ -106,9 +108,9 @@ pub async fn resolve_universal(
     Ok((
         result_data
             .into_array()
-            .unwrap()
+            .expect("result[0] should be an array")
             .into_iter()
-            .map(|t| t.into_bytes().unwrap())
+            .map(|t| t.into_bytes().expect("result[0] elements should be bytes"))
             .collect(),
         resolver,
     ))

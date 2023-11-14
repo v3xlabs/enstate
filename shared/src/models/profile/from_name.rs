@@ -66,21 +66,24 @@ impl Profile {
                 record: "header".to_string(),
             }
             .to_boxed(),
-            Text::new("display".to_string()).to_boxed(),
+            Text::from("display").to_boxed(),
         ];
 
         // Lookup all Records
         let record_offset = calldata.len();
         for record in profile_records {
-            calldata.push(Box::new(Text::new(record.clone())));
+            calldata.push(Text::from(record.as_str()).to_boxed());
         }
 
         // Lookup all chains
         let chain_offset = calldata.len();
         for chain in profile_chains {
-            calldata.push(Box::new(Multicoin {
-                coin_type: chain.clone(),
-            }));
+            calldata.push(
+                Multicoin {
+                    coin_type: chain.clone(),
+                }
+                .to_boxed(),
+            );
         }
 
         let rpc = Arc::new(rpc);
@@ -103,7 +106,11 @@ impl Profile {
 
             match result {
                 Ok(result) => {
-                    results.push(Some(result));
+                    if result.is_empty() {
+                        results.push(None);
+                    } else {
+                        results.push(Some(result));
+                    }
                 }
                 Err(error) => {
                     errors.insert(calldata.name(), error.to_string());
@@ -112,13 +119,15 @@ impl Profile {
             }
         }
 
-        let address = results.get(0).unwrap_or(&None).clone();
-        let avatar = results.get(1).unwrap_or(&None).clone();
-        let header = results.get(2).unwrap_or(&None).clone();
-        let display_record = results.get(4).unwrap_or(&None).clone();
+        let address = results.get(0).cloned().unwrap_or(None);
+        let avatar = results.get(1).cloned().unwrap_or(None);
+        let header = results.get(2).cloned().unwrap_or(None);
+        let display_record = results.get(3).cloned().unwrap_or(None);
+
+        println!("{address:?} {avatar:?} {header:?} {display_record:?}");
 
         let display = match display_record {
-            Some(display) if display.to_lowercase() == name.to_lowercase() => display,
+            Some(display) => display,
             _ => name.to_string(),
         };
 
@@ -134,9 +143,7 @@ impl Profile {
 
         for (index, value) in results[record_offset..chain_offset].iter().enumerate() {
             if let Some(value) = value {
-                if !value.is_empty() {
-                    records.insert(profile_records[index].clone(), value.to_string());
-                }
+                records.insert(profile_records[index].clone(), value.to_string());
             }
         }
 
@@ -144,9 +151,7 @@ impl Profile {
 
         for (index, value) in results[chain_offset..].iter().enumerate() {
             if let Some(value) = value {
-                if !value.is_empty() {
-                    chains.insert(profile_chains[index].to_string(), value.to_string());
-                }
+                chains.insert(profile_chains[index].to_string(), value.to_string());
             }
         }
 
