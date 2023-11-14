@@ -1,9 +1,10 @@
+use std::env;
+
 use enstate_shared::models::{
     multicoin::cointype::{coins::CoinType, Coins},
     records::Records,
 };
 use redis::aio::ConnectionManager;
-use std::env;
 use tracing::info;
 
 use crate::{database, provider::RoundRobinProvider};
@@ -33,8 +34,7 @@ impl AppState {
             }, // |s| s.split(",").map(std::string::ToString::to_string).collect(),
         );
 
-        let raw_rpc_urls: String =
-            env::var("RPC_URL").expect("RPC_URL environment variable not found.");
+        let raw_rpc_urls: String = env::var("RPC_URL").expect("RPC_URL should've been set");
         let rpc_urls = raw_rpc_urls
             .split(',')
             .map(std::string::ToString::to_string)
@@ -42,13 +42,14 @@ impl AppState {
 
         info!("Connecting to Redis...");
 
-        let redis = database::setup().await.expect("Failed to connect to Redis");
+        let redis = database::setup().await.expect("Redis connection failed");
 
         info!("Connected to Redis");
 
         let provider = RoundRobinProvider::new(rpc_urls.clone());
 
-        let opensea_api_key = env::var("OPENSEA_API_KEY").expect("OPENSEA_API_KEY not found.");
+        let opensea_api_key =
+            env::var("OPENSEA_API_KEY").expect("OPENSEA_API_KEY should've been set");
 
         Self {
             redis,

@@ -30,10 +30,9 @@ impl App {
 
         info!("Listening http on {}", addr);
 
-        axum::Server::bind(&addr)
+        let _ = axum::Server::bind(&addr)
             .serve(self.router.into_make_service())
-            .await
-            .unwrap();
+            .await;
     }
 }
 

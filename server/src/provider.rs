@@ -11,13 +11,16 @@ impl RoundRobinProvider {
         Self {
             providers: rpc_urls
                 .into_iter()
-                .map(|rpc_url| Provider::<Http>::try_from(rpc_url).unwrap())
+                .map(|rpc_url| {
+                    Provider::<Http>::try_from(rpc_url).expect("rpc_url should be a valid URL")
+                })
                 .collect(),
         }
     }
 
     // returns a random rpc provider
     pub fn get_provider(&self) -> Provider<Http> {
+        // TODO: do actual round robin
         let provider = self.providers.choose(&mut rand::thread_rng()).unwrap();
 
         provider.clone()
