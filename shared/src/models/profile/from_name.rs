@@ -23,8 +23,8 @@ impl Profile {
         cache: Box<dyn crate::cache::CacheLayer>,
         rpc: Provider<Http>,
         opensea_api_key: &str,
-        profile_records: &Vec<String>,
-        profile_chains: &Vec<CoinType>,
+        profile_records: &[String],
+        profile_chains: &[CoinType],
     ) -> Result<Self, ProfileError> {
         let cache_key = format!("n:{name}");
 

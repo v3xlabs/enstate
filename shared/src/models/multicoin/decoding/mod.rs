@@ -77,8 +77,8 @@ impl CoinType {
                 SLIP44::Polkadot => Box::new(PolkadotDecoder {}),
                 _ => return Err(MulticoinDecoderError::NotSupported),
             },
-            Self::Evm(_) => Box::new(EvmDecoder {
-                chain: RSKIPChain::Ethereum,
+            Self::Evm(id) => Box::new(EvmDecoder {
+                chain: RSKIPChain::Other(id.as_chain_id()),
             }),
         };
 

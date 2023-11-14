@@ -2,13 +2,11 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use enstate_shared::cache::{CacheError, CacheLayer};
-use js_sys::{Function, Promise};
+use js_sys::{Function, Promise, Reflect};
 use serde::Serialize;
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use worker::Env;
-
-use crate::get_js;
 
 pub struct CloudflareKVCache {
     ctx: Arc<Env>,
@@ -22,6 +20,11 @@ impl CloudflareKVCache {
 
 unsafe impl Send for CloudflareKVCache {}
 unsafe impl Sync for CloudflareKVCache {}
+
+
+fn get_js(target: &JsValue, name: &str) -> Result<JsValue, JsValue> {
+    Reflect::get(target, &JsValue::from(name))
+}
 
 #[derive(Debug, Clone, Serialize)]
 struct PutOptions {
