@@ -6,7 +6,6 @@ use axum::{
     Json,
 };
 use enstate_shared::models::profile::Profile;
-use tokio::sync::Mutex;
 
 use crate::cache::RedisCache;
 use crate::routes::{http_simple_status_error, profile_http_error_mapper, FreshQuery, RouteError};
@@ -27,14 +26,11 @@ use crate::routes::{http_simple_status_error, profile_http_error_mapper, FreshQu
 pub async fn get(
     Path(address): Path<String>,
     Query(query): Query<FreshQuery>,
-    State(state): State<Arc<Mutex<crate::AppState>>>,
+    State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<Profile>, RouteError> {
     let address = address
         .parse()
         .map_err(|_| http_simple_status_error(StatusCode::BAD_REQUEST))?;
-
-    let state_cloned = state.clone();
-    let mut state = state_cloned.lock().await;
 
     let cache = Box::new(RedisCache::new(state.redis.clone()));
     let rpc = state

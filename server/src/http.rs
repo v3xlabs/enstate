@@ -3,7 +3,6 @@ use std::{net::SocketAddr, sync::Arc};
 use axum::body::HttpBody;
 use axum::routing::MethodRouter;
 use axum::{routing::get, Router};
-use tokio::sync::Mutex;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing::info;
@@ -47,7 +46,7 @@ pub fn setup(state: AppState) -> App {
         .directory_route("/i/:name", get(routes::image::get))
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())
-        .with_state(Arc::new(Mutex::new(state)));
+        .with_state(Arc::new(state));
 
     App { router }
 }

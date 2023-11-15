@@ -20,8 +20,11 @@ impl RoundRobinProvider {
     }
 
     // returns a random rpc provider
-    pub fn get_provider(&mut self) -> Option<&Provider<Http>> {
-        self.__last_index = (self.__last_index + 1) % self.providers.len();
+    pub fn get_provider(&self) -> Option<&Provider<Http>> {
+        unsafe {
+            (*(self as *const Self).cast_mut()).__last_index =
+                (self.__last_index + 1) % self.providers.len();
+        }
 
         self.providers.get(self.__last_index)
     }

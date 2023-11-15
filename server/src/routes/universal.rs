@@ -6,7 +6,6 @@ use axum::{
     Json,
 };
 use enstate_shared::models::profile::Profile;
-use tokio::sync::Mutex;
 
 use crate::routes::{
     http_simple_status_error, profile_http_error_mapper, universal_profile_resolve, FreshQuery,
@@ -27,11 +26,8 @@ use crate::routes::{
 pub async fn get(
     Path(name_or_address): Path<String>,
     Query(query): Query<FreshQuery>,
-    State(state): State<Arc<Mutex<crate::AppState>>>,
+    State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<Profile>, RouteError> {
-    let state_cloned = state.clone();
-    let mut state = state_cloned.lock().await;
-
     let rpc = state
         .provider
         .get_provider()
