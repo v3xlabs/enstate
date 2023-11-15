@@ -34,6 +34,7 @@ js-sys = "*"
 serde-wasm-bindgen = "0.6.0"
 querystring = "1.1.0"
 thiserror = "1.0.50"
+http = "0.2.11"
 
 [profile.release]
 lto = true

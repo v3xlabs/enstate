@@ -9,9 +9,10 @@ use ethers::{
     providers::{Http, Provider},
     types::H160,
 };
-use serde::Serialize;
-use worker::{console_log, Env, Request, Response, Url};
+use http::StatusCode;
+use worker::{Env, Request, Response, Url};
 
+use crate::http_util::{http_simple_status_error, profile_http_error_mapper, ErrorResponse};
 use crate::kv_cache::CloudflareKVCache;
 
 pub enum LookupType {
@@ -20,12 +21,6 @@ pub enum LookupType {
     NameOrAddressLookup(String),
     ImageLookup(String),
     Unknown,
-}
-
-#[derive(Serialize)]
-pub struct ErrorResponse {
-    status: u16,
-    error: String,
 }
 
 impl From<String> for LookupType {
@@ -79,10 +74,9 @@ impl LookupType {
                 status: 404,
                 error: "Unknown route".to_string(),
             })
-            .unwrap()),
+            .unwrap()
+            .with_status(404)),
             LookupType::ImageLookup(name_or_address) => {
-                console_log!("Avatar Lookup {}", name_or_address);
-
                 let profile = universal_profile_resolve(
                     name_or_address,
                     fresh,
@@ -92,26 +86,26 @@ impl LookupType {
                     &profile_records,
                     &profile_chains,
                 )
-                .await;
+                .await
+                .map_err(profile_http_error_mapper)?;
 
-                if let Ok(profile) = profile {
-                    if let Some(avatar) = profile.avatar {
-                        // TODO: find better status code
-                        let url = Url::parse(avatar.as_str())
-                            .map_err(|_| Response::error("Invalid avatar URL", 400).unwrap())?;
+                if let Some(avatar) = profile.avatar {
+                    let url = Url::parse(avatar.as_str()).map_err(|_| {
+                        Response::error("Invalid avatar URL", StatusCode::NOT_ACCEPTABLE.as_u16())
+                            .expect("status should be in correct range")
+                    })?;
 
-                        return Ok(Response::redirect(url)
-                            .map_err(|_| Response::error("Worker error", 500).unwrap())?);
-                    }
+                    return Ok(Response::redirect(url).map_err(|_| {
+                        Response::error("Worker error", 500)
+                            .expect("status should be in correct range")
+                    })?);
                 }
 
-                Err(Response::error("Not Found", 404).unwrap())
+                Err(http_simple_status_error(StatusCode::NOT_FOUND))
             }
             _ => {
                 let profile = match self {
                     LookupType::NameLookup(name) => {
-                        console_log!("Name Lookup {}", name);
-
                         Profile::from_name(
                             name,
                             fresh,
@@ -124,8 +118,6 @@ impl LookupType {
                         .await
                     }
                     LookupType::AddressLookup(address) => {
-                        console_log!("Address Lookup {}", address);
-
                         let address = address.parse::<H160>();
 
                         match address {
@@ -145,8 +137,6 @@ impl LookupType {
                         }
                     }
                     LookupType::NameOrAddressLookup(name_or_address) => {
-                        console_log!("Universal Lookup {}", name_or_address);
-
                         universal_profile_resolve(
                             name_or_address,
                             fresh,
@@ -158,13 +148,12 @@ impl LookupType {
                         )
                         .await
                     }
-                    _ => Err(ProfileError::NotFound),
-                };
+                    _ => unreachable!(),
+                }
+                .map_err(profile_http_error_mapper)?;
 
-                // TODO: process from_json error
-                profile
-                    .map(|profile| Response::from_json(&profile).unwrap())
-                    .map_err(|err| Response::error(err.to_string(), 404).unwrap())
+                Response::from_json(&profile)
+                    .map_err(|_| http_simple_status_error(StatusCode::INTERNAL_SERVER_ERROR))
             }
         }
     }

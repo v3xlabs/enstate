@@ -4,6 +4,7 @@ use worker::{event, Context, Cors, Env, Method, Request, Response};
 
 use crate::lookup::LookupType;
 
+mod http_util;
 mod kv_cache;
 mod lookup;
 
