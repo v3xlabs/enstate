@@ -9,6 +9,7 @@ use ethers::{
     providers::{Http, Provider},
     types::H160,
 };
+use serde::Serialize;
 use worker::{console_log, Env, Request, Response, Url};
 
 use crate::kv_cache::CloudflareKVCache;
@@ -19,6 +20,12 @@ pub enum LookupType {
     NameOrAddressLookup(String),
     ImageLookup(String),
     Unknown,
+}
+
+#[derive(Serialize)]
+pub struct ErrorResponse {
+    status: u16,
+    error: String,
 }
 
 impl From<String> for LookupType {
@@ -68,6 +75,11 @@ impl LookupType {
             .is_some();
 
         match self {
+            LookupType::Unknown => Ok(Response::from_json(&ErrorResponse {
+                status: 404,
+                error: "Unknown route".to_string(),
+            })
+            .unwrap()),
             LookupType::ImageLookup(name_or_address) => {
                 console_log!("Avatar Lookup {}", name_or_address);
 

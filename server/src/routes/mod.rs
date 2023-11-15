@@ -14,6 +14,8 @@ pub mod name;
 pub mod root;
 pub mod universal;
 
+pub mod four_oh_four;
+
 #[derive(Serialize)]
 pub struct ErrorResponse {
     status: u16,

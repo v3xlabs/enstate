@@ -7,7 +7,7 @@ use enstate_shared::models::{
 use redis::aio::ConnectionManager;
 use tracing::info;
 
-use crate::{database, provider::RoundRobinProvider};
+use crate::{database, provider};
 
 #[allow(clippy::module_name_repetitions)]
 pub struct AppState {
@@ -16,7 +16,7 @@ pub struct AppState {
     pub profile_chains: Vec<CoinType>,
     pub rpc_urls: Vec<String>,
     pub opensea_api_key: String,
-    pub provider: RoundRobinProvider,
+    pub provider: provider::RoundRobin,
 }
 
 impl AppState {
@@ -46,7 +46,7 @@ impl AppState {
 
         info!("Connected to Redis");
 
-        let provider = RoundRobinProvider::new(rpc_urls.clone());
+        let provider = provider::RoundRobin::new(rpc_urls.clone());
 
         let opensea_api_key =
             env::var("OPENSEA_API_KEY").expect("OPENSEA_API_KEY should've been set");

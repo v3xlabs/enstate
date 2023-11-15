@@ -44,6 +44,7 @@ pub fn setup(state: AppState) -> App {
         .directory_route("/n/:name", get(routes::name::get))
         .directory_route("/u/:name_or_address", get(routes::universal::get))
         .directory_route("/i/:name", get(routes::image::get))
+        .fallback(routes::four_oh_four::handler)
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())
         .with_state(Arc::new(state));

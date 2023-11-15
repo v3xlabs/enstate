@@ -1,15 +1,14 @@
 use ethers::providers::{Http, Provider};
+use rand::seq::SliceRandom;
 
 #[derive(Clone)]
-pub struct RoundRobinProvider {
-    __last_index: usize,
+pub struct RoundRobin {
     providers: Vec<Provider<Http>>,
 }
 
-impl RoundRobinProvider {
+impl RoundRobin {
     pub fn new(rpc_urls: Vec<String>) -> Self {
         Self {
-            __last_index: 0,
             providers: rpc_urls
                 .into_iter()
                 .map(|rpc_url| {
@@ -21,11 +20,6 @@ impl RoundRobinProvider {
 
     // returns a random rpc provider
     pub fn get_provider(&self) -> Option<&Provider<Http>> {
-        unsafe {
-            (*(self as *const Self).cast_mut()).__last_index =
-                (self.__last_index + 1) % self.providers.len();
-        }
-
-        self.providers.get(self.__last_index)
+        self.providers.choose(&mut rand::thread_rng())
     }
 }
