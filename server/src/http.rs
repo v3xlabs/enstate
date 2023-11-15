@@ -10,13 +10,14 @@ use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 use crate::models::profile::ENSProfile;
+use crate::models::error::ErrorResponse;
 use crate::routes;
 use crate::state::AppState;
 
 #[derive(OpenApi)]
 #[openapi(
     paths(routes::address::get, routes::name::get, routes::universal::get),
-    components(schemas(ENSProfile))
+    components(schemas(ENSProfile, ErrorResponse))
 )]
 pub struct ApiDoc;
 

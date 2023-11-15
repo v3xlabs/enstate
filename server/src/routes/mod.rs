@@ -4,9 +4,10 @@ use enstate_shared::models::profile::error::ProfileError;
 use enstate_shared::models::profile::Profile;
 use ethers::providers::{Http, Provider};
 use ethers_core::types::Address;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::cache;
+use crate::models::error::ErrorResponse;
 
 pub mod address;
 pub mod image;
@@ -15,12 +16,6 @@ pub mod root;
 pub mod universal;
 
 pub mod four_oh_four;
-
-#[derive(Serialize)]
-pub struct ErrorResponse {
-    status: u16,
-    error: String,
-}
 
 #[derive(Deserialize)]
 pub struct FreshQuery {

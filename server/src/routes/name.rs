@@ -15,7 +15,7 @@ use crate::routes::{http_simple_status_error, profile_http_error_mapper, FreshQu
     path = "/n/{name}",
     responses(
         (status = 200, description = "Successfully found name.", body = ENSProfile),
-        (status = NOT_FOUND, description = "No name could be found."),
+        (status = NOT_FOUND, description = "No name could be found.", body = ErrorResponse),
     ),
     params(
         ("name" = String, Path, description = "Name to lookup the name data for."),

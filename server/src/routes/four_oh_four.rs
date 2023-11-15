@@ -1,7 +1,8 @@
+use crate::models::error::ErrorResponse;
 use axum::http::StatusCode;
 use axum::Json;
 
-use crate::routes::{ErrorResponse, RouteError};
+use crate::routes::RouteError;
 
 pub async fn handler() -> RouteError {
     (

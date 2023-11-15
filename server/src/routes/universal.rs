@@ -17,7 +17,7 @@ use crate::routes::{
     path = "/u/{name_or_address}",
     responses(
         (status = 200, description = "Successfully found name or address.", body = ENSProfile),
-        (status = NOT_FOUND, description = "No name or address could be found."),
+        (status = NOT_FOUND, description = "No name or address could be found.", body = ErrorResponse),
     ),
     params(
         ("name_or_address" = String, Path, description = "Name or address to lookup the name data for."),
