@@ -9,14 +9,14 @@ use tracing::info;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-use crate::models::profile::SProfile;
+use crate::models::profile::ENSProfile;
 use crate::routes;
 use crate::state::AppState;
 
 #[derive(OpenApi)]
 #[openapi(
-    paths(routes::address::get, routes::name::get),
-    components(schemas(SProfile))
+    paths(routes::address::get, routes::name::get, routes::universal::get),
+    components(schemas(ENSProfile))
 )]
 pub struct ApiDoc;
 

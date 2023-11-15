@@ -7,18 +7,18 @@ use axum::{
 };
 use enstate_shared::models::profile::Profile;
 
-use crate::cache::RedisCache;
+use crate::cache;
 use crate::routes::{http_simple_status_error, profile_http_error_mapper, FreshQuery, RouteError};
 
 #[utoipa::path(
     get,
     path = "/n/{name}",
     responses(
-        (status = 200, description = "Successfully found name.", body = SProfile),
+        (status = 200, description = "Successfully found name.", body = ENSProfile),
         (status = NOT_FOUND, description = "No name could be found."),
     ),
     params(
-        ("name" = String, Path, description = "Name to lookup the address for."),
+        ("name" = String, Path, description = "Name to lookup the name data for."),
     )
 )]
 pub async fn get(
@@ -28,7 +28,7 @@ pub async fn get(
 ) -> Result<Json<Profile>, RouteError> {
     let name = name.to_lowercase();
 
-    let cache = Box::new(RedisCache::new(state.redis.clone()));
+    let cache = Box::new(cache::Redis::new(state.redis.clone()));
     let rpc = state
         .provider
         .get_provider()

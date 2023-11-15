@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 use super::CoinType;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -43,9 +45,9 @@ impl From<ChainId> for CoinType {
     }
 }
 
-impl ToString for ChainId {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for ChainId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let chain_name = match self {
             ChainId::Ethereum => "eth".to_string(),
             ChainId::Optimism => "optimism".to_string(),
             ChainId::BinanceSmartChain => "bsc".to_string(),
@@ -57,6 +59,8 @@ impl ToString for ChainId {
             ChainId::Avalanche => "avalanche".to_string(),
             ChainId::Celo => "celo".to_string(),
             ChainId::Other(id) => format!("SLIP44:{}", id),
-        }
+        };
+
+        f.write_str(chain_name.as_str())
     }
 }

@@ -23,7 +23,7 @@ impl AppState {
     pub async fn new() -> Self {
         let profile_records = env::var("PROFILE_RECORDS").map_or_else(
             |_| Records::default().records,
-            |s| s.split(",").map(std::string::ToString::to_string).collect(),
+            |s| s.split(',').map(std::string::ToString::to_string).collect(),
         );
 
         let multicoin_chains: Vec<CoinType> = env::var("MULTICOIN_CHAINS").map_or_else(

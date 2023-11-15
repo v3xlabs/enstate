@@ -49,6 +49,6 @@ impl ENSLookup for Multicoin {
     }
 
     fn name(&self) -> String {
-        format!("chains.{}", self.coin_type.to_string())
+        format!("chains.{}", self.coin_type)
     }
 }

@@ -9,17 +9,18 @@ use crate::routes::{
     RouteError,
 };
 
-#[utoipa::path(
-    get,
-    path = "/i/{name_or_address}",
-    responses(
-        (status = 200, description = "Successfully found name or address.", body = SProfile),
-        (status = NOT_FOUND, description = "No name or address could be found."),
-    ),
-    params(
-        ("name" = String, Path, description = "Name to lookup the address for."),
-    )
-)]
+// #[utoipa::path(
+//     get,
+//     path = "/i/{name_or_address}",
+//     responses(
+//         TODO: figure out body
+//         (status = 200, description = "Successfully found name or address.", body = ENSProfile),
+//         (status = NOT_FOUND, description = "No name or address could be found."),
+//     ),
+//     params(
+//         ("name_or_address" = String, Path, description = "Name or address to lookup the image for."),
+//     )
+// )]
 pub async fn get(
     Path(name_or_address): Path<String>,
     Query(query): Query<FreshQuery>,

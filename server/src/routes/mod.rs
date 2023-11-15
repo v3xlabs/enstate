@@ -6,7 +6,7 @@ use ethers::providers::{Http, Provider};
 use ethers_core::types::Address;
 use serde::{Deserialize, Serialize};
 
-use crate::cache::RedisCache;
+use crate::cache;
 
 pub mod address;
 pub mod image;
@@ -63,7 +63,7 @@ pub async fn universal_profile_resolve(
     rpc: Provider<Http>,
     state: &crate::AppState,
 ) -> Result<Profile, ProfileError> {
-    let cache = Box::new(RedisCache::new(state.redis.clone()));
+    let cache = Box::new(cache::Redis::new(state.redis.clone()));
 
     let opensea_api_key = &state.opensea_api_key;
 

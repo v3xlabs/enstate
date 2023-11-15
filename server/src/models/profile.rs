@@ -3,8 +3,8 @@ use std::collections::BTreeMap;
 use enstate_shared::models::profile::Profile;
 use utoipa::ToSchema;
 
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, ToSchema)]
-pub struct SProfile {
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, ToSchema)]
+pub struct ENSProfile {
     // Name
     pub name: String,
     // Ethereum Mainnet Address
@@ -25,7 +25,7 @@ pub struct SProfile {
     pub errors: BTreeMap<String, String>,
 }
 
-impl From<Profile> for SProfile {
+impl From<Profile> for ENSProfile {
     fn from(profile: Profile) -> Self {
         Self {
             name: profile.name,

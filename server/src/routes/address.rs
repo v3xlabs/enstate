@@ -7,14 +7,14 @@ use axum::{
 };
 use enstate_shared::models::profile::Profile;
 
-use crate::cache::RedisCache;
+use crate::cache;
 use crate::routes::{http_simple_status_error, profile_http_error_mapper, FreshQuery, RouteError};
 
 #[utoipa::path(
     get,
     path = "/a/{address}",
     responses(
-        (status = 200, description = "Successfully found address", body = SProfile),
+        (status = 200, description = "Successfully found address", body = ENSProfile),
         (status = BAD_REQUEST, description = "Invalid address."),
         (status = NOT_FOUND, description = "No name was associated with this address."),
         (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address."),
@@ -32,7 +32,7 @@ pub async fn get(
         .parse()
         .map_err(|_| http_simple_status_error(StatusCode::BAD_REQUEST))?;
 
-    let cache = Box::new(RedisCache::new(state.redis.clone()));
+    let cache = Box::new(cache::Redis::new(state.redis.clone()));
     let rpc = state
         .provider
         .get_provider()
