@@ -1,6 +1,6 @@
 [package]
 name = "enstate"
-version = "0.0.1"
+version = "0.0.9"
 edition = "2021"
 license = "GPL-3.0"
 homepage = "enstate.rs"
@@ -29,7 +29,7 @@ redis = { version = "0.23.0", features = ["connection-manager", "tokio-comp"] }
 ethers-ccip-read = { git = "https://github.com/ensdomains/ethers-ccip-read", branch = "main" }
 tower-http = { version = "0.4.1", features = ["cors", "tracing", "trace"] }
 rand = "0.8.5"
-chrono = "0.4.24"
+chrono = "0.4.31"
 ethers-contract = "2.0.9"
 ethers-core = "2.0.9"
 hex = "0.4.3"

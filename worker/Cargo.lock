@@ -818,14 +818,16 @@ dependencies = [
 
 [[package]]
 name = "enstate-worker"
-version = "0.1.0"
+version = "0.0.9"
 dependencies = [
  "async-trait",
+ "chrono",
  "enstate_shared",
  "ethers",
  "getrandom",
  "http 1.0.0",
  "js-sys",
+ "lazy_static",
  "log",
  "once_cell",
  "querystring",
