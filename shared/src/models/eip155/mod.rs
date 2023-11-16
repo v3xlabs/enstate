@@ -119,7 +119,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_calldata_avatar() {
+    async fn test_calldata_avatar_erc721() {
         let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
@@ -135,5 +135,47 @@ mod tests {
         .unwrap();
 
         assert_eq!(data, "https://creature.mypinata.cloud/ipfs/QmeZGc1CL3eb9QJatKXTGT7ekgLMq9FyZUWckQ4oWdc53a/2257.jpg".to_string());
+    }
+
+    #[tokio::test]
+    async fn test_calldata_avatar_erc1155() {
+        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
+        let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
+
+        let data = resolve_eip155(
+            "1",
+            "erc1155",
+            "0xb32979486938aa9694bfc898f35dbed459f44424",
+            "10063",
+            &provider,
+            &opensea_api_key,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(
+            data,
+            "https://ipfs.io/ipfs/QmSP4nq9fnN9dAiCj42ug9Wa79rqmQerZXZch82VqpiH7U/image.gif"
+                .to_string()
+        );
+    }
+
+    #[tokio::test]
+    async fn test_calldata_avatar_erc1155_opensea() {
+        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
+        let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
+
+        let data = resolve_eip155(
+            "1",
+            "erc1155",
+            "0x495f947276749ce646f68ac8c248420045cb7b5e",
+            "8112316025873927737505937898915153732580103913704334048512380490797008551937",
+            &provider,
+            &opensea_api_key,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(data, "https://i.seadn.io/gae/hKHZTZSTmcznonu8I6xcVZio1IF76fq0XmcxnvUykC-FGuVJ75UPdLDlKJsfgVXH9wOSmkyHw0C39VAYtsGyxT7WNybjQ6s3fM3macE?w=500&auto=format".to_string());
     }
 }
