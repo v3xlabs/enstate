@@ -3,6 +3,7 @@ use std::{net::SocketAddr, sync::Arc};
 use axum::body::HttpBody;
 use axum::routing::MethodRouter;
 use axum::{routing::get, Router};
+use tokio_util::sync::CancellationToken;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing::info;
@@ -26,14 +27,26 @@ pub struct App {
 }
 
 impl App {
-    pub async fn listen(self, port: u16) {
+    pub async fn listen(
+        self,
+        port: u16,
+        shutdown_signal: CancellationToken,
+    ) -> Result<(), anyhow::Error> {
         let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
-        info!("Listening http on {}", addr);
-
-        let _ = axum::Server::bind(&addr)
+        let server = axum::Server::try_bind(&addr)?
             .serve(self.router.into_make_service())
-            .await;
+            .with_graceful_shutdown(async {
+                shutdown_signal.cancelled().await;
+            });
+
+        info!("Listening HTTP on {}", addr);
+
+        server.await?;
+
+        info!("HTTP server shutdown");
+
+        Ok(())
     }
 }
 
