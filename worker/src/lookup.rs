@@ -20,6 +20,7 @@ pub enum LookupType {
     AddressLookup(String),
     NameOrAddressLookup(String),
     ImageLookup(String),
+    HeaderLookup(String),
     Unknown,
 }
 
@@ -40,6 +41,7 @@ impl From<String> for LookupType {
             "a" => LookupType::AddressLookup(arg.to_string()),
             "u" => LookupType::NameOrAddressLookup(arg.to_string()),
             "i" => LookupType::ImageLookup(arg.to_string()),
+            "h" => LookupType::HeaderLookup(arg.to_string()),
             _ => LookupType::Unknown,
         }
     }
@@ -76,7 +78,8 @@ impl LookupType {
             })
             .unwrap()
             .with_status(404)),
-            LookupType::ImageLookup(name_or_address) => {
+            LookupType::ImageLookup(name_or_address)
+            | LookupType::HeaderLookup(name_or_address) => {
                 let profile = universal_profile_resolve(
                     name_or_address,
                     fresh,
@@ -89,8 +92,14 @@ impl LookupType {
                 .await
                 .map_err(profile_http_error_mapper)?;
 
-                if let Some(avatar) = profile.avatar {
-                    let url = Url::parse(avatar.as_str()).map_err(|_| {
+                let field = match self {
+                    LookupType::ImageLookup(_) => profile.avatar,
+                    LookupType::HeaderLookup(_) => profile.header,
+                    _ => unreachable!(),
+                };
+
+                if let Some(img) = field {
+                    let url = Url::parse(img.as_str()).map_err(|_| {
                         Response::error("Invalid avatar URL", StatusCode::NOT_ACCEPTABLE.as_u16())
                             .expect("status should be in correct range")
                     })?;

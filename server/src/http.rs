@@ -9,8 +9,8 @@ use tracing::info;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-use crate::models::profile::ENSProfile;
 use crate::models::error::ErrorResponse;
+use crate::models::profile::ENSProfile;
 use crate::routes;
 use crate::state::AppState;
 
@@ -44,7 +44,8 @@ pub fn setup(state: AppState) -> App {
         .directory_route("/a/:address", get(routes::address::get))
         .directory_route("/n/:name", get(routes::name::get))
         .directory_route("/u/:name_or_address", get(routes::universal::get))
-        .directory_route("/i/:name", get(routes::image::get))
+        .directory_route("/i/:name_or_address", get(routes::image::get))
+        .directory_route("/h/:name_or_address", get(routes::header::get))
         .fallback(routes::four_oh_four::handler)
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())
