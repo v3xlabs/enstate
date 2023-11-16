@@ -167,8 +167,8 @@ mod tests {
             })
             .collect();
 
-        // yes, I did make this test completely dependant on me 😈
-        // TODO: make less dependant on a single person
+        // yes, I did make this test completely dependent on me 😈
+        // TODO: make less dependent on a single person
 
         assert_eq!(
             address,
