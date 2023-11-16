@@ -7,6 +7,7 @@ use thiserror::Error;
 use tracing::info;
 
 use crate::models::ipfs::{URLFetchError, OPENSEA_BASE_PREFIX};
+use crate::models::multicoin::cointype::evm::ChainId;
 
 use super::ipfs::IPFSURLUnparsed;
 
@@ -14,10 +15,6 @@ use super::ipfs::IPFSURLUnparsed;
 pub enum EIP155Error {
     #[error("Unsupported chain: {0}")]
     UnsupportedChain(u64),
-
-    // when either chain_id or token_id is to big to be parsed as u64/U256 respectively
-    #[error("Format error")]
-    FormatError,
 
     #[error("RPC error: {0}")]
     RPCError(#[from] ProviderError),
@@ -32,15 +29,35 @@ pub enum EIP155Error {
     Other,
 }
 
+pub enum EIP155ContractType {
+    ERC721,
+    ERC1155,
+}
+
+impl EIP155ContractType {
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+}
+
+impl AsRef<str> for EIP155ContractType {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::ERC721 => "erc721",
+            Self::ERC1155 => "erc1155",
+        }
+    }
+}
+
 pub async fn resolve_eip155(
-    chain_id: &str,
-    contract_type: &str,
+    chain_id: ChainId,
+    contract_type: EIP155ContractType,
     contract_address: &str,
-    token_id: &str,
+    token_id: U256,
     provider: &Provider<Http>,
     opensea_api_key: &str,
 ) -> Result<String, EIP155Error> {
-    let chain_id: u64 = chain_id.parse().map_err(|_| EIP155Error::FormatError)?;
+    let chain_id: u64 = chain_id.into();
 
     // Check if chain_id is supported
     // TODO: multiple chains
@@ -48,18 +65,13 @@ pub async fn resolve_eip155(
         return Err(EIP155Error::UnsupportedChain(chain_id));
     }
 
-    let token_id = U256::from_dec_str(token_id).map_err(|_| EIP155Error::FormatError)?;
-
     let mut typed_transaction = TypedTransaction::default();
 
     let encoded_data = ethers_core::abi::encode(&[Token::Int(token_id)]);
 
     let resolve_selector = match contract_type {
-        "erc721" => hex_literal::hex!("c87b56dd").to_vec(),
-        "erc1155" => hex_literal::hex!("0e89341c").to_vec(),
-        _ => {
-            return Err(EIP155Error::UnsupportedChain(chain_id));
-        }
+        EIP155ContractType::ERC721 => hex_literal::hex!("c87b56dd").to_vec(),
+        EIP155ContractType::ERC1155 => hex_literal::hex!("0e89341c").to_vec(),
     };
 
     // Prepare transaction data
@@ -124,10 +136,10 @@ mod tests {
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
         let data = resolve_eip155(
-            "1",
-            "erc721",
+            ChainId::Ethereum,
+            EIP155ContractType::ERC721,
             "0xc92ceddfb8dd984a89fb494c376f9a48b999aafc",
-            "2257",
+            U256::from_dec_str("2257").unwrap(),
             &provider,
             &opensea_api_key,
         )
@@ -143,10 +155,10 @@ mod tests {
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
         let data = resolve_eip155(
-            "1",
-            "erc1155",
+            ChainId::Ethereum,
+            EIP155ContractType::ERC1155,
             "0xb32979486938aa9694bfc898f35dbed459f44424",
-            "10063",
+            U256::from_dec_str("10063").unwrap(),
             &provider,
             &opensea_api_key,
         )
@@ -166,10 +178,13 @@ mod tests {
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
         let data = resolve_eip155(
-            "1",
-            "erc1155",
+            ChainId::Ethereum,
+            EIP155ContractType::ERC1155,
             "0x495f947276749ce646f68ac8c248420045cb7b5e",
-            "8112316025873927737505937898915153732580103913704334048512380490797008551937",
+            U256::from_dec_str(
+                "8112316025873927737505937898915153732580103913704334048512380490797008551937",
+            )
+            .unwrap(),
             &provider,
             &opensea_api_key,
         )

@@ -1,15 +1,18 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use ethers_core::types::U256;
 use ethers_core::{
     abi::{ParamType, Token},
     types::H256,
 };
 use hex_literal::hex;
 use lazy_static::lazy_static;
+use thiserror::Error;
 use tracing::info;
 
-use crate::models::eip155::resolve_eip155;
+use crate::models::eip155::{resolve_eip155, EIP155ContractType};
+use crate::models::multicoin::cointype::evm::ChainId;
 
 use super::{ENSLookup, ENSLookupError, LookupState};
 
@@ -25,6 +28,18 @@ lazy_static! {
     static ref EIP155_REGEX: regex::Regex =
         regex::Regex::new(r"eip155:([0-9]+)/(erc1155|erc721):0x([0-9a-fA-F]{40})/([0-9]+)")
             .expect("should be a valid regex");
+}
+
+#[derive(Error, Debug)]
+enum ImageLookupError {
+    #[error("Format error: {0}")]
+    FormatError(String),
+}
+
+impl From<ImageLookupError> for ENSLookupError {
+    fn from(error: ImageLookupError) -> Self {
+        ENSLookupError::Unsupported(error.to_string())
+    }
 }
 
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
@@ -56,22 +71,38 @@ impl ENSLookup for Image {
         }
 
         if let Some(captures) = EIP155_REGEX.captures(&value) {
-            // damn, that's ugly
             let chain_id = captures.get(1).unwrap().as_str();
             let contract_type = captures.get(2).unwrap().as_str();
             let contract_address = captures.get(3).unwrap().as_str();
             let token_id = captures.get(4).unwrap().as_str();
 
+            let chain_id = chain_id
+                .parse::<u64>()
+                .map_err(|err| ImageLookupError::FormatError(err.to_string()))?;
+
+            let token_id = U256::from_dec_str(token_id)
+                .map_err(|err| ImageLookupError::FormatError(err.to_string()))?;
+
+            let contract_type = match contract_type {
+                "erc721" => EIP155ContractType::ERC721,
+                "erc1155" => EIP155ContractType::ERC1155,
+                _ => {
+                    return Err(
+                        ImageLookupError::FormatError("invalid contract type".to_string()).into(),
+                    )
+                }
+            };
+
             info!(
                 "Encountered Avatar: {chain_id} {contract_type} {contract_address} {token_id}",
                 chain_id = chain_id,
-                contract_type = contract_type,
+                contract_type = contract_type.as_str(),
                 contract_address = contract_address,
                 token_id = token_id
             );
 
             let resolved_uri = resolve_eip155(
-                chain_id,
+                ChainId::from(chain_id),
                 contract_type,
                 contract_address,
                 token_id,
