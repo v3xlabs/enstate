@@ -14,8 +14,8 @@ impl Profile {
         cache: Box<dyn crate::cache::CacheLayer>,
         rpc: Provider<Http>,
         opensea_api_key: &str,
-        profile_records: &Vec<String>,
-        profile_chains: &Vec<CoinType>,
+        profile_records: &[String],
+        profile_chains: &[CoinType],
     ) -> Result<Self, ProfileError> {
         let cache_key = format!("a:{address:?}");
 
@@ -29,16 +29,22 @@ impl Profile {
                     println!("Error resolving address: {error:?}");
 
                     if let ProviderError::EnsError(_) = error {
-                        // Cache the value, and expire it after 5 minutes
-                        cache.set(&cache_key, "", 3600).await.unwrap();
+                        // Cache the value, and expire it after 10 minutes
+                        cache
+                            .set(&cache_key, "", 600)
+                            .await
+                            .map_err(|_| ProfileError::Other("cache set failed".to_string()))?;
                     };
 
                     return Err(ProfileError::NotFound);
                 }
             };
 
-            // Cache the value, and expire it after 5 minutes
-            cache.set(&cache_key, &result, 3600).await.unwrap();
+            // Cache the value, and expire it after 10 minutes
+            cache
+                .set(&cache_key, &result, 600)
+                .await
+                .map_err(|_| ProfileError::Other("cache set failed".to_string()))?;
 
             result
         };
@@ -47,6 +53,15 @@ impl Profile {
             return Err(ProfileError::NotFound);
         }
 
-        Self::from_name(&name, fresh, cache, rpc, opensea_api_key, profile_records, profile_chains).await
+        Self::from_name(
+            &name,
+            fresh,
+            cache,
+            rpc,
+            opensea_api_key,
+            profile_records,
+            profile_chains,
+        )
+        .await
     }
 }

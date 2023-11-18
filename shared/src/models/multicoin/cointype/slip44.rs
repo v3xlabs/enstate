@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 use ethers_core::types::U256;
 
 use super::CoinType;
@@ -55,9 +57,9 @@ impl From<SLIP44> for CoinType {
     }
 }
 
-impl ToString for SLIP44 {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for SLIP44 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let coin_name = match self {
             Self::Bitcoin => "btc".to_string(),
             Self::Litecoin => "ltc".to_string(),
             Self::Dogecoin => "doge".to_string(),
@@ -76,6 +78,8 @@ impl ToString for SLIP44 {
             Self::Solana => "sol".to_string(),
             Self::Polkadot => "dot".to_string(),
             Self::Other(u256) => u256.to_string(),
-        }
+        };
+
+        f.write_str(coin_name.as_str())
     }
 }

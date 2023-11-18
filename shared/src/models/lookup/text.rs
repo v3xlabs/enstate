@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use ethers_core::{
     abi::{ParamType, Token},
     types::H256,
 };
 use hex_literal::hex;
-use async_trait::async_trait;
 
 use super::{ENSLookup, ENSLookupError, LookupState};
 pub struct Text {
@@ -15,6 +15,14 @@ pub struct Text {
 impl Text {
     pub const fn new(key: String) -> Self {
         Self { key }
+    }
+}
+
+impl From<&str> for Text {
+    fn from(value: &str) -> Self {
+        Self {
+            key: value.to_string(),
+        }
     }
 }
 

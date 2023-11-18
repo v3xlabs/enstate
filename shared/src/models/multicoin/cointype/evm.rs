@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 use super::CoinType;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -37,15 +39,39 @@ impl ChainId {
     }
 }
 
+impl From<ChainId> for u64 {
+    fn from(value: ChainId) -> Self {
+        value.as_chain_id()
+    }
+}
+
+impl From<u64> for ChainId {
+    fn from(value: u64) -> Self {
+        match value {
+            1 => Self::Ethereum,
+            10 => Self::Optimism,
+            56 => Self::BinanceSmartChain,
+            100 => Self::Gnosis,
+            137 => Self::Polygon,
+            250 => Self::Fantom,
+            1287 => Self::Moonbeam,
+            42161 => Self::Arbitrum,
+            43114 => Self::Avalanche,
+            42220 => Self::Celo,
+            other => Self::Other(other),
+        }
+    }
+}
+
 impl From<ChainId> for CoinType {
     fn from(val: ChainId) -> Self {
         Self::Evm(val)
     }
 }
 
-impl ToString for ChainId {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for ChainId {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let chain_name = match self {
             ChainId::Ethereum => "eth".to_string(),
             ChainId::Optimism => "optimism".to_string(),
             ChainId::BinanceSmartChain => "bsc".to_string(),
@@ -57,6 +83,8 @@ impl ToString for ChainId {
             ChainId::Avalanche => "avalanche".to_string(),
             ChainId::Celo => "celo".to_string(),
             ChainId::Other(id) => format!("SLIP44:{}", id),
-        }
+        };
+
+        f.write_str(chain_name.as_str())
     }
 }

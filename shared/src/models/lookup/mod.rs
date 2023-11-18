@@ -1,14 +1,17 @@
+use std::fmt::Display;
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use ethers::providers::{Http, Provider};
 use ethers_core::types::H256;
 use thiserror::Error;
 
+use crate::models::eip155::EIP155Error;
+
 use super::multicoin::decoding::MulticoinDecoderError;
-use async_trait::async_trait;
 
 pub mod addr;
-pub mod avatar;
+pub mod image;
 pub mod multicoin;
 pub mod text;
 
@@ -20,9 +23,11 @@ pub enum ENSLookupError {
     #[error("MulticoinDecoderError: {0}")]
     MulticoinDecoder(#[from] MulticoinDecoderError),
 
-    #[allow(dead_code)]
     #[error("Unsupported: {0}")]
     Unsupported(String),
+
+    #[error("EIP155: {0}")]
+    EIP155Error(#[from] EIP155Error),
 
     #[error(transparent)]
     Unknown(#[from] anyhow::Error),
@@ -34,6 +39,19 @@ pub trait ENSLookup {
     fn calldata(&self, namehash: &H256) -> Vec<u8>;
     async fn decode(&self, data: &[u8], state: Arc<LookupState>) -> Result<String, ENSLookupError>;
     fn name(&self) -> String;
+
+    fn to_boxed(self) -> Box<Self>
+    where
+        Self: Sized,
+    {
+        Box::new(self)
+    }
+}
+
+impl Display for dyn ENSLookup + Send + Sync {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(f, "ENSLookup({})", self.name())
+    }
 }
 
 pub struct LookupState {

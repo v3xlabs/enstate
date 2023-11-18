@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 use ethers_core::types::U256;
 
 use super::{evm::ChainId, slip44::SLIP44};
@@ -17,19 +19,21 @@ impl From<CoinType> for U256 {
     }
 }
 
-impl ToString for CoinType {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for CoinType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let coin_name = match self {
             Self::Slip44(slip44) => slip44.to_string(),
             Self::Evm(chain) => chain.to_string(),
-        }
+        };
+
+        f.write_str(coin_name.as_str())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::{evm::ChainId, slip44::SLIP44};
+    use super::*;
 
     #[test]
     fn test_coin_type() {

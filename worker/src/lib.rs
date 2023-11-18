@@ -1,184 +1,55 @@
-use std::{collections::VecDeque, str::FromStr};
+use lazy_static::lazy_static;
 use std::sync::Arc;
 
-use wasm_bindgen::JsValue;
+use worker::{event, Context, Cors, Env, Method, Request, Response};
 
-use enstate_shared::models::{
-    multicoin::cointype::Coins,
-    profile::{Profile},
-    records::Records,
-};
-use ethers::{
-    providers::{Http, Provider},
-    types::H160,
-};
-use js_sys::Reflect;
-use kv_cache::CloudflareKVCache;
-use worker::{
-    console_error, console_log, event, Context, Cors, Env, Method, Request, Response, Url,
-};
+use crate::lookup::LookupType;
 
-mod empty_cache;
+mod http_util;
 mod kv_cache;
+mod lookup;
 
-fn get_js(target: &JsValue, name: &str) -> Result<JsValue, JsValue> {
-    Reflect::get(target, &JsValue::from(name))
+lazy_static! {
+    static ref CORS: Cors = Cors::default()
+        .with_origins(vec!["*"])
+        .with_methods(Method::all());
 }
 
-pub enum LookupType {
-    NameLookup(String),
-    AddressLookup(String),
-    NameOrAddressLookup(String),
-    ImageLookup(String),
-    Unknown,
-}
-
-impl LookupType {
-    fn from_path(path: String) -> Self {
-        let mut split: VecDeque<&str> = path.split("/").collect::<Vec<&str>>().into();
-
-        let _ = split.pop_front();
-        let first = split.pop_front().unwrap_or("");
-
-        match first {
-            "n" => {
-                if let Some(name) = split.pop_front() {
-                    return LookupType::NameLookup(name.to_string());
-                }
-                LookupType::Unknown
-            }
-            "a" => {
-                if let Some(address) = split.pop_front() {
-                    return LookupType::AddressLookup(address.to_string());
-                }
-                LookupType::Unknown
-            }
-            "u" => {
-                if let Some(name_or_address) = split.pop_front() {
-                    return LookupType::NameOrAddressLookup(name_or_address.to_string());
-                }
-                LookupType::Unknown
-            }
-            "i" => {
-                if let Some(name) = split.pop_front() {
-                    return LookupType::ImageLookup(name.to_string());
-                }
-                LookupType::Unknown
-            }
-            _ => return LookupType::Unknown,
-        }
-    }
-
-    async fn process(&self, req: Request, env: Arc<Env>, opensea_api_key: &str) -> Result<Response, Response> {
-        let cache = Box::new(CloudflareKVCache::new(env));
-        let profile_records = Records::default().records;
-        let profile_chains = Coins::default().coins;
-        let rpc = Provider::<Http>::try_from("https://rpc.enstate.rs/v1/mainnet")
-            .map_err(|_| Response::error("RPC Failure", 500).unwrap())?;
-
-        let url = req.url().unwrap();
-        let query = querystring::querify(url.query().unwrap_or(""));
-        let fresh = query.into_iter().find(|(k, _)| *k == "fresh").is_some();
-
-        match self {
-            LookupType::NameLookup(name) => {
-                console_log!("Name Lookup {}", name);
-
-                let profile = Profile::from_name(
-                    name.as_str(),
-                    fresh,
-                    cache,
-                    rpc,
-                    &opensea_api_key,
-                    &profile_records,
-                    &profile_chains,
-                )
-                .await;
-
-                match profile {
-                    Ok(x) => Ok(Response::from_json(&x).map_err(|e| {
-                        console_error!("error: {}", e.to_string());
-                        Response::error(e.to_string(), 404).unwrap()
-                    })?),
-                    Err(e) => {
-                        console_error!("error: {}", e.to_string());
-                        return Err(Response::error(e.to_string(), 404).unwrap());
-                    }
-                }
-            }
-            LookupType::AddressLookup(address) => {
-                console_log!("Address Lookup {}", address);
-                let address = H160::from_str(address.as_str()).unwrap();
-
-                let profile = Profile::from_address(
-                    address,
-                    fresh,
-                    cache,
-                    rpc,
-                    &opensea_api_key,
-                    &profile_records,
-                    &profile_chains,
-                )
-                .await;
-
-                match profile {
-                    Ok(x) => Ok(Response::from_json(&x).unwrap()),
-                    Err(e) => {
-                        console_error!("error: {}", e.to_string());
-                        return Err(Response::error(e.to_string(), 404).unwrap());
-                    }
-                }
-            }
-            LookupType::ImageLookup(name) => {
-                console_log!("Avatar Lookup {}", name);
-
-                let profile = Profile::from_name(
-                    name.as_str(),
-                    fresh,
-                    cache,
-                    rpc,
-                    &opensea_api_key,
-                    &profile_records,
-                    &profile_chains,
-                )
-                .await;
-
-                if let Ok(profile) = profile {
-                    if let Some(avatar) = profile.avatar {
-                        let url = Url::parse(avatar.as_str()).unwrap();
-
-                        return Ok(Response::redirect(url).unwrap());
-                    }
-                }
-
-                Err(Response::error("Not Found", 404).unwrap())
-            }
-            _ => {
-                console_log!("Unknown Lookup");
-                Err(Response::error("Unknown Lookup", 501).unwrap())
-            }
-        }
-    }
+#[derive(Debug, serde::Serialize)]
+struct AppVersion {
+    rev: String,
+    name: String,
+    semver: String,
+    compile_time: String,
 }
 
 #[event(fetch, respond_with_errors)]
 async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response> {
-    let cors = Cors::default()
-        .with_origins(vec!["*"])
-        .with_methods(Method::all());
+    if req.path() == "/" {
+        return root_handler().with_cors(&CORS);
+    }
 
-    let opensea_api_key = env.var("OPENSEA_API_KEY").unwrap().to_string();
+    let opensea_api_key = env
+        .var("OPENSEA_API_KEY")
+        .expect("OPENSEA_API_KEY should've been set")
+        .to_string();
 
     let env_arc = Arc::new(env);
 
-    let response = LookupType::from_path(req.path())
+    let response = LookupType::from(req.path())
         .process(req, env_arc, &opensea_api_key)
         .await
         .unwrap_or_else(|f| f);
 
-    let mut headers = response.headers().clone();
+    response.with_cors(&CORS)
+}
 
-    let _ = headers.set("Cache-Control", "max-age=600, stale-while-revalidate=30");
-
-    response.with_headers(headers).with_cors(&cors)
+fn root_handler() -> Response {
+    Response::from_json(&AppVersion {
+        rev: env!("GIT_REV").to_string(),
+        name: env!("CARGO_PKG_NAME").to_string(),
+        semver: env!("CARGO_PKG_VERSION").to_string(),
+        compile_time: env!("STATIC_BUILD_DATE").to_string(),
+    })
+    .expect("from_json should've succeeded")
 }

@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
+use async_trait::async_trait;
 use ethers_core::{
     abi::{ParamType, Token},
     types::H256,
 };
 use hex_literal::hex;
-use async_trait::async_trait;
 
 use super::{ENSLookup, ENSLookupError, LookupState};
 
@@ -47,7 +47,8 @@ mod tests {
     use ethers::providers::namehash;
     use hex_literal::hex;
 
-    async fn test_calldata_address() {
+    #[test]
+    fn test_calldata_address() {
         assert_eq!(
             Addr {}.calldata(&namehash("eth")),
             hex!("3b3b57de93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae")

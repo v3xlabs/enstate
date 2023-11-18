@@ -4,7 +4,8 @@ use std::{collections::BTreeMap, sync::Arc};
 use ethers::providers::{Http, Provider};
 use tracing::info;
 
-use crate::models::lookup::avatar::Image;
+use crate::cache::CacheError;
+use crate::models::lookup::image::Image;
 use crate::models::{
     lookup::{addr::Addr, multicoin::Multicoin, text::Text, ENSLookup, LookupState},
     multicoin::cointype::coins::CoinType,
@@ -22,8 +23,8 @@ impl Profile {
         cache: Box<dyn crate::cache::CacheLayer>,
         rpc: Provider<Http>,
         opensea_api_key: &str,
-        profile_records: &Vec<String>,
-        profile_chains: &Vec<CoinType>,
+        profile_records: &[String],
+        profile_chains: &[CoinType],
     ) -> Result<Self, ProfileError> {
         let cache_key = format!("n:{name}");
 
@@ -37,56 +38,63 @@ impl Profile {
         // If the value is in the cache, return it
         if !fresh {
             if let Ok(value) = cache.get(&cache_key).await {
-                if !value.is_empty() {
-                    let entry: Self = serde_json::from_str(value.as_str()).unwrap();
-
-                    return Ok(entry);
+                if value.is_empty() {
+                    return Err(ProfileError::NotFound);
                 }
 
-                return Err(ProfileError::NotFound);
+                let entry_result: Result<Self, _> = serde_json::from_str(value.as_str());
+                if let Ok(entry) = entry_result {
+                    return Ok(entry);
+                }
             }
         }
 
         // Preset Hardcoded Lookups
         let mut calldata: Vec<Box<dyn ENSLookup + Send + Sync>> = vec![
-            Box::new(Addr {}),
-            Box::new(Image {
+            Addr {}.to_boxed(),
+            Image {
                 // TODO: Default IPFS Gateway
                 ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
                 name: name.to_string(),
                 record: "avatar".to_string(),
-            }),
-            Box::new(Image {
+            }
+            .to_boxed(),
+            Image {
                 // TODO: Default IPFS Gateway
                 ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
                 name: name.to_string(),
                 record: "header".to_string(),
-            }),
-            Box::new(Text::new("display".to_string())),
+            }
+            .to_boxed(),
+            Text::from("display").to_boxed(),
         ];
 
         // Lookup all Records
         let record_offset = calldata.len();
         for record in profile_records {
-            calldata.push(Box::new(Text::new(record.clone())));
+            calldata.push(Text::from(record.as_str()).to_boxed());
         }
 
         // Lookup all chains
         let chain_offset = calldata.len();
         for chain in profile_chains {
-            calldata.push(Box::new(Multicoin {
-                coin_type: chain.clone(),
-            }));
+            calldata.push(
+                Multicoin {
+                    coin_type: chain.clone(),
+                }
+                .to_boxed(),
+            );
         }
+
         let rpc = Arc::new(rpc);
 
         // Execute Universal Resolver Lookup
-        let (data, resolver) = resolve_universal(name.to_string(), &calldata, rpc.clone()).await?;
+        let (data, resolver) = resolve_universal(name, &calldata, &rpc).await?;
 
         let mut results: Vec<Option<String>> = Vec::new();
         let mut errors = BTreeMap::default();
 
-        let state = Arc::new(LookupState {
+        let lookup_state = Arc::new(LookupState {
             rpc,
             opensea_api_key: opensea_api_key.to_string(),
         });
@@ -94,11 +102,15 @@ impl Profile {
         // Assume results & calldata have the same length
         // Look through all calldata and decode the results at the same index
         for (index, calldata) in calldata.iter().enumerate() {
-            let result = calldata.decode(&data[index], state.clone()).await;
+            let result = calldata.decode(&data[index], lookup_state.clone()).await;
 
             match result {
                 Ok(result) => {
-                    results.push(Some(result));
+                    if result.is_empty() {
+                        results.push(None);
+                    } else {
+                        results.push(Some(result));
+                    }
                 }
                 Err(error) => {
                     errors.insert(calldata.name(), error.to_string());
@@ -107,13 +119,13 @@ impl Profile {
             }
         }
 
-        let address: Option<String> = results.get(0).unwrap_or(&None).clone();
-        let avatar: Option<String> = results.get(1).unwrap_or(&None).clone();
-        let header: Option<String> = results.get(2).unwrap_or(&None).clone();
-        let display_record: Option<String> = results.get(4).unwrap_or(&None).clone();
+        let address = results.get(0).cloned().unwrap_or(None);
+        let avatar = results.get(1).cloned().unwrap_or(None);
+        let header = results.get(2).cloned().unwrap_or(None);
+        let display_record = results.get(3).cloned().unwrap_or(None);
 
         let display = match display_record {
-            Some(display) if display.to_lowercase() == name.to_lowercase() => display,
+            Some(display) => display,
             _ => name.to_string(),
         };
 
@@ -129,9 +141,7 @@ impl Profile {
 
         for (index, value) in results[record_offset..chain_offset].iter().enumerate() {
             if let Some(value) = value {
-                if !value.is_empty() {
-                    records.insert(profile_records[index].clone(), value.to_string());
-                }
+                records.insert(profile_records[index].clone(), value.to_string());
             }
         }
 
@@ -139,9 +149,7 @@ impl Profile {
 
         for (index, value) in results[chain_offset..].iter().enumerate() {
             if let Some(value) = value {
-                if !value.is_empty() {
-                    chains.insert(profile_chains[index].to_string(), value.to_string());
-                }
+                chains.insert(profile_chains[index].to_string(), value.to_string());
             }
         }
 
@@ -158,9 +166,15 @@ impl Profile {
             errors,
         };
 
-        let response = serde_json::to_string(&value).unwrap();
+        let response =
+            serde_json::to_string(&value).map_err(|err| ProfileError::Other(err.to_string()))?;
 
-        cache.set(&cache_key, &response, 3600).await.unwrap();
+        cache
+            .set(&cache_key, &response, 600)
+            .await
+            .map_err(|CacheError::Other(err)| {
+                ProfileError::Other(format!("cache set failed: {}", err))
+            })?;
 
         Ok(value)
     }

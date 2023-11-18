@@ -11,6 +11,7 @@ impl Default for Records {
             "email",
             "avatar",
             "header",
+            "display",
             "location",
             "timezone",
             "language",

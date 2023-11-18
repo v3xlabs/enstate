@@ -4,18 +4,18 @@ use axum::async_trait;
 use enstate_shared::cache::{CacheError, CacheLayer};
 use redis::{aio::ConnectionManager, AsyncCommands};
 
-pub struct RedisCache {
+pub struct Redis {
     redis: ConnectionManager,
 }
 
-impl RedisCache {
+impl Redis {
     pub const fn new(redis: ConnectionManager) -> Self {
         Self { redis }
     }
 }
 
 #[async_trait]
-impl CacheLayer for RedisCache {
+impl CacheLayer for Redis {
     async fn get(&self, key: &str) -> Result<String, CacheError> {
         let mut redis = self.redis.clone();
 
@@ -41,7 +41,7 @@ impl CacheLayer for RedisCache {
             .await;
 
         match x {
-            Ok(_) => Ok(()),
+            Ok(()) => Ok(()),
             Err(error) => Err(CacheError::Other(error.to_string())),
         }
     }

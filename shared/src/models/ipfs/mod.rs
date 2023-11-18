@@ -1,6 +1,6 @@
-use std::env;
-
-use tracing::info;
+use lazy_static::lazy_static;
+use reqwest::header::HeaderValue;
+use thiserror::Error;
 
 use super::erc721::metadata::NFTMetadata;
 
@@ -11,17 +11,36 @@ pub enum IPFSURLUnparsed {
     // IPNS(String),
 }
 
+#[derive(Debug, Error)]
+pub enum URLFetchError {
+    #[error("HTTP error: {0}")]
+    HTTPError(#[from] reqwest::Error),
+
+    #[error("Parse error: {0}")]
+    ParseError(#[from] serde_json::Error),
+}
+
+pub const OPENSEA_BASE_PREFIX: &str = "https://api.opensea.io/";
+
+lazy_static! {
+    static ref RAW_IPFS_REGEX: regex::Regex =
+        regex::Regex::new(r"^Qm[1-9A-HJ-NP-Za-km-z]{44,}|b[A-Za-z2-7]{58,}|B[A-Z2-7]{58,}|z[1-9A-HJ-NP-Za-km-z]{48,}|F[0-9A-F]{50,}$")
+            .expect("should be a valid regex");
+
+    static ref IPFS_REGEX: regex::Regex =
+        regex::Regex::new(r"^ipfs://(ip[fn]s/)?([0-9a-zA-Z]+(/.*)?)")
+            .expect("should be a valid regex");
+}
+
 impl IPFSURLUnparsed {
     // Given an arbitrary value initializes the ipfsurlunparsed
     pub fn from_unparsed(value: String) -> Self {
-        let raw_ipfs = regex::Regex::new(r"^Qm[1-9A-HJ-NP-Za-km-z]{44,}|b[A-Za-z2-7]{58,}|B[A-Z2-7]{58,}|z[1-9A-HJ-NP-Za-km-z]{48,}|F[0-9A-F]{50,}$").unwrap();
-        if raw_ipfs.is_match(&value) {
+        if RAW_IPFS_REGEX.is_match(&value) {
             return IPFSURLUnparsed::IPFS(value);
         }
 
         // If IPFS
-        let ipfs = regex::Regex::new(r"^ipfs://(ip[fn]s/)?([0-9a-zA-Z]+(/.*)?)").unwrap();
-        if let Some(captures) = ipfs.captures(&value) {
+        if let Some(captures) = IPFS_REGEX.captures(&value) {
             let hash = captures.get(2).unwrap().as_str();
 
             return IPFSURLUnparsed::IPFS(hash.to_string());
@@ -42,27 +61,27 @@ impl IPFSURLUnparsed {
         }
     }
 
-    pub async fn fetch(&self, opensea_api_key: &str) -> Result<NFTMetadata, ()> {
+    pub async fn fetch(&self, opensea_api_key: &str) -> Result<NFTMetadata, URLFetchError> {
         let url = self.to_url_or_gateway();
         let mut client_headers = reqwest::header::HeaderMap::new();
 
-        if url.starts_with("https://api.opensea.io/") {
+        if url.starts_with(OPENSEA_BASE_PREFIX) {
             client_headers.insert(
                 "X-API-KEY",
-                opensea_api_key.parse().unwrap(),
+                HeaderValue::from_str(opensea_api_key)
+                    .unwrap_or_else(|_| HeaderValue::from_static("")),
             );
         }
 
         let client = reqwest::Client::builder()
             .default_headers(client_headers)
-            .build()
-            .unwrap();
+            .build()?;
 
-        let res = client.get(&url).send().await.unwrap();
+        let res = client.get(&url).send().await?;
 
-        let body = res.text().await.unwrap();
+        let body = res.text().await?;
 
-        let metadata: NFTMetadata = serde_json::from_str(&body).unwrap();
+        let metadata: NFTMetadata = serde_json::from_str(&body)?;
 
         Ok(metadata)
     }
@@ -70,6 +89,8 @@ impl IPFSURLUnparsed {
 
 #[cfg(test)]
 mod tests {
+    use std::env;
+
     use super::*;
 
     #[tokio::test]

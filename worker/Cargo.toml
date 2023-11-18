@@ -1,6 +1,6 @@
 [package]
 name = "enstate-worker"
-version = "0.1.0"
+version = "0.0.9"
 edition = "2021"
 
 # https://github.com/rustwasm/wasm-pack/issues/1247
@@ -9,9 +9,6 @@ wasm-opt = false
 
 [lib]
 crate-type = ["cdylib"]
-
-[build]
-target = "wasm32-unknown-unknown"
 
 [dependencies]
 worker = "0.0.18"
@@ -36,6 +33,12 @@ once_cell = "1.18.0"
 js-sys = "*"
 serde-wasm-bindgen = "0.6.0"
 querystring = "1.1.0"
+thiserror = "1.0.50"
+http = "1.0.0"
+lazy_static = "1.4.0"
+
+[build-dependencies]
+chrono = "0.4.31"
 
 [profile.release]
 lto = true
