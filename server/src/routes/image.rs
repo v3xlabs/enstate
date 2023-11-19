@@ -37,9 +37,9 @@ pub async fn get(
             .await
             .map_err(profile_http_error_mapper)?;
 
-    if let Some(avatar) = profile.avatar {
-        return Ok(Redirect::to(avatar.as_str()));
-    }
+    let Some(avatar) = profile.avatar else {
+        return Err(http_simple_status_error(StatusCode::NOT_FOUND));
+    };
 
-    Err(http_simple_status_error(StatusCode::NOT_FOUND))
+    Ok(Redirect::to(avatar.as_str()))
 }

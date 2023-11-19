@@ -70,52 +70,52 @@ impl ENSLookup for Image {
             return Ok(format!("{}{hash}", self.ipfs_gateway));
         }
 
-        if let Some(captures) = EIP155_REGEX.captures(&value) {
-            let chain_id = captures.get(1).unwrap().as_str();
-            let contract_type = captures.get(2).unwrap().as_str();
-            let contract_address = captures.get(3).unwrap().as_str();
-            let token_id = captures.get(4).unwrap().as_str();
+        let Some(captures) = EIP155_REGEX.captures(&value) else {
+            return Ok(value);
+        };
 
-            let chain_id = chain_id
-                .parse::<u64>()
-                .map_err(|err| ImageLookupError::FormatError(err.to_string()))?;
+        let chain_id = captures.get(1).unwrap().as_str();
+        let contract_type = captures.get(2).unwrap().as_str();
+        let contract_address = captures.get(3).unwrap().as_str();
+        let token_id = captures.get(4).unwrap().as_str();
 
-            let token_id = U256::from_dec_str(token_id)
-                .map_err(|err| ImageLookupError::FormatError(err.to_string()))?;
+        let chain_id = chain_id
+            .parse::<u64>()
+            .map_err(|err| ImageLookupError::FormatError(err.to_string()))?;
 
-            let contract_type = match contract_type {
-                "erc721" => EIP155ContractType::ERC721,
-                "erc1155" => EIP155ContractType::ERC1155,
-                _ => {
-                    return Err(
-                        ImageLookupError::FormatError("invalid contract type".to_string()).into(),
-                    )
-                }
-            };
+        let token_id = U256::from_dec_str(token_id)
+            .map_err(|err| ImageLookupError::FormatError(err.to_string()))?;
 
-            info!(
-                "Encountered Avatar: {chain_id} {contract_type} {contract_address} {token_id}",
-                chain_id = chain_id,
-                contract_type = contract_type.as_str(),
-                contract_address = contract_address,
-                token_id = token_id
-            );
+        let contract_type = match contract_type {
+            "erc721" => EIP155ContractType::ERC721,
+            "erc1155" => EIP155ContractType::ERC1155,
+            _ => {
+                return Err(
+                    ImageLookupError::FormatError("invalid contract type".to_string()).into(),
+                )
+            }
+        };
 
-            let resolved_uri = resolve_eip155(
-                ChainId::from(chain_id),
-                contract_type,
-                contract_address,
-                token_id,
-                &state.rpc,
-                &opensea_api_key,
-            )
-            .await?;
+        info!(
+            "Encountered Avatar: {chain_id} {contract_type} {contract_address} {token_id}",
+            chain_id = chain_id,
+            contract_type = contract_type.as_str(),
+            contract_address = contract_address,
+            token_id = token_id
+        );
 
-            // TODO: Remove naive approach
-            return Ok(resolved_uri);
-        }
+        let resolved_uri = resolve_eip155(
+            ChainId::from(chain_id),
+            contract_type,
+            contract_address,
+            token_id,
+            &state.rpc,
+            &opensea_api_key,
+        )
+        .await?;
 
-        Ok(value)
+        // TODO: Remove naive approach
+        return Ok(resolved_uri);
     }
 
     fn name(&self) -> String {

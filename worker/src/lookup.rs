@@ -98,19 +98,18 @@ impl LookupType {
                     _ => unreachable!(),
                 };
 
-                if let Some(img) = field {
-                    let url = Url::parse(img.as_str()).map_err(|_| {
-                        Response::error("Invalid avatar URL", StatusCode::NOT_ACCEPTABLE.as_u16())
-                            .expect("status should be in correct range")
-                    })?;
+                let Some(img) = field else {
+                    return Err(http_simple_status_error(StatusCode::NOT_FOUND));
+                };
 
-                    return Ok(Response::redirect(url).map_err(|_| {
-                        Response::error("Worker error", 500)
-                            .expect("status should be in correct range")
-                    })?);
-                }
+                let url = Url::parse(img.as_str()).map_err(|_| {
+                    Response::error("Invalid avatar URL", StatusCode::NOT_ACCEPTABLE.as_u16())
+                        .expect("status should be in correct range")
+                })?;
 
-                Err(http_simple_status_error(StatusCode::NOT_FOUND))
+                Ok(Response::redirect(url).map_err(|_| {
+                    Response::error("Worker error", 500).expect("status should be in correct range")
+                })?)
             }
             _ => {
                 let profile = match self {
