@@ -23,22 +23,15 @@ impl Profile {
         let name = if let Ok(name) = cache.get(&cache_key).await {
             name
         } else {
-            let result = match rpc.lookup_address(address).await {
-                Ok(result) => result,
-                Err(error) => {
-                    println!("Error resolving address: {error:?}");
-
-                    if let ProviderError::EnsError(_) = error {
-                        // Cache the value, and expire it after 10 minutes
-                        cache
-                            .set(&cache_key, "", 600)
-                            .await
-                            .map_err(|_| ProfileError::Other("cache set failed".to_string()))?;
-                    };
-
-                    return Err(ProfileError::NotFound);
-                }
-            };
+            let result = rpc
+                .lookup_address(address)
+                .await
+                .or_else(|error| match error {
+                    // address doesn't resolve, cache ""
+                    ProviderError::EnsError(_) => Ok("".to_string()),
+                    // yield error up, don't cache
+                    _ => Err(error),
+                })?;
 
             // Cache the value, and expire it after 10 minutes
             cache

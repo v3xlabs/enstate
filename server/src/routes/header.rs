@@ -37,9 +37,9 @@ pub async fn get(
             .await
             .map_err(profile_http_error_mapper)?;
 
-    if let Some(header) = profile.header {
-        return Ok(Redirect::to(header.as_str()));
-    }
+    let Some(header) = profile.header else {
+        return Err(http_simple_status_error(StatusCode::NOT_FOUND));
+    };
 
-    Err(http_simple_status_error(StatusCode::NOT_FOUND))
+    Ok(Redirect::to(header.as_str()))
 }

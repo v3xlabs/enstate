@@ -66,12 +66,16 @@ pub async fn resolve_universal(
         .call(&typed_transaction, None)
         .await
         .map_err(|err| {
-            if let JsonRpcClientError(rpc_err) = &err {
-                if let Some(rpc_err_raw) = rpc_err.as_error_response() {
-                    if rpc_err_raw.message == MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE {
-                        return ProfileError::NotFound;
-                    }
-                }
+            let JsonRpcClientError(rpc_err) = &err else {
+                return ProfileError::RPCError(err);
+            };
+
+            let Some(rpc_err_raw) = rpc_err.as_error_response() else {
+                return ProfileError::RPCError(err);
+            };
+
+            if rpc_err_raw.message == MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE {
+                return ProfileError::NotFound;
             }
 
             ProfileError::RPCError(err)
