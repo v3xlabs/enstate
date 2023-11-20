@@ -24,7 +24,11 @@ mod state;
 async fn main() {
     dotenv().ok();
 
-    let filter = EnvFilter::new(format!("enstate={}", Level::DEBUG));
+    let filter = EnvFilter::new(format!(
+        "enstate={},ethers_ccip_read={}",
+        Level::DEBUG,
+        Level::DEBUG
+    ));
 
     let subscriber = FmtSubscriber::builder()
         // all spans/events with a level higher than TRACE (e.g, debug, info, warn, etc.)

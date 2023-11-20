@@ -28,6 +28,7 @@ pub type RouteError = (StatusCode, Json<ErrorResponse>);
 pub fn profile_http_error_mapper(err: ProfileError) -> RouteError {
     let status = match err {
         ProfileError::NotFound => StatusCode::NOT_FOUND,
+        ProfileError::CCIPError(_) => StatusCode::BAD_GATEWAY,
         _ => StatusCode::INTERNAL_SERVER_ERROR,
     };
 

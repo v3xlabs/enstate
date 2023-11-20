@@ -3,6 +3,7 @@ use ethers::{
     providers::{namehash, Http, Middleware, Provider},
     types::{transaction::eip2718::TypedTransaction, Address, Bytes},
 };
+use ethers_ccip_read::{CCIPReadMiddleware, CCIPReadMiddlewareError};
 use ethers_contract::abigen;
 use ethers_core::abi::{ParamType, Token};
 use lazy_static::lazy_static;
@@ -32,7 +33,7 @@ const MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE: &str =
 pub async fn resolve_universal(
     name: &str,
     data: &[Box<dyn ENSLookup + Send + Sync>],
-    provider: &Provider<Http>,
+    provider: &CCIPReadMiddleware<Provider<Http>>,
 ) -> Result<(Vec<Vec<u8>>, Address), ProfileError> {
     let name_hash = namehash(name);
 
@@ -66,22 +67,20 @@ pub async fn resolve_universal(
         .call(&typed_transaction, None)
         .await
         .map_err(|err| {
-            let JsonRpcClientError(rpc_err) = &err else {
-                return ProfileError::RPCError(err);
+            let CCIPReadMiddlewareError::MiddlewareError(provider_error) = err else {
+                return ProfileError::CCIPError(err);
             };
 
-            let Some(rpc_err_raw) = rpc_err.as_error_response() else {
-                return ProfileError::RPCError(err);
+            let JsonRpcClientError(rpc_err) = &provider_error else {
+                return ProfileError::RPCError(provider_error);
             };
 
-            if rpc_err_raw.message == MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE {
+            if matches!(rpc_err.as_error_response(), Some(rpc_err_raw) if rpc_err_raw.message == MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE) {
                 return ProfileError::NotFound;
             }
 
-            ProfileError::RPCError(err)
+            ProfileError::RPCError(provider_error)
         })?;
-
-    let res_data = res.to_vec();
 
     // Abi Decode
     let result = ethers_core::abi::decode(
@@ -89,7 +88,7 @@ pub async fn resolve_universal(
             ParamType::Array(Box::new(ParamType::Bytes)),
             ParamType::Address,
         ],
-        res_data.as_slice(),
+        res.as_ref(),
     )
     .map_err(|_| ProfileError::ImplementationError("ABI decode failed".to_string()))?;
 
@@ -125,6 +124,7 @@ mod tests {
     use std::str::FromStr;
 
     use ethers::providers::{Http, Provider};
+    use ethers_ccip_read::CCIPReadMiddleware;
     use ethers_core::abi::ParamType;
     use ethers_core::types::Address;
 
@@ -146,9 +146,13 @@ mod tests {
             Text::from("location").to_boxed(),
         ];
 
-        let res = universal_resolver::resolve_universal("antony.sh", &calldata, &provider)
-            .await
-            .unwrap();
+        let res = universal_resolver::resolve_universal(
+            "antony.sh",
+            &calldata,
+            &CCIPReadMiddleware::new(provider),
+        )
+        .await
+        .unwrap();
 
         let address = ethers_core::abi::decode(&[ParamType::Address], &res.0[0])
             .unwrap()

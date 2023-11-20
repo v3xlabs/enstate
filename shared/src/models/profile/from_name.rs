@@ -1,13 +1,15 @@
 use std::str::FromStr;
 use std::{collections::BTreeMap, sync::Arc};
 
+use ethers::middleware::MiddlewareBuilder;
 use ethers::providers::{Http, Provider};
+use ethers_ccip_read::CCIPReadMiddleware;
 use tracing::info;
 
 use crate::cache::CacheError;
 use crate::models::lookup::image::Image;
 use crate::models::{
-    lookup::{addr::Addr, multicoin::Multicoin, text::Text, ENSLookup, LookupState},
+    lookup::{addr::Addr, text::Text, ENSLookup, LookupState},
     multicoin::cointype::coins::CoinType,
     profile::Profile,
     universal_resolver::resolve_universal,
@@ -27,6 +29,8 @@ impl Profile {
         profile_chains: &[CoinType],
     ) -> Result<Self, ProfileError> {
         let cache_key = format!("n:{name}");
+
+        let rpc = rpc.wrap_into(CCIPReadMiddleware::new);
 
         info!(
             name = name,
@@ -77,14 +81,14 @@ impl Profile {
 
         // Lookup all chains
         let chain_offset = calldata.len();
-        for chain in profile_chains {
-            calldata.push(
-                Multicoin {
-                    coin_type: chain.clone(),
-                }
-                .to_boxed(),
-            );
-        }
+        // for chain in profile_chains {
+        //     calldata.push(
+        //         Multicoin {
+        //             coin_type: chain.clone(),
+        //         }
+        //         .to_boxed(),
+        //     );
+        // }
 
         let rpc = Arc::new(rpc);
 

@@ -1,4 +1,6 @@
+use ethers::middleware::Middleware;
 use ethers::providers::{Http, Provider, ProviderError};
+use ethers_ccip_read::CCIPReadMiddleware;
 use ethers_core::{
     abi::{ParamType, Token},
     types::{transaction::eip2718::TypedTransaction, Bytes, H160, U256},
@@ -54,7 +56,7 @@ pub async fn resolve_eip155(
     contract_type: EIP155ContractType,
     contract_address: &str,
     token_id: U256,
-    provider: &Provider<Http>,
+    provider: &CCIPReadMiddleware<Provider<Http>>,
     opensea_api_key: &str,
 ) -> Result<String, EIP155Error> {
     let chain_id: u64 = chain_id.into();
@@ -84,7 +86,7 @@ pub async fn resolve_eip155(
     typed_transaction.set_to(contract_h160);
     typed_transaction.set_data(Bytes::from(transaction_data));
 
-    let res = provider.call_raw(&typed_transaction).await?;
+    let res = provider.provider().call_raw(&typed_transaction).await?;
 
     let res_data = res.to_vec();
 
