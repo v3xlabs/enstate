@@ -1,6 +1,6 @@
 [package]
 name = "enstate"
-version = "0.0.9"
+version = "1.0.0-1"
 edition = "2021"
 license = "GPL-3.0"
 homepage = "enstate.rs"
@@ -8,6 +8,7 @@ description = "enstate"
 repository = "https://github.com/v3xlabs/enstate"
 authors = [
     "Luc van Kampen <luc@v3x.email>",
+    "Antonio Fran Štignjedec <antony@antony.red>",
     "Miguel Piedrafita <sup@miguel.build>",
 ]
 

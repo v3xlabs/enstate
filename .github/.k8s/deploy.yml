@@ -49,11 +49,16 @@ spec:
     spec:
       containers:
         - name: enstate
-          image: ghcr.io/v3xlabs/enstate:0.0.8-8
+          image: ghcr.io/v3xlabs/enstate:1.0.0-1
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
           env:
+            - name: OPENSEA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: opensea-api-key
+                  key: api-key
             - name: REDIS_URL
               value: redis://redis.enstate.svc.cluster.local:6379
             - name: RPC_URL

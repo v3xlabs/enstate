@@ -807,7 +807,7 @@ dependencies = [
 
 [[package]]
 name = "enstate_shared"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -959,7 +959,7 @@ dependencies = [
 [[package]]
 name = "ethers-ccip-read"
 version = "0.1.1"
-source = "git+https://github.com/v3xlabs/rust-ethers-ccip-read?branch=rework#4bc0e480539d3636186a97daa51790bc7698b05a"
+source = "git+https://github.com/ensdomains/ethers-ccip-read#62688ad157d3d4f3e8abccd7f48c5b7957604824"
 dependencies = [
  "async-recursion",
  "async-trait",
