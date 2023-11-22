@@ -959,13 +959,14 @@ dependencies = [
 [[package]]
 name = "ethers-ccip-read"
 version = "0.1.1"
-source = "git+https://github.com/v3xlabs/rust-ethers-ccip-read?branch=rework#2db3c12f15dd0aa01b96c85247740a1eb0c33a50"
+source = "git+https://github.com/v3xlabs/rust-ethers-ccip-read?branch=rework#4bc0e480539d3636186a97daa51790bc7698b05a"
 dependencies = [
  "async-recursion",
  "async-trait",
  "ethers-core",
  "ethers-providers",
  "futures-util",
+ "getrandom",
  "reqwest",
  "serde",
  "serde_json",
