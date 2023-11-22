@@ -829,7 +829,7 @@ dependencies = [
 
 [[package]]
 name = "enstate-worker"
-version = "0.0.9"
+version = "1.0.0-1"
 dependencies = [
  "async-trait",
  "chrono",
