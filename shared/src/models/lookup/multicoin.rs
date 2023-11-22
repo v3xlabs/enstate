@@ -9,7 +9,7 @@ use hex_literal::hex;
 
 use crate::models::multicoin::cointype::coins::CoinType;
 
-use super::{ENSLookup, ENSLookupError, LookupState};
+use super::{abi_decode_universal_ccip, ENSLookup, ENSLookupError, LookupState};
 
 pub struct Multicoin {
     pub coin_type: CoinType,
@@ -30,8 +30,7 @@ impl ENSLookup for Multicoin {
     }
 
     async fn decode(&self, data: &[u8], _: Arc<LookupState>) -> Result<String, ENSLookupError> {
-        let decoded_abi = ethers_core::abi::decode(&[ParamType::Bytes], data)
-            .map_err(|_| ENSLookupError::AbiDecodeError)?;
+        let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::Bytes])?;
 
         let value = decoded_abi
             .get(0)

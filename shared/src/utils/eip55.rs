@@ -51,6 +51,9 @@ impl FromStr for EIP55Address {
 
 pub fn encode_rskip60(data: &[u8], chain: RSKIPChain) -> String {
     let raw = hex::encode(data).to_ascii_lowercase();
+    if data.len() > 20 {
+        return raw;
+    }
     let hash = ethers::utils::keccak256(format!(
         "{:}{raw}",
         match chain {
