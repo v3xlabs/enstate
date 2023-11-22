@@ -914,7 +914,7 @@ dependencies = [
 
 [[package]]
 name = "enstate"
-version = "0.0.9"
+version = "1.0.0-1"
 dependencies = [
  "anyhow",
  "axum",
@@ -959,7 +959,7 @@ dependencies = [
 
 [[package]]
 name = "enstate_shared"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -972,7 +972,7 @@ dependencies = [
  "crc16",
  "crc32fast",
  "ethers",
- "ethers-ccip-read 0.1.1 (git+https://github.com/v3xlabs/rust-ethers-ccip-read?branch=rework)",
+ "ethers-ccip-read 0.1.1 (git+https://github.com/ensdomains/ethers-ccip-read)",
  "ethers-contract",
  "ethers-core",
  "getrandom",
@@ -1125,13 +1125,14 @@ dependencies = [
 [[package]]
 name = "ethers-ccip-read"
 version = "0.1.1"
-source = "git+https://github.com/v3xlabs/rust-ethers-ccip-read?branch=rework#2db3c12f15dd0aa01b96c85247740a1eb0c33a50"
+source = "git+https://github.com/ensdomains/ethers-ccip-read#62688ad157d3d4f3e8abccd7f48c5b7957604824"
 dependencies = [
  "async-recursion",
  "async-trait",
  "ethers-core",
  "ethers-providers",
  "futures-util",
+ "getrandom",
  "reqwest",
  "serde",
  "serde_json",
