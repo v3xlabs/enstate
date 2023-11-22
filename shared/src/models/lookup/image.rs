@@ -14,7 +14,7 @@ use tracing::info;
 use crate::models::eip155::{resolve_eip155, EIP155ContractType};
 use crate::models::multicoin::cointype::evm::ChainId;
 
-use super::{ENSLookup, ENSLookupError, LookupState};
+use super::{abi_decode_universal_ccip, ENSLookup, ENSLookupError, LookupState};
 
 pub struct Image {
     pub ipfs_gateway: String,
@@ -57,8 +57,7 @@ impl ENSLookup for Image {
     }
 
     async fn decode(&self, data: &[u8], state: Arc<LookupState>) -> Result<String, ENSLookupError> {
-        let decoded_abi = ethers_core::abi::decode(&[ParamType::String], data)
-            .map_err(|_| ENSLookupError::AbiDecodeError)?;
+        let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::String])?;
         let value = decoded_abi.get(0).ok_or(ENSLookupError::AbiDecodeError)?;
         let value = value.to_string();
 
