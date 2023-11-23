@@ -145,7 +145,7 @@ impl Profile {
         let display_record = results.get(3).cloned().unwrap_or(None);
 
         let display = match display_record {
-            Some(display) => display,
+            Some(display) if display.to_lowercase() == name.to_lowercase() => display,
             _ => name.to_string(),
         };
 
