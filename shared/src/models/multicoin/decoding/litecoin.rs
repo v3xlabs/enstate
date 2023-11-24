@@ -2,10 +2,12 @@ use lazy_static::lazy_static;
 
 use crate::models::multicoin::decoding::segwit::SegWitDecoder;
 
-use super::{MulticoinDecoder, MulticoinDecoderError, p2pkh::P2PKHDecoder, p2sh::P2SHDecoder};
+use super::{p2pkh::P2PKHDecoder, p2sh::P2SHDecoder, MulticoinDecoder, MulticoinDecoderError};
 
 lazy_static! {
-    static ref LTC_SEGWIT_DECODER: SegWitDecoder = SegWitDecoder { human_readable_part: "ltc".to_string() };
+    static ref LTC_SEGWIT_DECODER: SegWitDecoder = SegWitDecoder {
+        human_readable_part: "ltc".to_string()
+    };
 }
 
 pub struct LitecoinDecoder {}

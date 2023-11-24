@@ -43,10 +43,12 @@ impl ENSLookup for Text {
 
     async fn decode(&self, data: &[u8], _: Arc<LookupState>) -> Result<String, ENSLookupError> {
         let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::String])?;
-        let value = decoded_abi.get(0).ok_or(ENSLookupError::AbiDecodeError)?;
-        let value = value.to_string();
 
-        Ok(value)
+        let Some(Token::String(value)) = decoded_abi.get(0) else {
+            return Err(ENSLookupError::AbiDecodeError);
+        };
+
+        Ok(value.to_string())
     }
 
     fn name(&self) -> String {

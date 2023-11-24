@@ -1,4 +1,4 @@
-use super::{MulticoinDecoder, MulticoinDecoderError, p2pkh::P2PKHDecoder, p2sh::P2SHDecoder};
+use super::{p2pkh::P2PKHDecoder, p2sh::P2SHDecoder, MulticoinDecoder, MulticoinDecoderError};
 
 pub struct MonacoinDecoder {}
 
@@ -7,7 +7,7 @@ impl MulticoinDecoder for MonacoinDecoder {
         match data.len() {
             25 => P2PKHDecoder { version: 0x32 }.decode(data),
             23 => P2SHDecoder { version: 0x05 }.decode(data),
-            _ => Err(MulticoinDecoderError::InvalidStructure(String::new()))
+            _ => Err(MulticoinDecoderError::InvalidStructure(String::new())),
         }
     }
 }

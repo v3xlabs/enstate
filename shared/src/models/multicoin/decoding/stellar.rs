@@ -16,6 +16,9 @@ impl MulticoinDecoder for StellarDecoder {
         full.push((checksum & 0xff) as u8);
         full.push(((checksum >> 8) & 0xff) as u8);
 
-        Ok(base32::encode(Alphabet::RFC4648 { padding: false }, full.as_slice()))
+        Ok(base32::encode(
+            Alphabet::RFC4648 { padding: false },
+            full.as_slice(),
+        ))
     }
 }
