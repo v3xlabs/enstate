@@ -17,5 +17,3 @@ impl MulticoinDecoder for PolkadotDecoder {
             .into_string())
     }
 }
-
-// TODO: tests

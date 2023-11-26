@@ -19,5 +19,3 @@ impl MulticoinDecoder for StellarDecoder {
         Ok(base32::encode(Alphabet::RFC4648 { padding: false }, full.as_slice()))
     }
 }
-
-// TODO: tests

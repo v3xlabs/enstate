@@ -97,7 +97,8 @@ impl Profile {
         // ens CCIP unwrapper is limited to 50 sub-requests, i.e. per request
         let calldata_chunks = calldata.chunks(50).collect::<Vec<_>>();
 
-        let (mut data, resolver) = resolve_universal(name, calldata_chunks[0], &rpc).await?;
+        let (mut data, resolver, ccip_urls) =
+            resolve_universal(name, calldata_chunks[0], &rpc).await?;
 
         for &chunk in &calldata_chunks[1..] {
             data = [data, resolve_universal(name, chunk, &rpc).await?.0].concat();
@@ -183,6 +184,7 @@ impl Profile {
             chains,
             fresh: chrono::offset::Utc::now().timestamp_millis(),
             resolver: EIP55Address(resolver),
+            ccip_urls,
             errors,
         };
 

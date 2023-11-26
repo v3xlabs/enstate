@@ -16,5 +16,3 @@ impl MulticoinDecoder for RippleDecoder {
             .into_string())
     }
 }
-
-// TODO: tests

@@ -43,5 +43,3 @@ impl MulticoinDecoder for TezosDecoder {
         )
     }
 }
-
-// TODO: tests
