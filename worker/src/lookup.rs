@@ -54,12 +54,17 @@ impl LookupType {
         env: Arc<Env>,
         opensea_api_key: &str,
     ) -> Result<Response, Response> {
-        let cache = Box::new(CloudflareKVCache::new(env));
+        let cache = Box::new(CloudflareKVCache::new(env.clone()));
         let profile_records = Records::default().records;
         let profile_chains = Coins::default().coins;
 
+        let rpc_url = env
+            .var("RPC_URL")
+            .map(|x| x.to_string())
+            .unwrap_or("https://rpc.enstate.rs/v1/mainnet".to_string());
+
         // TODO: env
-        let rpc = Provider::<Http>::try_from("https://rpc.enstate.rs/v1/mainnet")
+        let rpc = Provider::<Http>::try_from(rpc_url)
             .map_err(|_| Response::error("RPC Failure", 500).unwrap())?;
 
         let url = req
