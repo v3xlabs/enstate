@@ -2,33 +2,45 @@ use axum::http::StatusCode;
 use axum::Json;
 use enstate_shared::models::profile::error::ProfileError;
 use enstate_shared::models::profile::Profile;
+use ethers::prelude::ProviderError;
 use ethers::providers::{Http, Provider};
 use ethers_core::types::Address;
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 
 use crate::cache;
 use crate::models::error::ErrorResponse;
 
 pub mod address;
+pub mod four_oh_four;
 pub mod header;
 pub mod image;
 pub mod name;
 pub mod root;
 pub mod universal;
 
-pub mod four_oh_four;
-
 #[derive(Deserialize)]
 pub struct FreshQuery {
-    fresh: Option<bool>,
+    #[serde(default, deserialize_with = "bool_or_false")]
+    fresh: bool,
+}
+
+#[allow(clippy::unnecessary_wraps)]
+fn bool_or_false<'de, D>(deserializer: D) -> Result<bool, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value: Result<bool, D::Error> = Deserialize::deserialize(deserializer);
+    Ok(value.unwrap_or_default())
 }
 
 pub type RouteError = (StatusCode, Json<ErrorResponse>);
 
-pub fn profile_http_error_mapper(err: ProfileError) -> RouteError {
+pub fn profile_http_error_mapper<T: AsRef<ProfileError>>(err: T) -> RouteError {
+    let err = err.as_ref();
     let status = match err {
         ProfileError::NotFound => StatusCode::NOT_FOUND,
         ProfileError::CCIPError(_) => StatusCode::BAD_GATEWAY,
+        ProfileError::RPCError(ProviderError::EnsNotOwned(_)) => StatusCode::UNPROCESSABLE_ENTITY,
         _ => StatusCode::INTERNAL_SERVER_ERROR,
     };
 

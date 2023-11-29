@@ -16,6 +16,7 @@ use crate::routes::{
 //         TODO: figure out body
 //         (status = 200, description = "Successfully found name or address.", body = ENSProfile),
 //         (status = NOT_FOUND, description = "No name or address could be found."),
+//         (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
 //     ),
 //     params(
 //         ("name_or_address" = String, Path, description = "Name or address to lookup the image for."),
@@ -32,10 +33,9 @@ pub async fn get(
         .ok_or_else(|| http_simple_status_error(StatusCode::INTERNAL_SERVER_ERROR))?
         .clone();
 
-    let profile =
-        universal_profile_resolve(&name_or_address, query.fresh.unwrap_or(false), rpc, &state)
-            .await
-            .map_err(profile_http_error_mapper)?;
+    let profile = universal_profile_resolve(&name_or_address, query.fresh, rpc, &state)
+        .await
+        .map_err(profile_http_error_mapper)?;
 
     let Some(avatar) = profile.avatar else {
         return Err(http_simple_status_error(StatusCode::NOT_FOUND));

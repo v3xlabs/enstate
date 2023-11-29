@@ -1,4 +1,5 @@
 use enstate_shared::models::profile::error::ProfileError;
+use ethers::prelude::ProviderError;
 use http::status::StatusCode;
 use serde::Serialize;
 use worker::Response;
@@ -13,6 +14,7 @@ pub fn profile_http_error_mapper(err: ProfileError) -> Response {
     let status = match err {
         ProfileError::NotFound => StatusCode::NOT_FOUND,
         ProfileError::CCIPError(_) => StatusCode::BAD_GATEWAY,
+        ProfileError::RPCError(ProviderError::EnsNotOwned(_)) => StatusCode::UNPROCESSABLE_ENTITY,
         _ => StatusCode::INTERNAL_SERVER_ERROR,
     };
 

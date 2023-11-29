@@ -10,15 +10,14 @@ use enstate_shared::models::profile::Profile;
 use crate::cache;
 use crate::routes::{http_simple_status_error, profile_http_error_mapper, FreshQuery, RouteError};
 
-// TODO: figure out UNPROCESSABLE_ENTITY
-//  Reverse record not owned by this address.
 #[utoipa::path(
     get,
     path = "/a/{address}",
     responses(
-        (status = 200, description = "Successfully found address", body = ENSProfile),
+        (status = 200, description = "Successfully found address.", body = ENSProfile),
         (status = BAD_REQUEST, description = "Invalid address.", body = ErrorResponse),
         (status = NOT_FOUND, description = "No name was associated with this address.", body = ErrorResponse),
+        (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
     ),
     params(
         ("address" = String, Path, description = "Address to lookup name data for"),
@@ -44,7 +43,7 @@ pub async fn get(
 
     let profile = Profile::from_address(
         address,
-        query.fresh.unwrap_or(false),
+        query.fresh,
         cache,
         rpc,
         opensea_api_key,
