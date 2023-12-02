@@ -2,8 +2,11 @@ use std::str::FromStr;
 use std::{collections::BTreeMap, sync::Arc};
 
 use ethers::middleware::MiddlewareBuilder;
+use ethers::prelude::Address;
 use ethers::providers::{Http, Provider};
 use ethers_ccip_read::CCIPReadMiddleware;
+use itertools::Itertools;
+use tokio::task::JoinSet;
 use tracing::info;
 
 use crate::cache::CacheError;
@@ -17,6 +20,7 @@ use crate::models::{
     universal_resolver::resolve_universal,
 };
 use crate::utils::eip55::EIP55Address;
+use crate::utils::tokio::joinset_join_all;
 
 use super::error::ProfileError;
 
@@ -94,15 +98,35 @@ impl Profile {
 
         let rpc = Arc::new(rpc);
 
-        // ens CCIP unwrapper is limited to 50 sub-requests, i.e. per request
-        let calldata_chunks = calldata.chunks(50).collect::<Vec<_>>();
+        let mut join_set = JoinSet::new();
 
+        // ENS CCIP unwrapper is limited to 50 sub-requests, i.e. per request
         let (mut data, resolver, ccip_urls) =
             resolve_universal(name, calldata_chunks[0], &rpc).await?;
 
-        for &chunk in &calldata_chunks[1..] {
-            data = [data, resolve_universal(name, chunk, &rpc).await?.0].concat();
+        let chunks = &calldata.into_iter().chunks(50);
+
+        for chunk in chunks {
+            let rpc_clone = rpc.clone();
+            let name_clone = name.to_string().clone();
+            let chunk = chunk.collect::<Vec<_>>();
+            join_set.spawn(async move { resolve_universal(&name_clone, &chunk, &rpc_clone).await });
         }
+
+        let joined = joinset_join_all(&mut join_set)
+            .await
+            .map_err(|_| ProfileError::ImplementationError("resolve task join failed".to_string()))?
+            .into_iter()
+            .collect::<Result<Vec<_>, ProfileError>>()?;
+
+        let Some((_, resolver, ccip_urls)) = joined.get(0) else {
+            return Err(ProfileError::ImplementationError(String::new()));
+        };
+
+        let data = joined
+            .iter()
+            .flat_map(|(data, _, _)| data)
+            .collect::<Vec<_>>();
 
         let mut results: Vec<Option<String>> = Vec::new();
         let mut errors = BTreeMap::default();
@@ -114,8 +138,8 @@ impl Profile {
 
         // Assume results & calldata have the same length
         // Look through all calldata and decode the results at the same index
-        for (index, calldata) in calldata.iter().enumerate() {
-            let result = calldata.decode(&data[index], lookup_state.clone()).await;
+        for (index, calldata) in chunks.into_iter().flatten().enumerate() {
+            let result = calldata.decode(data[index], lookup_state.clone()).await;
 
             match result {
                 Ok(result) => {
