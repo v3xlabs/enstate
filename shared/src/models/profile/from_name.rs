@@ -98,19 +98,40 @@ impl Profile {
 
         let rpc = Arc::new(rpc);
 
-        let mut join_set = JoinSet::new();
+        // let mut join_set = JoinSet::new();
 
         // ENS CCIP unwrapper is limited to 50 sub-requests, i.e. per request
         let (mut data, resolver, ccip_urls) =
             resolve_universal(name, calldata_chunks[0], &rpc).await?;
 
-        let chunks = &calldata.into_iter().chunks(50);
+        let chunks = calldata.chunks(50).collect::<Vec<_>>();
 
-        for chunk in chunks {
-            let rpc_clone = rpc.clone();
-            let name_clone = name.to_string().clone();
-            let chunk = chunk.collect::<Vec<_>>();
-            join_set.spawn(async move { resolve_universal(&name_clone, &chunk, &rpc_clone).await });
+        // let chunks = &calldata.into_iter().chunks(50);
+        //
+        // for chunk in chunks {
+        //     let rpc_clone = rpc.clone();
+        //     let name_clone = name.to_string().clone();
+        //     let chunk = chunk.collect::<Vec<_>>();
+        //     join_set.spawn(async move { resolve_universal(&name_clone, &chunk, &rpc_clone).await });
+        // }
+        //
+        // let joined = joinset_join_all(&mut join_set)
+        //     .await
+        //     .map_err(|_| ProfileError::ImplementationError("resolve task join failed".to_string()))?
+        //     .into_iter()
+        //     .collect::<Result<Vec<_>, ProfileError>>()?;
+        //
+        // let Some((_, resolver)) = joined.get(0) else {
+        //     return Err(ProfileError::ImplementationError(String::new()));
+        // };
+        //
+        // let data = joined.iter().flat_map(|(data, _)| data).collect::<Vec<_>>();
+
+        let (mut data, resolver) = resolve_universal(name, chunks[0], &rpc).await?;
+
+        for chunk in &chunks[1..] {
+            let (next_data, _) = resolve_universal(name, chunk, &rpc).await?;
+            data.extend_from_slice(&next_data);
         }
 
         let joined = joinset_join_all(&mut join_set)
@@ -127,7 +148,6 @@ impl Profile {
             .iter()
             .flat_map(|(data, _, _)| data)
             .collect::<Vec<_>>();
-
         let mut results: Vec<Option<String>> = Vec::new();
         let mut errors = BTreeMap::default();
 
@@ -139,7 +159,7 @@ impl Profile {
         // Assume results & calldata have the same length
         // Look through all calldata and decode the results at the same index
         for (index, calldata) in chunks.into_iter().flatten().enumerate() {
-            let result = calldata.decode(data[index], lookup_state.clone()).await;
+            let result = calldata.decode(&data[index], lookup_state.clone()).await;
 
             match result {
                 Ok(result) => {

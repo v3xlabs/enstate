@@ -6,7 +6,7 @@ use super::{p2pkh::P2PKHDecoder, p2sh::P2SHDecoder, MulticoinDecoder, MulticoinD
 
 lazy_static! {
     static ref LTC_SEGWIT_DECODER: SegWitDecoder = SegWitDecoder {
-        human_readable_part: "ltc".to_string()
+        human_readable_part: "ltc"
     };
 }
 
