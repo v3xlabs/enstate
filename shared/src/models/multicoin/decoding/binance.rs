@@ -12,5 +12,3 @@ impl MulticoinDecoder for BinanceDecoder {
         })
     }
 }
-
-// TODO: tests

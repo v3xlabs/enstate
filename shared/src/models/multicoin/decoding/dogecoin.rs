@@ -11,5 +11,3 @@ impl MulticoinDecoder for DogecoinDecoder {
         }
     }
 }
-
-// TODO: tests

@@ -1,15 +1,19 @@
+use std::vec;
+
 use ethers::prelude::ProviderError::JsonRpcClientError;
 use ethers::{
-    providers::{namehash, Http, Middleware, Provider},
+    providers::{namehash, Http, Provider},
     types::{transaction::eip2718::TypedTransaction, Address, Bytes},
 };
-use ethers_ccip_read::{CCIPReadMiddleware, CCIPReadMiddlewareError};
+use ethers_ccip_read::{CCIPReadMiddleware, CCIPReadMiddlewareError, CCIPRequest};
 use ethers_contract::abigen;
+use ethers_core::abi;
 use ethers_core::abi::{ParamType, Token};
 use lazy_static::lazy_static;
 
 use crate::models::lookup::ENSLookup;
 use crate::utils::dns::dns_encode;
+use crate::utils::vec::dedup_ord;
 
 use super::profile::error::ProfileError;
 
@@ -34,7 +38,7 @@ pub async fn resolve_universal(
     name: &str,
     data: &[Box<dyn ENSLookup + Send + Sync>],
     provider: &CCIPReadMiddleware<Provider<Http>>,
-) -> Result<(Vec<Vec<u8>>, Address), ProfileError> {
+) -> Result<(Vec<Vec<u8>>, Address, Vec<String>), ProfileError> {
     let name_hash = namehash(name);
 
     // Prepare the variables
@@ -46,8 +50,7 @@ pub async fn resolve_universal(
         .map(Token::Bytes)
         .collect();
 
-    let encoded_data =
-        ethers_core::abi::encode(&[Token::Bytes(dns_encoded_node), Token::Array(wildcard_data)]);
+    let encoded_data = abi::encode(&[Token::Bytes(dns_encoded_node), Token::Array(wildcard_data)]);
 
     // resolve(bytes node, bytes[] data)
     let resolve_selector = hex_literal::hex!("206c74c9").to_vec();
@@ -63,8 +66,8 @@ pub async fn resolve_universal(
     typed_transaction.set_data(Bytes::from(transaction_data));
 
     // Call the transaction
-    let res = provider
-        .call(&typed_transaction, None)
+    let (res, ccip_requests) = provider
+        .call_ccip(&typed_transaction, None)
         .await
         .map_err(|err| {
             let CCIPReadMiddlewareError::MiddlewareError(provider_error) = err else {
@@ -116,7 +119,53 @@ pub async fn resolve_universal(
             .map(|t| t.into_bytes().expect("result[0] elements should be bytes"))
             .collect(),
         resolver,
+        dedup_ord(
+            &ccip_requests
+                .iter()
+                .flat_map(urls_from_request)
+                .collect::<Vec<_>>(),
+        ),
     ))
+}
+
+fn urls_from_request(request: &CCIPRequest) -> Vec<String> {
+    if request.calldata.len() < 4 {
+        return Vec::new();
+    }
+
+    let decoded = abi::decode(
+        &[ParamType::Array(Box::new(ParamType::Tuple(vec![
+            ParamType::Address,
+            ParamType::Array(Box::new(ParamType::String)),
+            ParamType::Bytes,
+        ])))],
+        &request.calldata[4..],
+    )
+    .unwrap_or_default();
+
+    let Some(Token::Array(requests)) = decoded.get(0) else {
+        return Vec::new();
+    };
+
+    requests
+        .iter()
+        .flat_map(|request| {
+            let Token::Tuple(request) = request else {
+                return Vec::new();
+            };
+
+            let Some(Token::Array(urls)) = request.get(1) else {
+                return Vec::new();
+            };
+
+            urls.iter()
+                .filter_map(|url| match url {
+                    Token::String(url) => Some(url.clone()),
+                    _ => None,
+                })
+                .collect::<Vec<_>>()
+        })
+        .collect()
 }
 
 #[cfg(test)]

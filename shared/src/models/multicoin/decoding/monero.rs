@@ -8,5 +8,3 @@ impl MulticoinDecoder for MoneroDecoder {
         Err(MulticoinDecoderError::NotSupported)
     }
 }
-
-// TODO: tests

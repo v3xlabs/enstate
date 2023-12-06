@@ -972,7 +972,7 @@ dependencies = [
  "crc16",
  "crc32fast",
  "ethers",
- "ethers-ccip-read 0.1.1 (git+https://github.com/ensdomains/ethers-ccip-read)",
+ "ethers-ccip-read 0.1.1 (git+https://github.com/v3xlabs/rust-ethers-ccip-read?branch=feat/caller-ccip-requests)",
  "ethers-contract",
  "ethers-core",
  "getrandom",
@@ -1110,22 +1110,7 @@ dependencies = [
 [[package]]
 name = "ethers-ccip-read"
 version = "0.1.1"
-source = "git+https://github.com/ensdomains/ethers-ccip-read?branch=main#5669e42e13bca733d34bbcfb7896a68af5ca79a2"
-dependencies = [
- "async-recursion",
- "async-trait",
- "ethers-core",
- "ethers-providers",
- "futures-util",
- "reqwest",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
-name = "ethers-ccip-read"
-version = "0.1.1"
-source = "git+https://github.com/ensdomains/ethers-ccip-read#62688ad157d3d4f3e8abccd7f48c5b7957604824"
+source = "git+https://github.com/v3xlabs/rust-ethers-ccip-read?branch=feat/caller-ccip-requests#2f52e1c144e947c31d4d80c0a1f87ec339bc02a6"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -1138,6 +1123,21 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tracing",
+]
+
+[[package]]
+name = "ethers-ccip-read"
+version = "0.1.1"
+source = "git+https://github.com/ensdomains/ethers-ccip-read?branch=main#5669e42e13bca733d34bbcfb7896a68af5ca79a2"
+dependencies = [
+ "async-recursion",
+ "async-trait",
+ "ethers-core",
+ "ethers-providers",
+ "futures-util",
+ "reqwest",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]

@@ -7,5 +7,3 @@ impl MulticoinDecoder for SolanaDecoder {
         Ok(bs58::encode(data).into_string())
     }
 }
-
-// TODO: tests

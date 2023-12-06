@@ -31,6 +31,8 @@ pub struct Profile {
     pub fresh: i64,
     // Resolver the information was fetched from
     pub resolver: EIP55Address,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub ccip_urls: Vec<String>,
     // Errors encountered while fetching & decoding
     pub errors: BTreeMap<String, String>,
 }

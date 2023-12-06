@@ -1,4 +1,4 @@
-use super::{MulticoinDecoder, MulticoinDecoderError, p2pkh::P2PKHDecoder, p2sh::P2SHDecoder};
+use super::{p2pkh::P2PKHDecoder, p2sh::P2SHDecoder, MulticoinDecoder, MulticoinDecoderError};
 
 pub struct BitcoinCashDecoder {}
 
@@ -15,5 +15,3 @@ impl MulticoinDecoder for BitcoinCashDecoder {
         Err(MulticoinDecoderError::InvalidStructure(String::new()))
     }
 }
-
-// TODO: tests

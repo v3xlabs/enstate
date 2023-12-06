@@ -15,5 +15,3 @@ impl MulticoinDecoder for HederaDecoder {
         Ok(format!("{shard}.{realm}.{account}"))
     }
 }
-
-// TODO: tests

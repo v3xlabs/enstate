@@ -27,5 +27,3 @@ impl MulticoinDecoder for LitecoinDecoder {
         Err(MulticoinDecoderError::InvalidStructure(String::new()))
     }
 }
-
-// TODO: tests
