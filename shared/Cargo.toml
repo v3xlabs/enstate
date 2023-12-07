@@ -34,9 +34,6 @@ crc32fast = "1.3.2"
 hex = "0.4.3"
 reqwest = "0.11.22"
 ethers-ccip-read = { git = "https://github.com/ensdomains/ethers-ccip-read" }
-tokio = "1.34.0"
-futures = "0.3.29"
-itertools = "0.12.0"
 
 # needed to enable the "js" feature for compatibility with wasm,
 # see https://docs.rs/getrandom/#webassembly-support
