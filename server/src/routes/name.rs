@@ -39,7 +39,7 @@ pub async fn get(
 
     let profile = Profile::from_name(
         &name,
-        query.fresh.unwrap_or(false),
+        query.fresh,
         cache,
         rpc,
         opensea_api_key,

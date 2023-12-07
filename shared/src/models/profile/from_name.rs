@@ -94,28 +94,34 @@ impl Profile {
 
         let rpc = Arc::new(rpc);
 
-        // ens CCIP unwrapper is limited to 50 sub-requests, i.e. per request
-        let calldata_chunks = calldata.chunks(50).collect::<Vec<_>>();
+        // ENS CCIP unwrapper is limited to 50 sub-requests, i.e. per request
+        let mut resolves = Vec::new();
 
-        let (mut data, resolver, ccip_urls) =
-            resolve_universal(name, calldata_chunks[0], &rpc).await?;
-
-        for &chunk in &calldata_chunks[1..] {
-            data = [data, resolve_universal(name, chunk, &rpc).await?.0].concat();
+        for chunk in calldata.chunks(50) {
+            resolves.push(resolve_universal(name, chunk, &rpc).await?);
         }
+
+        let Some((_, resolver, ccip_urls)) = resolves.get(0) else {
+            return Err(ProfileError::ImplementationError(String::new()));
+        };
+
+        let data = resolves
+            .iter()
+            .flat_map(|(data, _, _)| data)
+            .collect::<Vec<_>>();
 
         let mut results: Vec<Option<String>> = Vec::new();
         let mut errors = BTreeMap::default();
 
-        let lookup_state = Arc::new(LookupState {
+        let lookup_state = LookupState {
             rpc,
             opensea_api_key: opensea_api_key.to_string(),
-        });
+        };
 
         // Assume results & calldata have the same length
         // Look through all calldata and decode the results at the same index
         for (index, calldata) in calldata.iter().enumerate() {
-            let result = calldata.decode(&data[index], lookup_state.clone()).await;
+            let result = calldata.decode(data[index], &lookup_state).await;
 
             match result {
                 Ok(result) => {
@@ -183,8 +189,8 @@ impl Profile {
             records,
             chains,
             fresh: chrono::offset::Utc::now().timestamp_millis(),
-            resolver: EIP55Address(resolver),
-            ccip_urls,
+            resolver: EIP55Address(*resolver),
+            ccip_urls: ccip_urls.clone(),
             errors,
         };
 

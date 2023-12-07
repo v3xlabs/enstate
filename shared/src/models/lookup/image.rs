@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use async_trait::async_trait;
 use ethers_core::types::U256;
 use ethers_core::{
@@ -56,36 +54,43 @@ impl ENSLookup for Image {
         [fn_selector, data].concat()
     }
 
-    async fn decode(&self, data: &[u8], state: Arc<LookupState>) -> Result<String, ENSLookupError> {
+    async fn decode(&self, data: &[u8], state: &LookupState) -> Result<String, ENSLookupError> {
         let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::String])?;
-        let value = decoded_abi.get(0).ok_or(ENSLookupError::AbiDecodeError)?;
-        let value = value.to_string();
+
+        let Some(Token::String(value)) = decoded_abi.get(0) else {
+            return Err(ENSLookupError::AbiDecodeError);
+        };
 
         let opensea_api_key = state.opensea_api_key.clone();
 
-        if let Some(captures) = IPFS_REGEX.captures(&value) {
+        if let Some(captures) = IPFS_REGEX.captures(value) {
             let hash = captures.get(1).unwrap().as_str();
 
             return Ok(format!("{}{hash}", self.ipfs_gateway));
         }
 
-        let Some(captures) = EIP155_REGEX.captures(&value) else {
-            return Ok(value);
+        let Some(captures) = EIP155_REGEX.captures(value) else {
+            return Ok(value.to_string());
         };
 
-        let chain_id = captures.get(1).unwrap().as_str();
-        let contract_type = captures.get(2).unwrap().as_str();
-        let contract_address = captures.get(3).unwrap().as_str();
-        let token_id = captures.get(4).unwrap().as_str();
+        let (Some(chain_id), Some(contract_type), Some(contract_address), Some(token_id)) = (
+            captures.get(1),
+            captures.get(2),
+            captures.get(3),
+            captures.get(4),
+        ) else {
+            return Err(ENSLookupError::AbiDecodeError);
+        };
 
         let chain_id = chain_id
+            .as_str()
             .parse::<u64>()
             .map_err(|err| ImageLookupError::FormatError(err.to_string()))?;
 
-        let token_id = U256::from_dec_str(token_id)
+        let token_id = U256::from_dec_str(token_id.as_str())
             .map_err(|err| ImageLookupError::FormatError(err.to_string()))?;
 
-        let contract_type = match contract_type {
+        let contract_type = match contract_type.as_str() {
             "erc721" => EIP155ContractType::ERC721,
             "erc1155" => EIP155ContractType::ERC1155,
             _ => {
@@ -94,6 +99,8 @@ impl ENSLookup for Image {
                 )
             }
         };
+
+        let contract_address = contract_address.as_str();
 
         info!(
             "Encountered Avatar: {chain_id} {contract_type} {contract_address} {token_id}",

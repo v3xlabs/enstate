@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use async_trait::async_trait;
 use ethers_core::{
     abi::{ParamType, Token},
@@ -23,7 +21,7 @@ impl ENSLookup for Addr {
         [fn_selector, data].concat()
     }
 
-    async fn decode(&self, data: &[u8], _: Arc<LookupState>) -> Result<String, ENSLookupError> {
+    async fn decode(&self, data: &[u8], _: &LookupState) -> Result<String, ENSLookupError> {
         let decoded_abi = ethers_core::abi::decode(&[ParamType::Address], data)
             .map_err(|_| ENSLookupError::AbiDecodeError)?;
 

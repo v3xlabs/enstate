@@ -44,7 +44,7 @@ pub enum ENSLookupError {
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 pub trait ENSLookup {
     fn calldata(&self, namehash: &H256) -> Vec<u8>;
-    async fn decode(&self, data: &[u8], state: Arc<LookupState>) -> Result<String, ENSLookupError>;
+    async fn decode(&self, data: &[u8], state: &LookupState) -> Result<String, ENSLookupError>;
     fn name(&self) -> String;
 
     fn to_boxed(self) -> Box<Self>

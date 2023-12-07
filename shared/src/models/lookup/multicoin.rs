@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use async_trait::async_trait;
 use ethers_core::{
     abi::{ParamType, Token},
@@ -29,22 +27,18 @@ impl ENSLookup for Multicoin {
         [fn_selector, data].concat()
     }
 
-    async fn decode(&self, data: &[u8], _: Arc<LookupState>) -> Result<String, ENSLookupError> {
+    async fn decode(&self, data: &[u8], _: &LookupState) -> Result<String, ENSLookupError> {
         let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::Bytes])?;
 
-        let value = decoded_abi
-            .get(0)
-            .ok_or(ENSLookupError::AbiDecodeError)?
-            .clone()
-            .into_bytes()
-            .expect("token should be bytes");
+        let Some(Token::Bytes(bytes)) = decoded_abi.get(0) else {
+            return Err(ENSLookupError::AbiDecodeError);
+        };
 
-        if value.is_empty() {
-            // Empty field
+        if bytes.is_empty() {
             return Ok(String::new());
         }
 
-        Ok(self.coin_type.decode(&value)?)
+        Ok(self.coin_type.decode(bytes.as_ref())?)
     }
 
     fn name(&self) -> String {

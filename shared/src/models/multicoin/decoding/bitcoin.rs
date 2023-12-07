@@ -1,5 +1,3 @@
-use std::string::ToString;
-
 use lazy_static::lazy_static;
 
 use crate::models::multicoin::decoding::segwit::SegWitDecoder;
@@ -8,7 +6,7 @@ use super::{p2pkh::P2PKHDecoder, p2sh::P2SHDecoder, MulticoinDecoder, MulticoinD
 
 lazy_static! {
     static ref BTC_SEGWIT_DECODER: SegWitDecoder = SegWitDecoder {
-        human_readable_part: "bc".to_string()
+        human_readable_part: "bc"
     };
 }
 

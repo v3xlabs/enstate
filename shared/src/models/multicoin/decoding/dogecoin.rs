@@ -1,4 +1,4 @@
-use super::{MulticoinDecoder, MulticoinDecoderError, p2pkh::P2PKHDecoder, p2sh::P2SHDecoder};
+use super::{p2pkh::P2PKHDecoder, p2sh::P2SHDecoder, MulticoinDecoder, MulticoinDecoderError};
 
 pub struct DogecoinDecoder {}
 
@@ -7,7 +7,7 @@ impl MulticoinDecoder for DogecoinDecoder {
         match data.len() {
             25 => P2PKHDecoder { version: 0x1e }.decode(data),
             23 => P2SHDecoder { version: 0x16 }.decode(data),
-            _ => Err(MulticoinDecoderError::InvalidStructure(String::new()))
+            _ => Err(MulticoinDecoderError::InvalidStructure(String::new())),
         }
     }
 }

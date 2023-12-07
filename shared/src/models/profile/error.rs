@@ -24,3 +24,9 @@ pub enum ProfileError {
     #[error("Other: {0}")]
     Other(String),
 }
+
+impl AsRef<ProfileError> for ProfileError {
+    fn as_ref(&self) -> &ProfileError {
+        self
+    }
+}
