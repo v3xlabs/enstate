@@ -1,5 +1,3 @@
-use std::string::ToString;
-
 use lazy_static::lazy_static;
 
 use crate::models::multicoin::decoding::segwit::SegWitDecoder;

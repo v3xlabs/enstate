@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use async_trait::async_trait;
 use ethers_core::types::U256;
 use ethers_core::{
@@ -56,7 +54,7 @@ impl ENSLookup for Image {
         [fn_selector, data].concat()
     }
 
-    async fn decode(&self, data: &[u8], state: Arc<LookupState>) -> Result<String, ENSLookupError> {
+    async fn decode(&self, data: &[u8], state: &LookupState) -> Result<String, ENSLookupError> {
         let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::String])?;
 
         let Some(Token::String(value)) = decoded_abi.get(0) else {
