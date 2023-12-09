@@ -31,6 +31,6 @@ pub fn gen_app_meta() -> AppMeta {
         rev: commit_id.to_string(),
         version: tag,
         compile_time: build_info.timestamp.to_string(),
-        name: env!("CARGO_PKG_NAME").to_string(),
+        name: "enstate".to_string(),
     }
 }
