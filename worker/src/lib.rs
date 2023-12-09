@@ -1,6 +1,7 @@
-use lazy_static::lazy_static;
 use std::sync::Arc;
 
+use enstate_shared::meta::gen_app_meta;
+use lazy_static::lazy_static;
 use worker::{event, Context, Cors, Env, Method, Request, Response};
 
 use crate::lookup::LookupType;
@@ -13,14 +14,6 @@ lazy_static! {
     static ref CORS: Cors = Cors::default()
         .with_origins(vec!["*"])
         .with_methods(Method::all());
-}
-
-#[derive(Debug, serde::Serialize)]
-struct AppVersion {
-    rev: String,
-    name: String,
-    semver: String,
-    compile_time: String,
 }
 
 #[event(fetch, respond_with_errors)]
@@ -45,11 +38,5 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
 }
 
 fn root_handler() -> Response {
-    Response::from_json(&AppVersion {
-        rev: env!("GIT_REV").to_string(),
-        name: env!("CARGO_PKG_NAME").to_string(),
-        semver: env!("CARGO_PKG_VERSION").to_string(),
-        compile_time: env!("STATIC_BUILD_DATE").to_string(),
-    })
-    .expect("from_json should've succeeded")
+    Response::from_json(&gen_app_meta()).expect("from_json should've succeeded")
 }

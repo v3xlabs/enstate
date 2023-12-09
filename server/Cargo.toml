@@ -53,6 +53,3 @@ serde_with = "3.3.0"
 bech32 = "0.10.0-alpha"
 crc32fast = "1.3.2"
 ciborium = "0.2.1"
-
-[build-dependencies]
-chrono = "0.4.24"
