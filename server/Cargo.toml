@@ -1,6 +1,6 @@
 [package]
 name = "enstate"
-version = "1.0.0-1"
+version = "1.0.1-2"
 edition = "2021"
 license = "GPL-3.0"
 homepage = "enstate.rs"

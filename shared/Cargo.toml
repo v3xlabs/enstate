@@ -1,6 +1,6 @@
 [package]
 name = "enstate_shared"
-version = "0.0.3"
+version = "1.0.1-2"
 edition = "2021"
 
 # https://github.com/rustwasm/wasm-pack/issues/1247
