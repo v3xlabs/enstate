@@ -4,7 +4,7 @@ use std::{collections::BTreeMap, sync::Arc};
 use ethers::middleware::MiddlewareBuilder;
 use ethers::providers::{Http, Provider};
 use ethers_ccip_read::CCIPReadMiddleware;
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::cache::CacheError;
 use crate::models::lookup::image::Image;
@@ -21,6 +21,7 @@ use crate::utils::eip55::EIP55Address;
 use super::error::ProfileError;
 
 impl Profile {
+    #[tracing::instrument(skip(cache, rpc))]
     pub async fn from_name(
         name: &str,
         fresh: bool,
@@ -32,8 +33,6 @@ impl Profile {
     ) -> Result<Self, ProfileError> {
         let cache_key = format!("n:{name}");
 
-        let rpc = rpc.wrap_into(CCIPReadMiddleware::new);
-
         info!(
             name = name,
             cache_key = cache_key,
@@ -44,16 +43,25 @@ impl Profile {
         // If the value is in the cache, return it
         if !fresh {
             if let Ok(value) = cache.get(&cache_key).await {
+                info!(name = name, v = value, "Found profile in cache");
+
                 if value.is_empty() {
                     return Err(ProfileError::NotFound);
                 }
 
-                let entry_result: Result<Self, _> = serde_json::from_str(value.as_str());
-                if let Ok(entry) = entry_result {
-                    return Ok(entry);
+                let entry_result: Result<Profile, _> = serde_json::from_str(value.as_str());
+                match entry_result {
+                    Ok(entry) => {
+                        return Ok(entry);
+                    },
+                    Err(error) => {
+                        warn!(name = name, v = value, "Failed to parse profile from cache: {}", error);
+                    },
                 }
             }
         }
+
+        let rpc = rpc.wrap_into(CCIPReadMiddleware::new);
 
         // Preset Hardcoded Lookups
         let mut calldata: Vec<Box<dyn ENSLookup + Send + Sync>> = vec![
