@@ -10,6 +10,9 @@ wasm-opt = false
 [lib]
 crate-type = ["cdylib"]
 
+[build]
+target = "wasm32-unknown-unknown"
+
 [dependencies]
 worker = "0.0.18"
 ethers = "2"
