@@ -1,0 +1,36 @@
+on:
+  workflow_call:
+
+jobs:
+  test:
+    name: Test ENState 🚀
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - run: |
+          rustup set auto-self-update disable
+          rustup toolchain install stable --profile minimal
+
+      - uses: Swatinem/rust-cache@v2
+
+      - run: cargo build --release
+        working-directory: server
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            ghcr.io/v3xlabs/enstate
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=edge
+            type=sha
+
+      - name: Test
+        run: cd test && bun test tests/server.spec.ts
