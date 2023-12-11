@@ -22,6 +22,8 @@ jobs:
       - uses: oven-sh/setup-bun@v1
 
       - run: bun install
+        working-directory: test
 
       - name: Test
-        run: cd test && bun test tests/server.spec.ts
+        run: bun test tests/server.spec.ts
+        working-directory: test
