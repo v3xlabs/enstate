@@ -8,9 +8,12 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  test_server:
+    uses: ./.github/workflows/test_server.yml
   build:
     name: Build ENState 🚀
     runs-on: ubuntu-latest
+    needs: [test_server]
     steps:
       - uses: actions/checkout@v3
         with:
