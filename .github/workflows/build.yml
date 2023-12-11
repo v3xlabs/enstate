@@ -10,11 +10,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build_server:
-    uses: ./.github/workflows/build_server.yml
   test_server:
     uses: ./.github/workflows/test_server.yml
-    needs: [build_server]
   build:
     name: Build ENState 🚀
     runs-on: ubuntu-latest

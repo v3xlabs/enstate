@@ -29,3 +29,4 @@ jobs:
         working-directory: test
         env:
           RPC_URL: https://rpc.ankr.com/eth
+          OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
