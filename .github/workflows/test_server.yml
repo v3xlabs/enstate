@@ -27,3 +27,5 @@ jobs:
       - name: Test
         run: bun test tests/server.spec.ts
         working-directory: test
+        env:
+          RPC_URL: https://rpc.ankr.com/eth
