@@ -19,18 +19,9 @@ jobs:
       - run: cargo build --release
         working-directory: server
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: |
-            ghcr.io/v3xlabs/enstate
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=edge
-            type=sha
+      - uses: oven-sh/setup-bun@v1
+
+      - run: bun install
 
       - name: Test
         run: cd test && bun test tests/server.spec.ts
