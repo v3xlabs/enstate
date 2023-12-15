@@ -76,32 +76,31 @@ pub async fn universal_profile_resolve(
 
     let opensea_api_key = &state.opensea_api_key;
 
-    let address_option: Option<Address> = name_or_address.parse().ok();
-
-    match address_option {
-        Some(address) => {
-            Profile::from_address(
-                address,
-                fresh,
-                cache,
-                rpc,
-                opensea_api_key,
-                &state.profile_records,
-                &state.profile_chains,
-            )
-            .await
-        }
-        None => {
-            Profile::from_name(
-                &name_or_address.to_lowercase(),
-                fresh,
-                cache,
-                rpc,
-                opensea_api_key,
-                &state.profile_records,
-                &state.profile_chains,
-            )
-            .await
-        }
+    if let Ok(address) = name_or_address.parse::<Address>() {
+        return Profile::from_address(
+            address,
+            fresh,
+            cache,
+            rpc,
+            opensea_api_key,
+            &state.profile_records,
+            &state.profile_chains,
+        )
+        .await;
     }
+
+    if !enstate_shared::patterns::test_domain(name_or_address) {
+        return Err(ProfileError::NotFound);
+    }
+
+    Profile::from_name(
+        &name_or_address.to_lowercase(),
+        fresh,
+        cache,
+        rpc,
+        opensea_api_key,
+        &state.profile_records,
+        &state.profile_chains,
+    )
+    .await
 }

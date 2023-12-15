@@ -16,6 +16,7 @@ use crate::models::{
     profile::Profile,
     universal_resolver::resolve_universal,
 };
+use crate::patterns::test_domain;
 use crate::utils::eip55::EIP55Address;
 
 use super::error::ProfileError;
@@ -30,6 +31,10 @@ impl Profile {
         profile_records: &[String],
         profile_chains: &[CoinType],
     ) -> Result<Self, ProfileError> {
+        if !test_domain(name) {
+            return Err(ProfileError::NotFound);
+        }
+
         let cache_key = format!("n:{name}");
 
         let rpc = rpc.wrap_into(CCIPReadMiddleware::new);
