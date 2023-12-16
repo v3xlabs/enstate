@@ -69,6 +69,16 @@ pub fn http_simple_status_error(status: StatusCode) -> RouteError {
     )
 }
 
+pub fn http_error(status: StatusCode, error: &str) -> RouteError {
+    (
+        status,
+        Json(ErrorResponse {
+            status: status.as_u16(),
+            error: error.to_string(),
+        }),
+    )
+}
+
 pub async fn universal_profile_resolve(
     name_or_address: &str,
     fresh: bool,

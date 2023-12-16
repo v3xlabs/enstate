@@ -13,7 +13,7 @@ use validator::Validate;
 
 use crate::cache;
 use crate::routes::{
-    http_simple_status_error, profile_http_error_mapper, FreshQuery, Qs, RouteError,
+    http_error, http_simple_status_error, profile_http_error_mapper, FreshQuery, Qs, RouteError,
 };
 
 #[utoipa::path(
@@ -89,6 +89,12 @@ pub async fn get_bulk(
     Qs(query): Qs<GetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<Vec<Profile>>, RouteError> {
+    query
+        .validate()
+        // TODO (@antony1060): more human errors, contemplate life choices (the validate library)
+        .map_err(|err| http_error(StatusCode::BAD_REQUEST, &err.to_string()))?;
+
+    // TODO (@antony1060): deduplication
     let addresses = query
         .addresses
         .iter()
