@@ -1,3 +1,5 @@
+use axum::extract::FromRequestParts;
+use axum::http::request::Parts;
 use axum::http::StatusCode;
 use axum::Json;
 use enstate_shared::models::profile::error::ProfileError;
@@ -29,8 +31,9 @@ fn bool_or_false<'de, D>(deserializer: D) -> Result<bool, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let value: Result<bool, D::Error> = Deserialize::deserialize(deserializer);
-    Ok(value.unwrap_or_default())
+    let value: Result<String, D::Error> = Deserialize::deserialize(deserializer);
+    // FIXME (@antony1060):
+    Ok(value.map(|it| it == "true").unwrap_or(false))
 }
 
 pub type RouteError = (StatusCode, Json<ErrorResponse>);
@@ -103,4 +106,22 @@ pub async fn universal_profile_resolve(
         &state.profile_chains,
     )
     .await
+}
+
+pub struct Qs<T>(T);
+
+#[axum::async_trait]
+impl<T, S> FromRequestParts<S> for Qs<T>
+where
+    T: serde::de::DeserializeOwned,
+{
+    // TODO (@antony1060): make better
+    type Rejection = String;
+
+    async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, Self::Rejection> {
+        let query = parts.uri.query().unwrap_or("");
+        Ok(Self(
+            serde_qs::from_str(query).map_err(|error| error.to_string())?,
+        ))
+    }
 }

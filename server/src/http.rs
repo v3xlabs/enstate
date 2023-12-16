@@ -59,6 +59,12 @@ pub fn setup(state: AppState) -> App {
         .directory_route("/u/:name_or_address", get(routes::universal::get))
         .directory_route("/i/:name_or_address", get(routes::image::get))
         .directory_route("/h/:name_or_address", get(routes::header::get))
+        // TODO (@antony1060): make better
+        .directory_route("/bulk/a", get(routes::address::get_bulk))
+        // .directory_route("/bulk/n", get(routes::name::get))
+        // .directory_route("/bulk/u", get(routes::universal::get))
+        // .directory_route("/bulk/i", get(routes::image::get))
+        // .directory_route("/bulk/h", get(routes::header::get))
         .fallback(routes::four_oh_four::handler)
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())
