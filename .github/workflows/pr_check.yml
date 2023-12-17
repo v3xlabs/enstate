@@ -27,6 +27,7 @@ jobs:
       - run: |
           rustup set auto-self-update disable
           rustup toolchain install stable --profile minimal
+          rustup target add ${{ matrix.target }}
 
       - name: Set up cargo cache
         uses: actions/cache@v3
