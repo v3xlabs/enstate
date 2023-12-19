@@ -4,6 +4,7 @@ use axum::http::StatusCode;
 use axum::Json;
 use enstate_shared::models::profile::error::ProfileError;
 use enstate_shared::models::profile::Profile;
+use enstate_shared::utils::vec::dedup_ord;
 use ethers::prelude::ProviderError;
 use ethers::providers::{Http, Provider};
 use ethers_core::types::Address;
@@ -118,6 +119,18 @@ pub async fn universal_profile_resolve(
     .await
 }
 
+// TODO (@antony1060): None only happens when input length > max_len
+//  result is more appropriate
+pub fn validate_bulk_input(input: &[String], max_len: usize) -> Option<Vec<String>> {
+    let unique = dedup_ord(input);
+
+    if unique.len() > max_len {
+        return None;
+    }
+
+    Some(unique)
+}
+
 pub struct Qs<T>(T);
 
 #[axum::async_trait]
@@ -125,7 +138,6 @@ impl<T, S> FromRequestParts<S> for Qs<T>
 where
     T: serde::de::DeserializeOwned,
 {
-    // TODO (@antony1060): make better
     type Rejection = String;
 
     async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, Self::Rejection> {

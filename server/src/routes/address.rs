@@ -9,11 +9,11 @@ use enstate_shared::models::profile::Profile;
 use ethers_core::types::Address;
 use futures::future::try_join_all;
 use serde::Deserialize;
-use validator::Validate;
 
 use crate::cache;
 use crate::routes::{
-    http_error, http_simple_status_error, profile_http_error_mapper, FreshQuery, Qs, RouteError,
+    http_error, http_simple_status_error, profile_http_error_mapper, validate_bulk_input,
+    FreshQuery, Qs, RouteError,
 };
 
 #[utoipa::path(
@@ -34,38 +34,21 @@ pub async fn get(
     Query(query): Query<FreshQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<Profile>, RouteError> {
-    let address = address
-        .parse()
-        .map_err(|_| http_simple_status_error(StatusCode::BAD_REQUEST))?;
-
-    let cache = Box::new(cache::Redis::new(state.redis.clone()));
-    let rpc = state
-        .provider
-        .get_provider()
-        .ok_or_else(|| http_simple_status_error(StatusCode::INTERNAL_SERVER_ERROR))?
-        .clone();
-
-    let opensea_api_key = &state.opensea_api_key;
-
-    let profile = Profile::from_address(
-        address,
-        query.fresh,
-        cache,
-        rpc,
-        opensea_api_key,
-        &state.profile_records,
-        &state.profile_chains,
+    get_bulk(
+        Qs(AddressGetBulkQuery {
+            fresh: query,
+            addresses: vec![address],
+        }),
+        State(state),
     )
     .await
-    .map_err(profile_http_error_mapper)?;
-
-    Ok(Json(profile))
+    .map(|res| Json(res.0.get(0).expect("index 0 should exist").clone()))
 }
 
-#[derive(Validate, Deserialize)]
-pub struct GetBulkQuery {
+#[derive(Deserialize)]
+pub struct AddressGetBulkQuery {
+    // TODO (@antony1060): remove when proper serde error handling
     #[serde(default)]
-    #[validate(length(max = 10))]
     addresses: Vec<String>,
 
     #[serde(flatten)]
@@ -86,17 +69,23 @@ pub struct GetBulkQuery {
     )
 )]
 pub async fn get_bulk(
-    Qs(query): Qs<GetBulkQuery>,
+    Qs(query): Qs<AddressGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<Vec<Profile>>, RouteError> {
-    query
-        .validate()
-        // TODO (@antony1060): more human errors, contemplate life choices (the validate library)
-        .map_err(|err| http_error(StatusCode::BAD_REQUEST, &err.to_string()))?;
-
-    // TODO (@antony1060): deduplication
-    let addresses = query
+    let lowercase_addresses = query
         .addresses
+        .iter()
+        .map(|address| address.to_lowercase())
+        .collect::<Vec<_>>();
+
+    let addresses = validate_bulk_input(&lowercase_addresses, 10).ok_or_else(|| {
+        http_error(
+            StatusCode::BAD_REQUEST,
+            "input is too long (expected <= 10)",
+        )
+    })?;
+
+    let addresses = addresses
         .iter()
         .map(|address| address.parse::<Address>())
         .collect::<Result<Vec<_>, _>>()

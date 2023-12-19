@@ -8,7 +8,7 @@ pub mod error;
 pub mod from_address;
 pub mod from_name;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Profile {
     // Name
     pub name: String,
