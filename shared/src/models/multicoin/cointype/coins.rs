@@ -19,6 +19,16 @@ impl From<CoinType> for U256 {
     }
 }
 
+impl From<u64> for CoinType {
+    fn from(value: u64) -> CoinType {
+        if value >= 0x8000_0000 {
+            return CoinType::Evm(ChainId::from(value & (!0x8000_0000)));
+        }
+
+        CoinType::Slip44(SLIP44::from(value as u32))
+    }
+}
+
 impl Display for CoinType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let coin_name = match self {
@@ -56,5 +66,26 @@ mod tests {
         let coin_type: U256 = coin_type.into();
 
         assert_eq!(coin_type.to_string(), "2147483748".to_string());
+    }
+
+    #[test]
+    fn test_to_coin_type() {
+        let coin_type: CoinType = CoinType::from(0);
+
+        assert_eq!(coin_type, CoinType::Slip44(SLIP44::Bitcoin));
+    }
+
+    #[test]
+    fn test_to_coin_type_evm() {
+        let coin_type: CoinType = CoinType::from(1);
+
+        assert_eq!(coin_type, CoinType::Evm(ChainId::Ethereum));
+    }
+
+    #[test]
+    fn test_to_coin_type_evm_gnosis() {
+        let coin_type: CoinType = CoinType::from(2147483658);
+
+        assert_eq!(coin_type, CoinType::Evm(ChainId::Gnosis));
     }
 }

@@ -25,7 +25,7 @@ impl Profile {
     pub async fn from_name(
         name: &str,
         fresh: bool,
-        cache: Box<dyn crate::cache::CacheLayer>,
+        cache: &dyn crate::cache::CacheLayer,
         rpc: Provider<Http>,
         opensea_api_key: &str,
         profile_records: &[String],

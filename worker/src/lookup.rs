@@ -51,14 +51,16 @@ impl LookupType {
     pub async fn process(
         &self,
         req: Request,
-        env: Arc<Env>,
+        env: Env,
         opensea_api_key: &str,
     ) -> Result<Response, Response> {
-        let cache = Box::new(CloudflareKVCache::new(env.clone()));
+        let arc_env = Arc::new(env);
+
+        let cache = Box::new(CloudflareKVCache::new(arc_env.clone()));
         let profile_records = Records::default().records;
         let profile_chains = Coins::default().coins;
 
-        let rpc_url = env
+        let rpc_url = arc_env
             .var("RPC_URL")
             .map(|x| x.to_string())
             .unwrap_or("https://rpc.enstate.rs/v1/mainnet".to_string());

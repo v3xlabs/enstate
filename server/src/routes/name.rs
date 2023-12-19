@@ -9,7 +9,6 @@ use enstate_shared::models::profile::Profile;
 use futures::future::try_join_all;
 use serde::Deserialize;
 
-use crate::cache;
 use crate::routes::{
     http_error, http_simple_status_error, profile_http_error_mapper, validate_bulk_input,
     FreshQuery, Qs, RouteError,
@@ -80,7 +79,6 @@ pub async fn get_bulk(
         )
     })?;
 
-    let cache = cache::Redis::new(state.redis.clone());
     let rpc = state
         .provider
         .get_provider()
@@ -95,7 +93,7 @@ pub async fn get_bulk(
             Profile::from_name(
                 name,
                 query.fresh.fresh,
-                Box::new(cache.clone()),
+                state.cache.as_ref().as_ref(),
                 rpc.clone(),
                 opensea_api_key,
                 &state.profile_records,

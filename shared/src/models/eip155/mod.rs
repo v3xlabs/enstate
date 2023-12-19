@@ -130,11 +130,15 @@ pub async fn resolve_eip155(
 mod tests {
     use std::env;
 
+    use ethers::middleware::MiddlewareBuilder;
+
     use super::*;
 
     #[tokio::test]
     async fn test_calldata_avatar_erc721() {
-        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
+        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth")
+            .unwrap()
+            .wrap_into(CCIPReadMiddleware::new);
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
         let data = resolve_eip155(
@@ -153,7 +157,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_calldata_avatar_erc1155() {
-        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
+        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth")
+            .unwrap()
+            .wrap_into(CCIPReadMiddleware::new);
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
         let data = resolve_eip155(
@@ -176,7 +182,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_calldata_avatar_erc1155_opensea() {
-        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
+        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth")
+            .unwrap()
+            .wrap_into(CCIPReadMiddleware::new);
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
         let data = resolve_eip155(

@@ -10,7 +10,6 @@ use ethers::providers::{Http, Provider};
 use ethers_core::types::Address;
 use serde::{Deserialize, Deserializer};
 
-use crate::cache;
 use crate::models::error::ErrorResponse;
 
 pub mod address;
@@ -86,9 +85,9 @@ pub async fn universal_profile_resolve(
     rpc: Provider<Http>,
     state: &crate::AppState,
 ) -> Result<Profile, ProfileError> {
-    let cache = Box::new(cache::Redis::new(state.redis.clone()));
-
     let opensea_api_key = &state.opensea_api_key;
+
+    let cache = state.cache.as_ref().as_ref();
 
     if let Ok(address) = name_or_address.parse::<Address>() {
         return Profile::from_address(
