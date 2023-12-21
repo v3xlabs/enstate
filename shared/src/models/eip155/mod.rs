@@ -1,6 +1,5 @@
 use ethers::middleware::Middleware;
-use ethers::providers::{Http, Provider, ProviderError};
-use ethers_ccip_read::CCIPReadMiddleware;
+use ethers::providers::ProviderError;
 use ethers_core::{
     abi::{ParamType, Token},
     types::{transaction::eip2718::TypedTransaction, Bytes, H160, U256},
@@ -10,6 +9,7 @@ use tracing::info;
 
 use crate::models::ipfs::{URLFetchError, OPENSEA_BASE_PREFIX};
 use crate::models::multicoin::cointype::evm::ChainId;
+use crate::models::profile::CCIPProvider;
 
 use super::ipfs::IPFSURLUnparsed;
 
@@ -56,7 +56,7 @@ pub async fn resolve_eip155(
     contract_type: EIP155ContractType,
     contract_address: &str,
     token_id: U256,
-    provider: &CCIPReadMiddleware<Provider<Http>>,
+    provider: &CCIPProvider,
     opensea_api_key: &str,
 ) -> Result<String, EIP155Error> {
     let chain_id: u64 = chain_id.into();

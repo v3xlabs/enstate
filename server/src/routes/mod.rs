@@ -3,12 +3,10 @@ use axum::http::request::Parts;
 use axum::http::StatusCode;
 use axum::Json;
 use enstate_shared::models::profile::error::ProfileError;
-use enstate_shared::models::profile::Profile;
 use enstate_shared::utils::vec::dedup_ord;
 use ethers::prelude::ProviderError;
-use ethers::providers::{Http, Provider};
-use ethers_core::types::Address;
 use serde::{Deserialize, Deserializer};
+use thiserror::Error;
 
 use crate::models::error::ErrorResponse;
 
@@ -32,7 +30,6 @@ where
     D: Deserializer<'de>,
 {
     let value: Result<String, D::Error> = Deserialize::deserialize(deserializer);
-    // FIXME (@antony1060):
     Ok(value.map(|it| it == "true").unwrap_or(false))
 }
 
@@ -79,55 +76,34 @@ pub fn http_error(status: StatusCode, error: &str) -> RouteError {
     )
 }
 
-pub async fn universal_profile_resolve(
-    name_or_address: &str,
-    fresh: bool,
-    rpc: Provider<Http>,
-    state: &crate::AppState,
-) -> Result<Profile, ProfileError> {
-    let opensea_api_key = &state.opensea_api_key;
-
-    let cache = state.cache.as_ref().as_ref();
-
-    if let Ok(address) = name_or_address.parse::<Address>() {
-        return Profile::from_address(
-            address,
-            fresh,
-            cache,
-            rpc,
-            opensea_api_key,
-            &state.profile_records,
-            &state.profile_chains,
-        )
-        .await;
-    }
-
-    if !enstate_shared::patterns::test_domain(name_or_address) {
-        return Err(ProfileError::NotFound);
-    }
-
-    Profile::from_name(
-        &name_or_address.to_lowercase(),
-        fresh,
-        cache,
-        rpc,
-        opensea_api_key,
-        &state.profile_records,
-        &state.profile_chains,
-    )
-    .await
+#[derive(Error, Debug)]
+pub enum ValidationError {
+    #[error("maximum input length exceeded (expected at most {0})")]
+    MaxLengthExceeded(usize),
 }
 
-// TODO (@antony1060): None only happens when input length > max_len
-//  result is more appropriate
-pub fn validate_bulk_input(input: &[String], max_len: usize) -> Option<Vec<String>> {
-    let unique = dedup_ord(input);
+impl From<ValidationError> for RouteError {
+    fn from(value: ValidationError) -> Self {
+        http_error(StatusCode::BAD_REQUEST, &value.to_string())
+    }
+}
+
+pub fn validate_bulk_input(
+    input: &[String],
+    max_len: usize,
+) -> Result<Vec<String>, ValidationError> {
+    let unique = dedup_ord(
+        &input
+            .iter()
+            .map(|entry| entry.to_lowercase())
+            .collect::<Vec<_>>(),
+    );
 
     if unique.len() > max_len {
-        return None;
+        return Err(ValidationError::MaxLengthExceeded(max_len));
     }
 
-    Some(unique)
+    Ok(unique)
 }
 
 pub struct Qs<T>(T);

@@ -2,8 +2,6 @@ use std::fmt::Display;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use ethers::providers::{Http, Provider};
-use ethers_ccip_read::CCIPReadMiddleware;
 use ethers_core::abi;
 use ethers_core::abi::Token;
 use ethers_core::types::H256;
@@ -11,6 +9,7 @@ use lazy_static::lazy_static;
 use thiserror::Error;
 
 use crate::models::eip155::EIP155Error;
+use crate::models::profile::CCIPProvider;
 
 use super::multicoin::decoding::MulticoinDecoderError;
 
@@ -61,7 +60,7 @@ impl Display for dyn ENSLookup + Send + Sync {
     }
 }
 pub struct LookupState {
-    pub rpc: Arc<CCIPReadMiddleware<Provider<Http>>>,
+    pub rpc: Arc<CCIPProvider>,
     pub opensea_api_key: String,
 }
 

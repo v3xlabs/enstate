@@ -2,16 +2,17 @@ use std::vec;
 
 use ethers::prelude::ProviderError::JsonRpcClientError;
 use ethers::{
-    providers::{namehash, Http, Provider},
+    providers::namehash,
     types::{transaction::eip2718::TypedTransaction, Address, Bytes},
 };
-use ethers_ccip_read::{CCIPReadMiddleware, CCIPReadMiddlewareError, CCIPRequest};
+use ethers_ccip_read::{CCIPReadMiddlewareError, CCIPRequest};
 use ethers_contract::abigen;
 use ethers_core::abi;
 use ethers_core::abi::{ParamType, Token};
 use lazy_static::lazy_static;
 
 use crate::models::lookup::ENSLookup;
+use crate::models::profile::CCIPProvider;
 use crate::utils::dns::dns_encode;
 use crate::utils::vec::dedup_ord;
 
@@ -37,7 +38,7 @@ const MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE: &str =
 pub async fn resolve_universal(
     name: &str,
     data: &[Box<dyn ENSLookup + Send + Sync>],
-    provider: &CCIPReadMiddleware<Provider<Http>>,
+    provider: &CCIPProvider,
 ) -> Result<(Vec<Vec<u8>>, Address, Vec<String>), ProfileError> {
     let name_hash = namehash(name);
 
@@ -171,6 +172,7 @@ fn urls_from_request(request: &CCIPRequest) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
+    use std::sync::Arc;
 
     use ethers::providers::{Http, Provider};
     use ethers_ccip_read::CCIPReadMiddleware;
@@ -198,7 +200,7 @@ mod tests {
         let res = universal_resolver::resolve_universal(
             "antony.sh",
             &calldata,
-            &CCIPReadMiddleware::new(provider),
+            &CCIPReadMiddleware::new(Arc::new(provider)),
         )
         .await
         .unwrap();

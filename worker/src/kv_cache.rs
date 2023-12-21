@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::rc::Rc;
 
 use async_trait::async_trait;
 use enstate_shared::cache::{CacheError, CacheLayer};
@@ -10,11 +10,11 @@ use wasm_bindgen_futures::JsFuture;
 use worker::Env;
 
 pub struct CloudflareKVCache {
-    ctx: Arc<Env>,
+    ctx: Rc<Env>,
 }
 
 impl CloudflareKVCache {
-    pub fn new(ctx: Arc<Env>) -> Self {
+    pub fn new(ctx: Rc<Env>) -> Self {
         Self { ctx }
     }
 }
@@ -126,5 +126,17 @@ impl CacheLayer for CloudflareKVCache {
             .map_err(|_| CacheError::Other("Not Found".to_string()))?;
 
         Ok(())
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[async_trait]
+impl CacheLayer for CloudflareKVCache {
+    async fn get(&self, key: &str) -> Result<String, CacheError> {
+        unreachable!()
+    }
+
+    async fn set(&self, key: &str, value: &str, expires: u32) -> Result<(), CacheError> {
+        unreachable!()
     }
 }

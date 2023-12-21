@@ -1,9 +1,13 @@
+use std::sync::Arc;
+
+use enstate_shared::utils::factory::Factory;
 use ethers::providers::{Http, Provider};
 use rand::seq::SliceRandom;
+use tracing::warn;
 
 #[derive(Clone)]
 pub struct RoundRobin {
-    providers: Vec<Provider<Http>>,
+    providers: Vec<Arc<Provider<Http>>>,
 }
 
 impl RoundRobin {
@@ -11,15 +15,24 @@ impl RoundRobin {
         Self {
             providers: rpc_urls
                 .into_iter()
-                .map(|rpc_url| {
-                    Provider::<Http>::try_from(rpc_url).expect("rpc_url should be a valid URL")
+                .filter_map(|rpc_url| {
+                    let provider = Provider::<Http>::try_from(&rpc_url);
+                    if let Err(err) = provider {
+                        warn!("provider {rpc_url} is not valid: {err}");
+                    }
+
+                    provider.ok().map(Arc::new)
                 })
                 .collect(),
         }
     }
+}
 
-    // returns a random rpc provider
-    pub fn get_provider(&self) -> Option<&Provider<Http>> {
-        self.providers.choose(&mut rand::thread_rng())
+impl Factory<Arc<Provider<Http>>> for RoundRobin {
+    fn get_instance(&self) -> Arc<Provider<Http>> {
+        self.providers
+            .choose(&mut rand::thread_rng())
+            .expect("provider should exist")
+            .clone()
     }
 }

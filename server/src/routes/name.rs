@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use axum::http::StatusCode;
 use axum::{
     extract::{Path, Query, State},
     Json,
@@ -9,10 +8,8 @@ use enstate_shared::models::profile::Profile;
 use futures::future::try_join_all;
 use serde::Deserialize;
 
-use crate::routes::{
-    http_error, http_simple_status_error, profile_http_error_mapper, validate_bulk_input,
-    FreshQuery, Qs, RouteError,
-};
+use crate::models::bulk::BulkResponse;
+use crate::routes::{profile_http_error_mapper, validate_bulk_input, FreshQuery, Qs, RouteError};
 
 #[utoipa::path(
     get,
@@ -38,7 +35,7 @@ pub async fn get(
         State(state),
     )
     .await
-    .map(|res| Json(res.0.get(0).expect("index 0 should exist").clone()))
+    .map(|res| Json(res.0.response.get(0).expect("index 0 should exist").clone()))
 }
 
 #[derive(Deserialize)]
@@ -55,7 +52,7 @@ pub struct NameGetBulkQuery {
     get,
     path = "/bulk/n/",
     responses(
-        (status = 200, description = "Successfully found name.", body = ENSProfile),
+        (status = 200, description = "Successfully found name.", body = BulkResponse<ENSProfile>),
         (status = NOT_FOUND, description = "No name could be found.", body = ErrorResponse),
     ),
     params(
@@ -65,46 +62,17 @@ pub struct NameGetBulkQuery {
 pub async fn get_bulk(
     Qs(query): Qs<NameGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
-) -> Result<Json<Vec<Profile>>, RouteError> {
-    let names = query
-        .names
-        .iter()
-        .map(|name| name.to_lowercase())
-        .collect::<Vec<_>>();
-
-    let names = validate_bulk_input(&names, 10).ok_or_else(|| {
-        http_error(
-            StatusCode::BAD_REQUEST,
-            "input is too long (expected <= 10)",
-        )
-    })?;
-
-    let rpc = state
-        .provider
-        .get_provider()
-        .ok_or_else(|| http_simple_status_error(StatusCode::INTERNAL_SERVER_ERROR))?
-        .clone();
-
-    let opensea_api_key = &state.opensea_api_key;
+) -> Result<Json<BulkResponse<Profile>>, RouteError> {
+    let names = validate_bulk_input(&query.names, 10)?;
 
     let profiles = names
         .iter()
-        .map(|name| {
-            Profile::from_name(
-                name,
-                query.fresh.fresh,
-                state.cache.as_ref().as_ref(),
-                rpc.clone(),
-                opensea_api_key,
-                &state.profile_records,
-                &state.profile_chains,
-            )
-        })
+        .map(|name| state.service.resolve_from_name(name, query.fresh.fresh))
         .collect::<Vec<_>>();
 
     let joined = try_join_all(profiles)
         .await
         .map_err(profile_http_error_mapper)?;
 
-    Ok(Json(joined))
+    Ok(Json(joined.into()))
 }

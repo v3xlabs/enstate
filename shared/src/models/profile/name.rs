@@ -2,7 +2,6 @@ use std::str::FromStr;
 use std::{collections::BTreeMap, sync::Arc};
 
 use ethers::middleware::{Middleware, MiddlewareBuilder};
-use ethers::providers::{Http, Provider};
 use ethers_ccip_read::CCIPReadMiddleware;
 use tracing::info;
 
@@ -10,9 +9,9 @@ use crate::cache::CacheError;
 use crate::models::lookup::image::Image;
 use crate::models::lookup::multicoin::Multicoin;
 use crate::models::lookup::ENSLookupError;
+use crate::models::profile::ProfileService;
 use crate::models::{
     lookup::{addr::Addr, text::Text, ENSLookup, LookupState},
-    multicoin::cointype::coins::CoinType,
     profile::Profile,
     universal_resolver::resolve_universal,
 };
@@ -21,21 +20,19 @@ use crate::utils::eip55::EIP55Address;
 
 use super::error::ProfileError;
 
-impl Profile {
-    pub async fn from_name(
+impl ProfileService {
+    pub async fn resolve_from_name(
+        &self,
         name: &str,
         fresh: bool,
-        cache: &dyn crate::cache::CacheLayer,
-        rpc: Provider<Http>,
-        opensea_api_key: &str,
-        profile_records: &[String],
-        profile_chains: &[CoinType],
-    ) -> Result<Self, ProfileError> {
+    ) -> Result<Profile, ProfileError> {
         if !test_domain(name) {
             return Err(ProfileError::NotFound);
         }
 
         let cache_key = format!("n:{name}");
+
+        let rpc = self.rpc.get_instance();
 
         let rpc = rpc.wrap_into(CCIPReadMiddleware::new);
 
@@ -49,12 +46,12 @@ impl Profile {
 
         // If the value is in the cache, return it
         if !fresh {
-            if let Ok(value) = cache.get(&cache_key).await {
+            if let Ok(value) = self.cache.get(&cache_key).await {
                 if value.is_empty() {
                     return Err(ProfileError::NotFound);
                 }
 
-                let entry_result: Result<Self, _> = serde_json::from_str(value.as_str());
+                let entry_result: Result<Profile, _> = serde_json::from_str(value.as_str());
                 if let Ok(entry) = entry_result {
                     return Ok(entry);
                 }
@@ -83,13 +80,13 @@ impl Profile {
 
         // Lookup all Records
         let record_offset = calldata.len();
-        for record in profile_records {
+        for record in self.profile_records.as_ref() {
             calldata.push(Text::from(record.as_str()).to_boxed());
         }
 
         // Lookup all chains
         let chain_offset = calldata.len();
-        for chain in profile_chains {
+        for chain in self.profile_chains.as_ref() {
             calldata.push(
                 Multicoin {
                     coin_type: chain.clone(),
@@ -121,7 +118,7 @@ impl Profile {
 
         let lookup_state = LookupState {
             rpc,
-            opensea_api_key: opensea_api_key.to_string(),
+            opensea_api_key: self.opensea_api_key.clone(),
         };
 
         // Assume results & calldata have the same length
@@ -174,7 +171,7 @@ impl Profile {
 
         for (index, value) in results[record_offset..chain_offset].iter().enumerate() {
             if let Some(value) = value {
-                records.insert(profile_records[index].clone(), value.to_string());
+                records.insert(self.profile_records[index].clone(), value.to_string());
             }
         }
 
@@ -182,11 +179,11 @@ impl Profile {
 
         for (index, value) in results[chain_offset..].iter().enumerate() {
             if let Some(value) = value {
-                chains.insert(profile_chains[index].to_string(), value.to_string());
+                chains.insert(self.profile_chains[index].to_string(), value.to_string());
             }
         }
 
-        let value = Self {
+        let value = Profile {
             name: name.to_string(),
             address: address.and_then(|it| EIP55Address::from_str(it.as_str()).ok()),
             avatar,
@@ -203,7 +200,7 @@ impl Profile {
         let response =
             serde_json::to_string(&value).map_err(|err| ProfileError::Other(err.to_string()))?;
 
-        cache
+        self.cache
             .set(&cache_key, &response, 600)
             .await
             .map_err(|CacheError::Other(err)| {

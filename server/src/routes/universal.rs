@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use axum::http::StatusCode;
 use axum::{
     extract::{Path, Query, State},
     Json,
@@ -9,10 +8,8 @@ use enstate_shared::models::profile::Profile;
 use futures::future::try_join_all;
 use serde::Deserialize;
 
-use crate::routes::{
-    http_error, http_simple_status_error, profile_http_error_mapper, universal_profile_resolve,
-    validate_bulk_input, FreshQuery, Qs, RouteError,
-};
+use crate::models::bulk::BulkResponse;
+use crate::routes::{profile_http_error_mapper, validate_bulk_input, FreshQuery, Qs, RouteError};
 
 #[utoipa::path(
     get,
@@ -39,7 +36,7 @@ pub async fn get(
         State(state),
     )
     .await
-    .map(|res| Json(res.0.get(0).expect("index 0 should exist").clone()))
+    .map(|res| Json(res.0.response.get(0).expect("index 0 should exist").clone()))
 }
 
 #[derive(Deserialize)]
@@ -56,7 +53,7 @@ pub struct UniversalGetBulkQuery {
     get,
     path = "/bulk/u/",
     responses(
-        (status = 200, description = "Successfully found name or address.", body = ENSProfile),
+        (status = 200, description = "Successfully found name or address.", body = BulkResponse<ENSProfile>),
         (status = NOT_FOUND, description = "No name or address could be found.", body = ErrorResponse),
         (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
     ),
@@ -67,34 +64,21 @@ pub struct UniversalGetBulkQuery {
 pub async fn get_bulk(
     Qs(query): Qs<UniversalGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
-) -> Result<Json<Vec<Profile>>, RouteError> {
-    let lowercase_queries = query
-        .queries
-        .iter()
-        .map(|input| input.to_lowercase())
-        .collect::<Vec<_>>();
-
-    let queries = validate_bulk_input(&lowercase_queries, 10).ok_or_else(|| {
-        http_error(
-            StatusCode::BAD_REQUEST,
-            "input is too long (expected <= 10)",
-        )
-    })?;
-
-    let rpc = state
-        .provider
-        .get_provider()
-        .ok_or_else(|| http_simple_status_error(StatusCode::INTERNAL_SERVER_ERROR))?
-        .clone();
+) -> Result<Json<BulkResponse<Profile>>, RouteError> {
+    let queries = validate_bulk_input(&query.queries, 10)?;
 
     let profiles = queries
         .iter()
-        .map(|input| universal_profile_resolve(input, query.fresh.fresh, rpc.clone(), &state))
+        .map(|input| {
+            state
+                .service
+                .resolve_from_name_or_address(input, query.fresh.fresh)
+        })
         .collect::<Vec<_>>();
 
     let joined = try_join_all(profiles)
         .await
         .map_err(profile_http_error_mapper)?;
 
-    Ok(Json(joined))
+    Ok(Json(joined.into()))
 }
