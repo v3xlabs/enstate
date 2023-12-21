@@ -32,7 +32,7 @@ async fn main_handler(req: Request, ctx: RouteContext<()>) -> worker::Result<Res
 async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response> {
     Router::new()
         .get("/", |_, _| root_handler().with_cors(&CORS))
-        .get_async("/*", main_handler)
+        .get_async("/:method/:param", main_handler)
         .run(req, env)
         .await
 }
