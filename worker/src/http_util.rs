@@ -1,9 +1,13 @@
 use enstate_shared::models::profile::error::ProfileError;
+use enstate_shared::utils::vec::dedup_ord;
 use ethers::prelude::ProviderError;
 use http::status::StatusCode;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
+use thiserror::Error;
 use worker::{Error, Request, Response, Url};
+
+// TODO (@antony1060): cleanup file
 
 #[derive(Deserialize)]
 pub struct FreshQuery {
@@ -25,6 +29,40 @@ pub fn parse_query<T: DeserializeOwned>(req: &Request) -> worker::Result<T> {
     let query = url.query().unwrap_or("");
 
     serde_qs::from_str::<T>(query).map_err(|_| http_simple_status_error(StatusCode::BAD_REQUEST))
+}
+
+#[derive(Error, Debug)]
+pub enum ValidationError {
+    #[error("maximum input length exceeded (expected at most {0})")]
+    MaxLengthExceeded(usize),
+}
+
+impl From<ValidationError> for worker::Error {
+    fn from(value: ValidationError) -> Self {
+        ErrorResponse {
+            status: StatusCode::BAD_REQUEST.as_u16(),
+            error: value.to_string(),
+        }
+        .into()
+    }
+}
+
+pub fn validate_bulk_input(
+    input: &[String],
+    max_len: usize,
+) -> Result<Vec<String>, ValidationError> {
+    let unique = dedup_ord(
+        &input
+            .iter()
+            .map(|entry| entry.to_lowercase())
+            .collect::<Vec<_>>(),
+    );
+
+    if unique.len() > max_len {
+        return Err(ValidationError::MaxLengthExceeded(max_len));
+    }
+
+    Ok(unique)
 }
 
 #[derive(Serialize)]

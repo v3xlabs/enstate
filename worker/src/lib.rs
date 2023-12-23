@@ -9,7 +9,7 @@ use enstate_shared::utils::factory::SimpleFactory;
 use ethers::prelude::{Http, Provider};
 use http::StatusCode;
 use lazy_static::lazy_static;
-use worker::{event, Context, Cors, Env, Method, Request, Response, Router};
+use worker::{event, Context, Cors, Env, Headers, Method, Request, Response, Router};
 
 use crate::http_util::http_simple_status_error;
 use crate::kv_cache::CloudflareKVCache;
@@ -62,22 +62,32 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
         .get_async("/u/:name_or_address", routes::universal::get)
         .get_async("/i/:name_or_address", routes::image::get)
         .get_async("/h/:name_or_address", routes::header::get)
-        // .get_async("/bulk/a", main_handler)
-        // .get_async("/bulk/n", main_handler)
-        // .get_async("/bulk/u", main_handler)
-        // .or_else_any_method("*", |_, _| {
-        //     Err(ErrorResponse {
-        //         status: StatusCode::NOT_FOUND.as_u16(),
-        //         error: "Unknown route".to_string(),
-        //     }
-        //     .into())
-        // })
+        .get_async("/bulk/a", routes::address::get_bulk)
+        .get_async("/bulk/n", routes::name::get_bulk)
+        .get_async("/bulk/u", routes::universal::get_bulk)
         .run(req, env)
         .await
         .and_then(|response| response.with_cors(&CORS));
 
-    if let Err(worker::Error::Json(err)) = response {
-        return Response::error(err.0, err.1);
+    if let Err(err) = response {
+        if let worker::Error::Json(json) = err {
+            return Response::error(json.0, json.1).and_then(|response| {
+                response
+                    .with_headers(Headers::from_iter(
+                        [("Content-Type", "application/json")].iter(),
+                    ))
+                    .with_cors(&CORS)
+            });
+        }
+
+        return Response::error(err.to_string(), StatusCode::INTERNAL_SERVER_ERROR.as_u16())
+            .and_then(|response| {
+                response
+                    .with_headers(Headers::from_iter(
+                        [("Content-Type", "application/json")].iter(),
+                    ))
+                    .with_cors(&CORS)
+            });
     }
 
     response

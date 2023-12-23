@@ -915,6 +915,7 @@ dependencies = [
  "chrono",
  "enstate_shared",
  "ethers",
+ "futures-util",
  "getrandom",
  "http 1.0.0",
  "js-sys",
