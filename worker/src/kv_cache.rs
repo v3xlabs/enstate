@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use async_trait::async_trait;
 use enstate_shared::cache::{CacheError, CacheLayer};
 use js_sys::{Function, Promise, Reflect};
@@ -10,13 +8,7 @@ use wasm_bindgen_futures::JsFuture;
 use worker::Env;
 
 pub struct CloudflareKVCache {
-    ctx: Rc<Env>,
-}
-
-impl CloudflareKVCache {
-    pub fn new(ctx: Rc<Env>) -> Self {
-        Self { ctx }
-    }
+    pub(crate) env: Env,
 }
 
 unsafe impl Send for CloudflareKVCache {}
@@ -68,7 +60,7 @@ impl From<KVCacheJsError> for CacheError {
 #[async_trait(?Send)]
 impl CacheLayer for CloudflareKVCache {
     async fn get(&self, key: &str) -> Result<String, CacheError> {
-        let kv_store = get_js(&self.ctx, "enstate-1")?;
+        let kv_store = get_js(&self.env, "enstate-1")?;
         let get_function_value = get_js(&kv_store, "get")?;
 
         let get_function = get_function_value
@@ -94,7 +86,7 @@ impl CacheLayer for CloudflareKVCache {
     }
 
     async fn set(&self, key: &str, value: &str, expires: u32) -> Result<(), CacheError> {
-        let kv_store = get_js(&self.ctx, "enstate-1")?;
+        let kv_store = get_js(&self.env, "enstate-1")?;
         let put_function_value = get_js(&kv_store, "put")?;
 
         let put_function = put_function_value

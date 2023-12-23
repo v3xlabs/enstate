@@ -921,10 +921,10 @@ dependencies = [
  "lazy_static",
  "log",
  "once_cell",
- "querystring",
  "serde",
  "serde-wasm-bindgen 0.6.0",
  "serde_json",
+ "serde_qs",
  "thiserror",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -2672,12 +2672,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "querystring"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9318ead08c799aad12a55a3e78b82e0b6167271ffd1f627b758891282f739187"
-
-[[package]]
 name = "quote"
 version = "1.0.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3179,6 +3173,17 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "serde_qs"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0431a35568651e363364210c91983c1da5eb29404d9f0928b67d4ebcfa7d330c"
+dependencies = [
+ "percent-encoding",
+ "serde",
+ "thiserror",
 ]
 
 [[package]]
