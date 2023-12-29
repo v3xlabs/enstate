@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use std::{collections::BTreeMap, sync::Arc};
 
-use ethers::middleware::MiddlewareBuilder;
+use ethers::middleware::{Middleware, MiddlewareBuilder};
 use ethers::providers::{Http, Provider};
 use ethers_ccip_read::CCIPReadMiddleware;
 use tracing::info;
@@ -43,6 +43,7 @@ impl Profile {
             name = name,
             cache_key = cache_key,
             fresh = fresh,
+            rpc_url = rpc.inner().url().to_string(),
             "Looking up profile for {name}..."
         );
 
