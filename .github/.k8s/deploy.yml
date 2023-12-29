@@ -62,7 +62,7 @@ spec:
             - name: REDIS_URL
               value: redis://redis.enstate.svc.cluster.local:6379
             - name: RPC_URL
-              value: https://eth.llamarpc.com,https://rpc.payload.de,https://rpc.builder0x69.io,https://rpc.ankr.com/eth
+              value: https://eth.llamarpc.com,https://rpc.payload.de,https://rpc.ankr.com/eth
           resources:
             requests:
               cpu: 100m
