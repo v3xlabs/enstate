@@ -1,10 +1,9 @@
 name: Build and Deploy
 on:
   push:
-    # tags:
-    #   - "v*.*.*"
-    branches:
-      - "ci/integration-tests"
+    tags:
+      - "v*.*.*"
+  workflow_call:
 
 env:
   CARGO_TERM_COLOR: always

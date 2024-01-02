@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: PR Check
 on:
   pull_request:
     branches:
@@ -39,3 +39,6 @@ jobs:
 
       - run: cargo check --target ${{ matrix.target }} --release
         working-directory: ${{ matrix.path }}
+  test_server:
+    uses: ./.github/workflows/test_server.yml
+    needs: [check]
