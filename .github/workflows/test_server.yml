@@ -5,6 +5,9 @@ jobs:
   test:
     name: Test ENState 🚀
     runs-on: ubuntu-latest
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: "sccache"
     steps:
       - uses: actions/checkout@v3
         with:
@@ -14,18 +17,10 @@ jobs:
           rustup set auto-self-update disable
           rustup toolchain install stable --profile minimal
 
-      - name: Set up cargo cache
-        uses: actions/cache@v3
-        continue-on-error: false
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.3
         with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            server/target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
+          version: "v0.7.4"
 
       - run: cargo build --release
         working-directory: server
