@@ -39,4 +39,3 @@ jobs:
 
       - run: cargo check --target ${{ matrix.target }} --release
         working-directory: ${{ matrix.path }}
-
