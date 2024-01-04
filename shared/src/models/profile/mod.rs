@@ -1,14 +1,23 @@
 use std::collections::BTreeMap;
+use std::sync::Arc;
 
+use ethers::prelude::Http;
+use ethers::providers::Provider;
+use ethers_ccip_read::CCIPReadMiddleware;
 use serde::{Deserialize, Serialize};
 
+use crate::models::multicoin::cointype::coins::CoinType;
 use crate::utils::eip55::EIP55Address;
+use crate::utils::factory::Factory;
 
+pub mod address;
 pub mod error;
-pub mod from_address;
-pub mod from_name;
+pub mod name;
+pub mod universal;
 
-#[derive(Debug, Serialize, Deserialize)]
+pub type CCIPProvider = CCIPReadMiddleware<Arc<Provider<Http>>>;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Profile {
     // Name
     pub name: String,
@@ -35,4 +44,13 @@ pub struct Profile {
     pub ccip_urls: Vec<String>,
     // Errors encountered while fetching & decoding
     pub errors: BTreeMap<String, String>,
+}
+
+// name feels very java-esque, consider renaming
+pub struct ProfileService {
+    pub cache: Box<dyn crate::cache::CacheLayer>,
+    pub rpc: Box<dyn Factory<Arc<Provider<Http>>>>,
+    pub opensea_api_key: String,
+    pub profile_records: Arc<[String]>,
+    pub profile_chains: Arc<[CoinType]>,
 }

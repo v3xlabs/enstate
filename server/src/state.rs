@@ -1,43 +1,44 @@
 use std::env;
+use std::sync::Arc;
 
+use enstate_shared::models::profile::ProfileService;
 use enstate_shared::models::{
     multicoin::cointype::{coins::CoinType, Coins},
     records::Records,
 };
-use redis::aio::ConnectionManager;
 use tracing::info;
 
-use crate::{database, provider};
+use crate::provider::RoundRobin;
+use crate::{cache, database};
 
 #[allow(clippy::module_name_repetitions)]
 pub struct AppState {
-    pub redis: ConnectionManager,
-    pub profile_records: Vec<String>,
-    pub profile_chains: Vec<CoinType>,
-    pub rpc_urls: Vec<String>,
-    pub opensea_api_key: String,
-    pub provider: provider::RoundRobin,
+    pub service: ProfileService,
 }
 
 impl AppState {
     pub async fn new() -> Self {
         let profile_records = env::var("PROFILE_RECORDS").map_or_else(
             |_| Records::default().records,
-            |s| s.split(',').map(std::string::ToString::to_string).collect(),
+            |s| s.split(',').map(ToString::to_string).collect(),
         );
 
         let multicoin_chains: Vec<CoinType> = env::var("MULTICOIN_CHAINS").map_or_else(
             |_| Coins::default().coins,
-            |_| {
-                // TODO: Implement chain parsing
-                vec![]
-            }, // |s| s.split(",").map(std::string::ToString::to_string).collect(),
+            |s| {
+                let numbers = s
+                    .split(',')
+                    .filter_map(|it| it.parse::<u64>().ok())
+                    .collect::<Vec<_>>();
+
+                numbers.iter().map(|num| CoinType::from(*num)).collect()
+            },
         );
 
         let raw_rpc_urls: String = env::var("RPC_URL").expect("RPC_URL should've been set");
         let rpc_urls = raw_rpc_urls
             .split(',')
-            .map(std::string::ToString::to_string)
+            .map(ToString::to_string)
             .collect::<Vec<_>>();
 
         info!("Connecting to Redis...");
@@ -46,18 +47,19 @@ impl AppState {
 
         info!("Connected to Redis");
 
-        let provider = provider::RoundRobin::new(rpc_urls.clone());
+        let provider = RoundRobin::new(rpc_urls);
 
         let opensea_api_key =
             env::var("OPENSEA_API_KEY").expect("OPENSEA_API_KEY should've been set");
 
         Self {
-            redis,
-            profile_records,
-            profile_chains: multicoin_chains,
-            opensea_api_key,
-            rpc_urls,
-            provider,
+            service: ProfileService {
+                cache: Box::new(cache::Redis::new(redis)),
+                rpc: Box::new(provider),
+                opensea_api_key,
+                profile_records: Arc::from(profile_records),
+                profile_chains: Arc::from(multicoin_chains),
+            },
         }
     }
 }

@@ -1,6 +1,7 @@
 use ethers::prelude::Http;
 use ethers::providers::{Provider, ProviderError};
 use ethers_ccip_read::CCIPReadMiddlewareError;
+use std::sync::Arc;
 use thiserror::Error;
 
 #[allow(clippy::module_name_repetitions)]
@@ -13,7 +14,7 @@ pub enum ProfileError {
     RPCError(#[from] ProviderError),
 
     #[error("CCIP error: {0}")]
-    CCIPError(#[from] CCIPReadMiddlewareError<Provider<Http>>),
+    CCIPError(#[from] CCIPReadMiddlewareError<Arc<Provider<Http>>>),
 
     #[error("DNS encode error: {0}")]
     DNSEncodeError(String),

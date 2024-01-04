@@ -4,6 +4,7 @@ use axum::async_trait;
 use enstate_shared::cache::{CacheError, CacheLayer};
 use redis::{aio::ConnectionManager, AsyncCommands};
 
+#[derive(Clone)]
 pub struct Redis {
     redis: ConnectionManager,
 }

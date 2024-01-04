@@ -10,6 +10,7 @@ use tracing::info;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
+use crate::models::bulk::BulkResponse;
 use crate::models::error::ErrorResponse;
 use crate::models::profile::ENSProfile;
 use crate::routes;
@@ -18,7 +19,7 @@ use crate::state::AppState;
 #[derive(OpenApi)]
 #[openapi(
     paths(routes::address::get, routes::name::get, routes::universal::get),
-    components(schemas(ENSProfile, ErrorResponse))
+    components(schemas(ENSProfile, BulkResponse<ENSProfile>, ErrorResponse))
 )]
 pub struct ApiDoc;
 
@@ -59,6 +60,9 @@ pub fn setup(state: AppState) -> App {
         .directory_route("/u/:name_or_address", get(routes::universal::get))
         .directory_route("/i/:name_or_address", get(routes::image::get))
         .directory_route("/h/:name_or_address", get(routes::header::get))
+        .directory_route("/bulk/a", get(routes::address::get_bulk))
+        .directory_route("/bulk/n", get(routes::name::get_bulk))
+        .directory_route("/bulk/u", get(routes::universal::get_bulk))
         .fallback(routes::four_oh_four::handler)
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())

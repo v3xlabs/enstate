@@ -1,26 +1,22 @@
 use ethers::{
-    providers::{Http, Middleware, Provider, ProviderError},
+    providers::{Middleware, ProviderError},
     types::H160,
 };
 
-use crate::models::multicoin::cointype::coins::CoinType;
+use super::{error::ProfileError, Profile, ProfileService};
 
-use super::{error::ProfileError, Profile};
-
-impl Profile {
-    pub async fn from_address(
+impl ProfileService {
+    pub async fn resolve_from_address(
+        &self,
         address: H160,
         fresh: bool,
-        cache: Box<dyn crate::cache::CacheLayer>,
-        rpc: Provider<Http>,
-        opensea_api_key: &str,
-        profile_records: &[String],
-        profile_chains: &[CoinType],
-    ) -> Result<Self, ProfileError> {
+    ) -> Result<Profile, ProfileError> {
         let cache_key = format!("a:{address:?}");
 
+        let rpc = self.rpc.get_instance();
+
         // Get value from the cache otherwise compute
-        let name = if let Ok(name) = cache.get(&cache_key).await {
+        let name = if let Ok(name) = self.cache.get(&cache_key).await {
             name
         } else {
             let result = rpc
@@ -34,7 +30,7 @@ impl Profile {
                 })?;
 
             // Cache the value, and expire it after 10 minutes
-            cache
+            self.cache
                 .set(&cache_key, &result, 600)
                 .await
                 .map_err(|_| ProfileError::Other("cache set failed".to_string()))?;
@@ -46,15 +42,6 @@ impl Profile {
             return Err(ProfileError::NotFound);
         }
 
-        Self::from_name(
-            &name,
-            fresh,
-            cache,
-            rpc,
-            opensea_api_key,
-            profile_records,
-            profile_chains,
-        )
-        .await
+        self.resolve_from_name(&name, fresh).await
     }
 }

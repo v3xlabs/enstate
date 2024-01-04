@@ -120,7 +120,6 @@ impl ENSLookup for Image {
         )
         .await?;
 
-        // TODO: Remove naive approach
         return Ok(resolved_uri);
     }
 

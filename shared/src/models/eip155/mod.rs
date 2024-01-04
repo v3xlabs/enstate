@@ -1,6 +1,5 @@
 use ethers::middleware::Middleware;
-use ethers::providers::{Http, Provider, ProviderError};
-use ethers_ccip_read::CCIPReadMiddleware;
+use ethers::providers::ProviderError;
 use ethers_core::{
     abi::{ParamType, Token},
     types::{transaction::eip2718::TypedTransaction, Bytes, H160, U256},
@@ -10,6 +9,7 @@ use tracing::info;
 
 use crate::models::ipfs::{URLFetchError, OPENSEA_BASE_PREFIX};
 use crate::models::multicoin::cointype::evm::ChainId;
+use crate::models::profile::CCIPProvider;
 
 use super::ipfs::IPFSURLUnparsed;
 
@@ -56,7 +56,7 @@ pub async fn resolve_eip155(
     contract_type: EIP155ContractType,
     contract_address: &str,
     token_id: U256,
-    provider: &CCIPReadMiddleware<Provider<Http>>,
+    provider: &CCIPProvider,
     opensea_api_key: &str,
 ) -> Result<String, EIP155Error> {
     let chain_id: u64 = chain_id.into();
@@ -130,11 +130,15 @@ pub async fn resolve_eip155(
 mod tests {
     use std::env;
 
+    use ethers::middleware::MiddlewareBuilder;
+
     use super::*;
 
     #[tokio::test]
     async fn test_calldata_avatar_erc721() {
-        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
+        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth")
+            .unwrap()
+            .wrap_into(CCIPReadMiddleware::new);
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
         let data = resolve_eip155(
@@ -153,7 +157,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_calldata_avatar_erc1155() {
-        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
+        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth")
+            .unwrap()
+            .wrap_into(CCIPReadMiddleware::new);
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
         let data = resolve_eip155(
@@ -176,7 +182,9 @@ mod tests {
 
     #[tokio::test]
     async fn test_calldata_avatar_erc1155_opensea() {
-        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
+        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth")
+            .unwrap()
+            .wrap_into(CCIPReadMiddleware::new);
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
         let data = resolve_eip155(

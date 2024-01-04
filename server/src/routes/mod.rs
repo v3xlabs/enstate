@@ -1,13 +1,13 @@
+use axum::extract::FromRequestParts;
+use axum::http::request::Parts;
 use axum::http::StatusCode;
 use axum::Json;
 use enstate_shared::models::profile::error::ProfileError;
-use enstate_shared::models::profile::Profile;
+use enstate_shared::utils::vec::dedup_ord;
 use ethers::prelude::ProviderError;
-use ethers::providers::{Http, Provider};
-use ethers_core::types::Address;
 use serde::{Deserialize, Deserializer};
+use thiserror::Error;
 
-use crate::cache;
 use crate::models::error::ErrorResponse;
 
 pub mod address;
@@ -17,6 +17,8 @@ pub mod image;
 pub mod name;
 pub mod root;
 pub mod universal;
+
+// TODO (@antony1060): cleanup file
 
 #[derive(Deserialize)]
 pub struct FreshQuery {
@@ -29,8 +31,8 @@ fn bool_or_false<'de, D>(deserializer: D) -> Result<bool, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let value: Result<bool, D::Error> = Deserialize::deserialize(deserializer);
-    Ok(value.unwrap_or_default())
+    let value: Result<String, D::Error> = Deserialize::deserialize(deserializer);
+    Ok(value.map(|it| it == "true").unwrap_or(false))
 }
 
 pub type RouteError = (StatusCode, Json<ErrorResponse>);
@@ -66,41 +68,59 @@ pub fn http_simple_status_error(status: StatusCode) -> RouteError {
     )
 }
 
-pub async fn universal_profile_resolve(
-    name_or_address: &str,
-    fresh: bool,
-    rpc: Provider<Http>,
-    state: &crate::AppState,
-) -> Result<Profile, ProfileError> {
-    let cache = Box::new(cache::Redis::new(state.redis.clone()));
-
-    let opensea_api_key = &state.opensea_api_key;
-
-    if let Ok(address) = name_or_address.parse::<Address>() {
-        return Profile::from_address(
-            address,
-            fresh,
-            cache,
-            rpc,
-            opensea_api_key,
-            &state.profile_records,
-            &state.profile_chains,
-        )
-        .await;
-    }
-
-    if !enstate_shared::patterns::test_domain(name_or_address) {
-        return Err(ProfileError::NotFound);
-    }
-
-    Profile::from_name(
-        &name_or_address.to_lowercase(),
-        fresh,
-        cache,
-        rpc,
-        opensea_api_key,
-        &state.profile_records,
-        &state.profile_chains,
+pub fn http_error(status: StatusCode, error: &str) -> RouteError {
+    (
+        status,
+        Json(ErrorResponse {
+            status: status.as_u16(),
+            error: error.to_string(),
+        }),
     )
-    .await
+}
+
+#[derive(Error, Debug)]
+pub enum ValidationError {
+    #[error("maximum input length exceeded (expected at most {0})")]
+    MaxLengthExceeded(usize),
+}
+
+impl From<ValidationError> for RouteError {
+    fn from(value: ValidationError) -> Self {
+        http_error(StatusCode::BAD_REQUEST, &value.to_string())
+    }
+}
+
+pub fn validate_bulk_input(
+    input: &[String],
+    max_len: usize,
+) -> Result<Vec<String>, ValidationError> {
+    let unique = dedup_ord(
+        &input
+            .iter()
+            .map(|entry| entry.to_lowercase())
+            .collect::<Vec<_>>(),
+    );
+
+    if unique.len() > max_len {
+        return Err(ValidationError::MaxLengthExceeded(max_len));
+    }
+
+    Ok(unique)
+}
+
+pub struct Qs<T>(T);
+
+#[axum::async_trait]
+impl<T, S> FromRequestParts<S> for Qs<T>
+where
+    T: serde::de::DeserializeOwned,
+{
+    type Rejection = String;
+
+    async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, Self::Rejection> {
+        let query = parts.uri.query().unwrap_or("");
+        Ok(Self(
+            serde_qs::from_str(query).map_err(|error| error.to_string())?,
+        ))
+    }
 }

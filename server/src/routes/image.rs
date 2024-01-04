@@ -4,10 +4,7 @@ use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::Redirect;
 
-use crate::routes::{
-    http_simple_status_error, profile_http_error_mapper, universal_profile_resolve, FreshQuery,
-    RouteError,
-};
+use crate::routes::{http_simple_status_error, profile_http_error_mapper, FreshQuery, RouteError};
 
 // #[utoipa::path(
 //     get,
@@ -27,13 +24,9 @@ pub async fn get(
     Query(query): Query<FreshQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> Result<Redirect, RouteError> {
-    let rpc = state
-        .provider
-        .get_provider()
-        .ok_or_else(|| http_simple_status_error(StatusCode::INTERNAL_SERVER_ERROR))?
-        .clone();
-
-    let profile = universal_profile_resolve(&name_or_address, query.fresh, rpc, &state)
+    let profile = state
+        .service
+        .resolve_from_name_or_address(&name_or_address, query.fresh)
         .await
         .map_err(profile_http_error_mapper)?;
 
