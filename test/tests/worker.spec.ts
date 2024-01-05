@@ -1,7 +1,7 @@
 import { expect, test, describe, beforeAll, afterAll } from "bun:test";
 import { test_implementation } from "../src/test_implementation";
 import { Subprocess } from "bun";
-import { dataset_names_basic } from "../data/basic";
+import { dataset_address_basic, dataset_name_basic, dataset_universal_basic } from "../data/basic";
 import { http_fetch } from "../src/http_fetch";
 
 let server: Subprocess | undefined = undefined;
@@ -9,7 +9,7 @@ let server: Subprocess | undefined = undefined;
 beforeAll(async () => {
     console.log("Building worker...");
 
-    server = Bun.spawn(['pnpm', 'dev'], { cwd: "../worker" });
+    server = Bun.spawn(['pnpm', 'dev', '--port', '3000'], { cwd: "../worker" });
 
     console.log('Waiting for server to start...');
 
@@ -17,7 +17,7 @@ beforeAll(async () => {
     while (attempts < 30) {
         try {
             console.log("Attempting heartbeat...");
-            await fetch("http://0.0.0.0:3001/");
+            await fetch("http://0.0.0.0:3000/");
             console.log("Heartbeat succes!");
             break;
         } catch (e) {
@@ -37,4 +37,6 @@ afterAll(async () => {
     await server?.exited;
 });
 
-test_implementation("enstate", http_fetch("http://0.0.0.0:3001/n/"), dataset_names_basic);
+test_implementation("worker/name", http_fetch("http://0.0.0.0:3001/n/"), dataset_name_basic);
+test_implementation("worker/address", http_fetch("http://0.0.0.0:3001/n/"), dataset_address_basic);
+test_implementation("worker/universal", http_fetch("http://0.0.0.0:3001/n/"), dataset_universal_basic);

@@ -1,3 +1,4 @@
+use enstate_shared::cache::{CacheLayer, PassthroughCacheLayer};
 use std::env;
 use std::sync::Arc;
 
@@ -6,7 +7,7 @@ use enstate_shared::models::{
     multicoin::cointype::{coins::CoinType, Coins},
     records::Records,
 };
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::provider::RoundRobin;
 use crate::{cache, database};
@@ -43,9 +44,18 @@ impl AppState {
 
         info!("Connecting to Redis...");
 
-        let redis = database::setup().await.expect("Redis connection failed");
+        let cache = database::setup().await.map_or_else(
+            |_| {
+                warn!("failed to connect to redis, using no cache");
 
-        info!("Connected to Redis");
+                Box::new(PassthroughCacheLayer {}) as Box<dyn CacheLayer>
+            },
+            |redis| {
+                info!("Connected to Redis");
+
+                Box::new(cache::Redis::new(redis)) as Box<dyn CacheLayer>
+            },
+        );
 
         let provider = RoundRobin::new(rpc_urls);
 
@@ -54,7 +64,7 @@ impl AppState {
 
         Self {
             service: ProfileService {
-                cache: Box::new(cache::Redis::new(redis)),
+                cache,
                 rpc: Box::new(provider),
                 opensea_api_key,
                 profile_records: Arc::from(profile_records),
