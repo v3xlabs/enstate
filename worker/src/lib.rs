@@ -14,6 +14,7 @@ use worker::{event, Context, Cors, Env, Headers, Method, Request, Response, Rout
 use crate::http_util::http_simple_status_error;
 use crate::kv_cache::CloudflareKVCache;
 
+mod bulk_util;
 mod http_util;
 mod kv_cache;
 mod routes;

@@ -4,9 +4,9 @@ use http::StatusCode;
 use serde::Deserialize;
 use worker::{Request, Response, RouteContext};
 
+use crate::bulk_util::{validate_bulk_input, BulkResponse};
 use crate::http_util::{
-    http_simple_status_error, parse_query, profile_http_error_mapper, validate_bulk_input,
-    FreshQuery,
+    http_simple_status_error, parse_query, profile_http_error_mapper, FreshQuery,
 };
 
 pub async fn get(req: Request, ctx: RouteContext<ProfileService>) -> worker::Result<Response> {
@@ -50,5 +50,5 @@ pub async fn get_bulk(req: Request, ctx: RouteContext<ProfileService>) -> worker
         .await
         .map_err(profile_http_error_mapper)?;
 
-    Response::from_json(&joined)
+    Response::from_json(&BulkResponse::from(joined))
 }

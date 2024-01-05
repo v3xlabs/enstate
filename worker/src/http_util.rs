@@ -1,5 +1,4 @@
 use enstate_shared::models::profile::error::ProfileError;
-use enstate_shared::utils::vec::dedup_ord;
 use ethers::prelude::ProviderError;
 use http::status::StatusCode;
 use serde::de::DeserializeOwned;
@@ -45,24 +44,6 @@ impl From<ValidationError> for worker::Error {
         }
         .into()
     }
-}
-
-pub fn validate_bulk_input(
-    input: &[String],
-    max_len: usize,
-) -> Result<Vec<String>, ValidationError> {
-    let unique = dedup_ord(
-        &input
-            .iter()
-            .map(|entry| entry.to_lowercase())
-            .collect::<Vec<_>>(),
-    );
-
-    if unique.len() > max_len {
-        return Err(ValidationError::MaxLengthExceeded(max_len));
-    }
-
-    Ok(unique)
 }
 
 #[derive(Serialize)]
