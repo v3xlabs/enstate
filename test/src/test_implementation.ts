@@ -1,11 +1,16 @@
-import { describe, expect, test } from "bun:test";
-import { Dataset } from "../data";
+import { describe, expect, test } from 'bun:test';
 
-export const test_implementation = <DataSet extends Dataset<DataType>, DataType extends {}>(function_name: string, fn: (input: string) => Promise<Partial<DataType>>, dataset: DataSet) => {
-    describe("t/" + function_name, () => {
+import { Dataset } from '../data';
+
+export const test_implementation = <DataSet extends Dataset<DataType>, DataType extends {}>(
+    function_name: string,
+    resolve_function: (_input: string) => Promise<Partial<DataType>>,
+    dataset: DataSet
+) => {
+    describe('t/' + function_name, () => {
         for (const { label, arg, expected } of dataset) {
             test(label + ` (${arg})`, async () => {
-                let output = await fn(arg);
+                const output = await resolve_function(arg);
 
                 expect(output).toMatchObject(expected);
             });
