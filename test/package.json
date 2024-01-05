@@ -7,5 +7,9 @@
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@types/qs": "^6.9.11",
+    "qs": "^6.11.2"
   }
 }

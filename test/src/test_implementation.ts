@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { Dataset } from "../data/basic";
+import { Dataset } from "../data";
 
 export const test_implementation = <DataSet extends Dataset<DataType>, DataType extends {}>(function_name: string, fn: (input: string) => Promise<Partial<DataType>>, dataset: DataSet) => {
     describe("t/" + function_name, () => {

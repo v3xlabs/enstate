@@ -1,7 +1,7 @@
 import { expect, test, describe, beforeAll, afterAll } from "bun:test";
 import { test_implementation } from "../src/test_implementation";
 import { Subprocess } from "bun";
-import { dataset_address_basic, dataset_name_basic, dataset_universal_basic } from "../data/basic";
+import { dataset_address_single, dataset_name_single, dataset_universal_single } from "../data/single";
 import { http_fetch } from "../src/http_fetch";
 
 let server: Subprocess | undefined = undefined;
@@ -37,6 +37,6 @@ afterAll(async () => {
     await server?.exited;
 });
 
-test_implementation("worker/name", http_fetch("http://0.0.0.0:3001/n/"), dataset_name_basic);
-test_implementation("worker/address", http_fetch("http://0.0.0.0:3001/n/"), dataset_address_basic);
-test_implementation("worker/universal", http_fetch("http://0.0.0.0:3001/n/"), dataset_universal_basic);
+test_implementation("worker/name", http_fetch("http://0.0.0.0:3001/n/"), dataset_name_single);
+test_implementation("worker/address", http_fetch("http://0.0.0.0:3001/n/"), dataset_address_single);
+test_implementation("worker/universal", http_fetch("http://0.0.0.0:3001/n/"), dataset_universal_single);
