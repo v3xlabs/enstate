@@ -28,9 +28,9 @@ beforeAll(async () => {
             console.log('Heartbeat succes!');
             break;
         } catch {
-            console.log('Waiting another 1s for heartbeat...');
+            console.log('Waiting another 4s for heartbeat...');
             attempts++;
-            await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+            await new Promise<void>((resolve) => setTimeout(resolve, 4000));
             continue;
         }
     }
