@@ -57,26 +57,32 @@ afterAll(async () => {
     server?.kill();
 });
 
-test_implementation('server/name', http_fetch('http://0.0.0.0:3000/n/'), dataset_name_single);
-test_implementation('server/address', http_fetch('http://0.0.0.0:3000/a/'), dataset_address_single);
+const PREFIX = 'server';
+
+test_implementation(`${PREFIX}/name`, http_fetch('http://0.0.0.0:3000/n/'), dataset_name_single);
 test_implementation(
-    'server/universal',
+    `${PREFIX}/address`,
+    http_fetch('http://0.0.0.0:3000/a/'),
+    dataset_address_single
+);
+test_implementation(
+    `${PREFIX}/universal`,
     http_fetch('http://0.0.0.0:3000/u/'),
     dataset_universal_single
 );
 
 test_implementation(
-    'server/bulk/name',
+    `${PREFIX}/bulk/name`,
     http_fetch('http://0.0.0.0:3000/bulk/n?'),
     dataset_name_bulk
 );
 test_implementation(
-    'server/bulk/address',
+    `${PREFIX}/bulk/address`,
     http_fetch('http://0.0.0.0:3000/bulk/a?'),
     dataset_address_bulk
 );
 test_implementation(
-    'server/bulk/universal',
+    `${PREFIX}/bulk/universal`,
     http_fetch('http://0.0.0.0:3000/bulk/u?'),
     dataset_universal_bulk
 );

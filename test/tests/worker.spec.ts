@@ -19,8 +19,6 @@ beforeAll(async () => {
 
     console.log('Waiting for server to start...');
 
-    let attempts = 0;
-
     // TODO: fix
     // eslint-disable-next-line no-constant-condition
     while (true) {
@@ -30,8 +28,7 @@ beforeAll(async () => {
             console.log('Heartbeat succes!');
             break;
         } catch {
-            console.log('Waiting another 4s for heartbeat...');
-            attempts++;
+            console.log('Waiting another 1s for heartbeat...');
             await new Promise<void>((resolve) => setTimeout(resolve, 1000));
             continue;
         }
@@ -46,26 +43,32 @@ afterAll(async () => {
     await server?.exited;
 });
 
-test_implementation('worker/name', http_fetch('http://0.0.0.0:3000/n/'), dataset_name_single);
-test_implementation('worker/address', http_fetch('http://0.0.0.0:3000/a/'), dataset_address_single);
+const PREFIX = 'worker';
+
+test_implementation(`${PREFIX}/name`, http_fetch('http://0.0.0.0:3000/n/'), dataset_name_single);
 test_implementation(
-    'worker/universal',
+    `${PREFIX}/address`,
+    http_fetch('http://0.0.0.0:3000/a/'),
+    dataset_address_single
+);
+test_implementation(
+    `${PREFIX}/universal`,
     http_fetch('http://0.0.0.0:3000/u/'),
     dataset_universal_single
 );
 
 test_implementation(
-    'worker/bulk/name',
+    `${PREFIX}/bulk/name`,
     http_fetch('http://0.0.0.0:3000/bulk/n?'),
     dataset_name_bulk
 );
 test_implementation(
-    'worker/bulk/address',
+    `${PREFIX}/bulk/address`,
     http_fetch('http://0.0.0.0:3000/bulk/a?'),
     dataset_address_bulk
 );
 test_implementation(
-    'worker/bulk/universal',
+    `${PREFIX}/bulk/universal`,
     http_fetch('http://0.0.0.0:3000/bulk/u?'),
     dataset_universal_bulk
 );

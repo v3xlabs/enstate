@@ -11,6 +11,9 @@ jobs:
     env:
       SCCACHE_GHA_ENABLED: "true"
       RUSTC_WRAPPER: "sccache"
+    strategy:
+      matrix:
+        suite: [server, worker]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -31,9 +34,10 @@ jobs:
         working-directory: test
 
       - run: bun install --global wrangler
+        if: ${{ matrix.suite == 'worker' }}
 
       - name: Test
-        run: bun test
+        run: bun test ${{ matrix.suite }}
         working-directory: test
         env:
           RPC_URL: https://rpc.ankr.com/eth
