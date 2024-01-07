@@ -10,7 +10,7 @@ import {
 import { http_fetch } from '../src/http_fetch';
 import { test_implementation } from '../src/test_implementation';
 
-let server: Subprocess | undefined;
+let server: Subprocess<'ignore', 'pipe', 'inherit'> | undefined;
 
 beforeAll(async () => {
     console.log('Building worker...');
@@ -21,7 +21,9 @@ beforeAll(async () => {
 
     let attempts = 0;
 
-    while (attempts < 30) {
+    // TODO: fix
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
         try {
             console.log('Attempting heartbeat...');
             await fetch('http://0.0.0.0:3000/');
@@ -30,7 +32,7 @@ beforeAll(async () => {
         } catch {
             console.log('Waiting another 4s for heartbeat...');
             attempts++;
-            await new Promise<void>((resolve) => setTimeout(resolve, 4000));
+            await new Promise<void>((resolve) => setTimeout(resolve, 1000));
             continue;
         }
     }
