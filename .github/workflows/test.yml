@@ -1,4 +1,7 @@
 on:
+  push:
+    branches:
+      - ci/integration-tests
   workflow_call:
 
 jobs:
