@@ -1,0 +1,22 @@
+{
+    "name": "enstate-tests",
+    "module": "index.ts",
+    "type": "module",
+    "devDependencies": {
+        "@typescript-eslint/parser": "^6.17.0",
+        "bun-types": "latest",
+        "eslint": "^8.56.0",
+        "eslint-plugin-v3xlabs": "^1.6.2",
+        "typescript": "^5.3.3"
+    },
+    "peerDependencies": {
+        "typescript": "^5.0.0"
+    },
+    "dependencies": {
+        "@types/qs": "^6.9.11",
+        "qs": "^6.11.2"
+    },
+    "scripts": {
+        "lint": "eslint -c .eslintrc.json --ext .ts ./src ./tests ./data"
+    }
+}

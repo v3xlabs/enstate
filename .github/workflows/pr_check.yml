@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: PR Check
 on:
   pull_request:
     branches:
@@ -19,6 +19,9 @@ jobs:
             target: x86_64-unknown-linux-gnu
           - path: worker
             target: wasm32-unknown-unknown
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: "sccache"
     steps:
       - uses: actions/checkout@v3
         with:
@@ -29,20 +32,13 @@ jobs:
           rustup toolchain install stable --profile minimal
           rustup target add ${{ matrix.target }}
 
-      - name: Set up cargo cache
-        uses: actions/cache@v3
-        continue-on-error: false
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.3
         with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            server/target/
-            worker/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
+          version: "v0.7.4"
 
       - run: cargo check --target ${{ matrix.target }} --release
         working-directory: ${{ matrix.path }}
-
+  test:
+    uses: ./.github/workflows/test.yml
+    needs: [check]
