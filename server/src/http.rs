@@ -10,7 +10,7 @@ use tracing::info;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-use crate::models::bulk::BulkResponse;
+use crate::models::bulk::{BulkResponse, ListResponse};
 use crate::models::error::ErrorResponse;
 use crate::models::profile::ENSProfile;
 use crate::routes;
@@ -19,7 +19,7 @@ use crate::state::AppState;
 #[derive(OpenApi)]
 #[openapi(
     paths(routes::address::get, routes::name::get, routes::universal::get),
-    components(schemas(ENSProfile, BulkResponse<ENSProfile>, ErrorResponse))
+    components(schemas(ENSProfile, ListResponse<BulkResponse<ENSProfile>>, ErrorResponse))
 )]
 pub struct ApiDoc;
 

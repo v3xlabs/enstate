@@ -1,6 +1,8 @@
+import { randomBytes } from 'node:crypto';
+
 import { Dataset } from '.';
 
-export const dataset_name_single: Dataset<{ address: string }> = [
+export const dataset_name_single: Dataset<{ address: string } | { status: number }> = [
     {
         label: 'ETHRegistry',
         arg: 'luc.eth',
@@ -12,6 +14,11 @@ export const dataset_name_single: Dataset<{ address: string }> = [
         expected: { address: '0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5' },
     },
     {
+        label: 'ETHRegistry (not found)',
+        arg: randomBytes(8).toString('hex') + '.eth',
+        expected: { status: 404 },
+    },
+    {
         label: 'DNSRegistry',
         arg: 'luc.computer',
         expected: { address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
@@ -20,6 +27,11 @@ export const dataset_name_single: Dataset<{ address: string }> = [
         label: 'DNSRegistry',
         arg: 'antony.sh',
         expected: { address: '0x2B5c7025998f88550Ef2fEce8bf87935f542C190' },
+    },
+    {
+        label: 'DNSRegistry (not found)',
+        arg: randomBytes(8).toString('hex') + '.com',
+        expected: { status: 404 },
     },
     {
         label: 'CCIP Offchain RS',
@@ -33,7 +45,17 @@ export const dataset_name_single: Dataset<{ address: string }> = [
     },
 ];
 
-export const dataset_address_single: Dataset<{ name: string }> = [
+export const dataset_address_single: Dataset<{ name: string } | { status: number }> = [
+    {
+        label: 'Error (bad address)',
+        arg: 'hi',
+        expected: { status: 400 },
+    },
+    {
+        label: 'Error (address not found)',
+        arg: '0x000000000000000000000000000000000000ffff',
+        expected: { status: 404 },
+    },
     {
         label: 'ETHRegistry',
         arg: '0x225f137127d9067788314bc7fcc1f36746a3c3B5',
@@ -68,7 +90,14 @@ export const dataset_address_single: Dataset<{ name: string }> = [
     // },
 ];
 
-export const dataset_universal_single: Dataset<{ address: string } | { name: string }> = [
+export const dataset_universal_single: Dataset<
+    { address: string } | { name: string } | { status: number }
+> = [
+    {
+        label: 'Error (not found)',
+        arg: '0x000000000000000000000000000000000000ffff',
+        expected: { status: 404 },
+    },
     {
         label: 'ETHRegistry',
         arg: 'luc.eth',
@@ -80,6 +109,11 @@ export const dataset_universal_single: Dataset<{ address: string } | { name: str
         expected: { name: 'nick.eth' },
     },
     {
+        label: 'ETHRegistry (not found)',
+        arg: randomBytes(8).toString('hex') + '.eth',
+        expected: { status: 404 },
+    },
+    {
         label: 'DNSRegistry',
         arg: 'luc.computer',
         expected: { address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
@@ -88,6 +122,11 @@ export const dataset_universal_single: Dataset<{ address: string } | { name: str
         label: 'DNSRegistry',
         arg: '0x2B5c7025998f88550Ef2fEce8bf87935f542C190',
         expected: { name: 'antony.sh' },
+    },
+    {
+        label: 'DNSRegistry (not found)',
+        arg: randomBytes(8).toString('hex') + '.com',
+        expected: { status: 404 },
     },
     {
         label: 'CCIP Offchain RS',

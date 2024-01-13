@@ -7,14 +7,11 @@ use axum::{
 };
 use enstate_shared::models::profile::Profile;
 use ethers_core::types::Address;
-use futures::future::try_join_all;
+use futures::future::join_all;
 use serde::Deserialize;
 
-use crate::models::bulk::BulkResponse;
-use crate::routes::{
-    http_simple_status_error, profile_http_error_mapper, validate_bulk_input, FreshQuery, Qs,
-    RouteError,
-};
+use crate::models::bulk::{BulkResponse, ListResponse};
+use crate::routes::{http_simple_status_error, validate_bulk_input, FreshQuery, Qs, RouteError};
 
 #[utoipa::path(
     get,
@@ -42,7 +39,11 @@ pub async fn get(
         State(state),
     )
     .await
-    .map(|res| Json(res.0.response.get(0).expect("index 0 should exist").clone()))
+    .map(|mut res| {
+        Result::<_, _>::from(res.0.response.remove(0))
+            .map(Json)
+            .map_err(RouteError::from)
+    })?
 }
 
 #[derive(Deserialize)]
@@ -71,7 +72,7 @@ pub struct AddressGetBulkQuery {
 pub async fn get_bulk(
     Qs(query): Qs<AddressGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
-) -> Result<Json<BulkResponse<Profile>>, RouteError> {
+) -> Result<Json<ListResponse<BulkResponse<Profile>>>, RouteError> {
     let addresses = validate_bulk_input(&query.addresses, 10)?;
 
     let addresses = addresses
@@ -89,9 +90,7 @@ pub async fn get_bulk(
         })
         .collect::<Vec<_>>();
 
-    let joined = try_join_all(profiles)
-        .await
-        .map_err(profile_http_error_mapper)?;
+    let joined = join_all(profiles).await.into();
 
-    Ok(Json(joined.into()))
+    Ok(Json(joined))
 }

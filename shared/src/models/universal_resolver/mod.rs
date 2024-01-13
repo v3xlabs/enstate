@@ -87,7 +87,7 @@ pub async fn resolve_universal(
         })?;
 
     // Abi Decode
-    let result = ethers_core::abi::decode(
+    let result = abi::decode(
         &[
             ParamType::Array(Box::new(ParamType::Bytes)),
             ParamType::Address,

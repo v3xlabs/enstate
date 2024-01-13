@@ -37,7 +37,16 @@ where
 
 pub type RouteError = (StatusCode, Json<ErrorResponse>);
 
-pub fn profile_http_error_mapper<T: AsRef<ProfileError>>(err: T) -> RouteError {
+impl From<ErrorResponse> for RouteError {
+    fn from(value: ErrorResponse) -> Self {
+        (
+            StatusCode::from_u16(value.status).expect("status should be valid"),
+            Json(value),
+        )
+    }
+}
+
+pub fn profile_http_error_mapper<T: AsRef<ProfileError>>(err: T) -> ErrorResponse {
     let err = err.as_ref();
     let status = match err {
         ProfileError::NotFound => StatusCode::NOT_FOUND,
@@ -46,13 +55,10 @@ pub fn profile_http_error_mapper<T: AsRef<ProfileError>>(err: T) -> RouteError {
         _ => StatusCode::INTERNAL_SERVER_ERROR,
     };
 
-    (
-        status,
-        Json(ErrorResponse {
-            status: status.as_u16(),
-            error: err.to_string(),
-        }),
-    )
+    ErrorResponse {
+        status: status.as_u16(),
+        error: err.to_string(),
+    }
 }
 
 pub fn http_simple_status_error(status: StatusCode) -> RouteError {
