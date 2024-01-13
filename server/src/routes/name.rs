@@ -5,11 +5,11 @@ use axum::{
     Json,
 };
 use enstate_shared::models::profile::Profile;
-use futures::future::try_join_all;
+use futures::future::join_all;
 use serde::Deserialize;
 
-use crate::models::bulk::BulkResponse;
-use crate::routes::{profile_http_error_mapper, validate_bulk_input, FreshQuery, Qs, RouteError};
+use crate::models::bulk::{BulkResponse, ListResponse};
+use crate::routes::{validate_bulk_input, FreshQuery, Qs, RouteError};
 
 #[utoipa::path(
     get,
@@ -35,7 +35,11 @@ pub async fn get(
         State(state),
     )
     .await
-    .map(|res| Json(res.0.response.get(0).expect("index 0 should exist").clone()))
+    .map(|mut res| {
+        Result::<_, _>::from(res.0.response.remove(0))
+            .map(Json)
+            .map_err(RouteError::from)
+    })?
 }
 
 #[derive(Deserialize)]
@@ -52,7 +56,7 @@ pub struct NameGetBulkQuery {
     get,
     path = "/bulk/n/",
     responses(
-        (status = 200, description = "Successfully found name.", body = BulkResponse<ENSProfile>),
+        (status = 200, description = "Successfully found name.", body = ListButWithLength<BulkResponse<Profile>>),
         (status = NOT_FOUND, description = "No name could be found.", body = ErrorResponse),
     ),
     params(
@@ -62,7 +66,7 @@ pub struct NameGetBulkQuery {
 pub async fn get_bulk(
     Qs(query): Qs<NameGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
-) -> Result<Json<BulkResponse<Profile>>, RouteError> {
+) -> Result<Json<ListResponse<BulkResponse<Profile>>>, RouteError> {
     let names = validate_bulk_input(&query.names, 10)?;
 
     let profiles = names
@@ -70,9 +74,7 @@ pub async fn get_bulk(
         .map(|name| state.service.resolve_from_name(name, query.fresh.fresh))
         .collect::<Vec<_>>();
 
-    let joined = try_join_all(profiles)
-        .await
-        .map_err(profile_http_error_mapper)?;
+    let joined = join_all(profiles).await.into();
 
-    Ok(Json(joined.into()))
+    Ok(Json(joined))
 }

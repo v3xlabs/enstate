@@ -60,7 +60,7 @@ impl From<ErrorResponse> for Error {
     }
 }
 
-pub fn profile_http_error_mapper(err: ProfileError) -> Error {
+pub fn profile_http_error_mapper(err: ProfileError) -> ErrorResponse {
     let status = match err {
         ProfileError::NotFound => StatusCode::NOT_FOUND,
         ProfileError::CCIPError(_) => StatusCode::BAD_GATEWAY,
@@ -72,7 +72,6 @@ pub fn profile_http_error_mapper(err: ProfileError) -> Error {
         status: status.as_u16(),
         error: err.to_string(),
     }
-    .into()
 }
 
 pub fn http_simple_status_error(status: StatusCode) -> Error {

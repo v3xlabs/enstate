@@ -1,11 +1,11 @@
-use enstate_shared::models::profile::ProfileService;
+use enstate_shared::models::profile::{Profile, ProfileService};
 use ethers::addressbook::Address;
-use futures_util::future::try_join_all;
+use futures_util::future::join_all;
 use http::StatusCode;
 use serde::Deserialize;
 use worker::{Request, Response, RouteContext};
 
-use crate::bulk_util::{validate_bulk_input, BulkResponse};
+use crate::bulk_util::{validate_bulk_input, BulkResponse, ListResponse};
 use crate::http_util::{
     http_simple_status_error, parse_query, profile_http_error_mapper, FreshQuery,
 };
@@ -54,9 +54,7 @@ pub async fn get_bulk(req: Request, ctx: RouteContext<ProfileService>) -> worker
         .map(|address| ctx.data.resolve_from_address(*address, query.fresh.fresh))
         .collect::<Vec<_>>();
 
-    let joined = try_join_all(profiles)
-        .await
-        .map_err(profile_http_error_mapper)?;
+    let joined: ListResponse<BulkResponse<Profile>> = join_all(profiles).await.into();
 
-    Response::from_json(&BulkResponse::from(joined))
+    Response::from_json(&joined)
 }

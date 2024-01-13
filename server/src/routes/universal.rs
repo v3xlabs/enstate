@@ -5,11 +5,11 @@ use axum::{
     Json,
 };
 use enstate_shared::models::profile::Profile;
-use futures::future::try_join_all;
+use futures::future::join_all;
 use serde::Deserialize;
 
-use crate::models::bulk::BulkResponse;
-use crate::routes::{profile_http_error_mapper, validate_bulk_input, FreshQuery, Qs, RouteError};
+use crate::models::bulk::{BulkResponse, ListResponse};
+use crate::routes::{validate_bulk_input, FreshQuery, Qs, RouteError};
 
 #[utoipa::path(
     get,
@@ -36,7 +36,11 @@ pub async fn get(
         State(state),
     )
     .await
-    .map(|res| Json(res.0.response.get(0).expect("index 0 should exist").clone()))
+    .map(|mut res| {
+        Result::<_, _>::from(res.0.response.remove(0))
+            .map(Json)
+            .map_err(RouteError::from)
+    })?
 }
 
 #[derive(Deserialize)]
@@ -64,7 +68,7 @@ pub struct UniversalGetBulkQuery {
 pub async fn get_bulk(
     Qs(query): Qs<UniversalGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
-) -> Result<Json<BulkResponse<Profile>>, RouteError> {
+) -> Result<Json<ListResponse<BulkResponse<Profile>>>, RouteError> {
     let queries = validate_bulk_input(&query.queries, 10)?;
 
     let profiles = queries
@@ -76,9 +80,7 @@ pub async fn get_bulk(
         })
         .collect::<Vec<_>>();
 
-    let joined = try_join_all(profiles)
-        .await
-        .map_err(profile_http_error_mapper)?;
+    let joined = join_all(profiles).await.into();
 
-    Ok(Json(joined.into()))
+    Ok(Json(joined))
 }
