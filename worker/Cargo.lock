@@ -1089,6 +1089,7 @@ dependencies = [
 [[package]]
 name = "ethers-ccip-read"
 version = "0.1.1"
+source = "git+https://github.com/v3xlabs/rust-ethers-ccip-read/?branch=patch/provider-error-handling#85b7b2432beb9d340b82d54e007a52d175f8e0bb"
 dependencies = [
  "async-recursion",
  "async-trait",
