@@ -3,7 +3,6 @@ use enstate_shared::models::profile::error::ProfileError;
 use enstate_shared::models::profile::Profile;
 use enstate_shared::utils::vec::dedup_ord;
 
-// yes, this is a result
 #[derive(serde::Serialize)]
 #[serde(tag = "type")]
 pub enum BulkResponse<Ok> {
