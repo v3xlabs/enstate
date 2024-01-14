@@ -1055,7 +1055,7 @@ dependencies = [
  "crc16",
  "crc32fast",
  "ethers",
- "ethers-ccip-read 0.1.1 (git+https://github.com/v3xlabs/rust-ethers-ccip-read/?branch=patch/provider-error-handling)",
+ "ethers-ccip-read 0.1.1 (git+https://github.com/ensdomains/ethers-ccip-read)",
  "ethers-contract",
  "ethers-core",
  "getrandom",
@@ -1208,7 +1208,7 @@ dependencies = [
 [[package]]
 name = "ethers-ccip-read"
 version = "0.1.1"
-source = "git+https://github.com/v3xlabs/rust-ethers-ccip-read/?branch=patch/provider-error-handling#85b7b2432beb9d340b82d54e007a52d175f8e0bb"
+source = "git+https://github.com/ensdomains/ethers-ccip-read#8838667e0e7768d14011cc3bb6b519b7e849864c"
 dependencies = [
  "async-recursion",
  "async-trait",
