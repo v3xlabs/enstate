@@ -4,6 +4,7 @@ use std::sync::Arc;
 use ethers::prelude::Http;
 use ethers::providers::Provider;
 use ethers_ccip_read::CCIPReadMiddleware;
+use ethers_core::types::H160;
 use serde::{Deserialize, Serialize};
 
 use crate::models::multicoin::cointype::coins::CoinType;
@@ -53,4 +54,5 @@ pub struct ProfileService {
     pub opensea_api_key: String,
     pub profile_records: Arc<[String]>,
     pub profile_chains: Arc<[CoinType]>,
+    pub universal_resolver: H160,
 }

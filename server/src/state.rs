@@ -1,4 +1,5 @@
 use enstate_shared::cache::{CacheLayer, PassthroughCacheLayer};
+use ethers_core::types::H160;
 use std::env;
 use std::sync::Arc;
 
@@ -62,6 +63,11 @@ impl AppState {
         let opensea_api_key =
             env::var("OPENSEA_API_KEY").expect("OPENSEA_API_KEY should've been set");
 
+        let universal_resolver = env::var("UNIVERSAL_RESOLVER")
+            .expect("UNIVERSAL_RESOLVER should've been set")
+            .parse::<H160>()
+            .expect("UNIVERSAL_RESOLVER should be a valid address");
+
         Self {
             service: ProfileService {
                 cache,
@@ -69,6 +75,7 @@ impl AppState {
                 opensea_api_key,
                 profile_records: Arc::from(profile_records),
                 profile_chains: Arc::from(multicoin_chains),
+                universal_resolver,
             },
         }
     }
