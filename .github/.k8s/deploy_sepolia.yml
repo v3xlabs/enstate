@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis-goerli
+  name: redis-sepolia
   namespace: enstate
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: redis-goerli
+      app: redis-sepolia
   template:
     metadata:
       labels:
-        app: redis-goerli
+        app: redis-sepolia
     spec:
       containers:
-        - name: redis-goerli
+        - name: redis-sepolia
           image: redis:6.0.9-alpine
           ports:
             - containerPort: 6379
@@ -22,11 +22,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis-goerli
+  name: redis-sepolia
   namespace: enstate
 spec:
   selector:
-    app: redis-goerli
+    app: redis-sepolia
   ports:
     - protocol: TCP
       port: 6379
@@ -35,20 +35,20 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: enstate-goerli
+  name: enstate-sepolia
   namespace: enstate
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: enstate-goerli
+      app: enstate-sepolia
   template:
     metadata:
       labels:
-        app: enstate-goerli
+        app: enstate-sepolia
     spec:
       containers:
-        - name: enstate-goerli
+        - name: enstate-sepolia
           image: ghcr.io/v3xlabs/enstate:sha-749e1d2
           imagePullPolicy: Always
           ports:
@@ -60,11 +60,11 @@ spec:
                   name: opensea-api-key
                   key: api-key
             - name: REDIS_URL
-              value: redis://redis-goerli.enstate.svc.cluster.local:6379
+              value: redis://redis-sepolia.enstate.svc.cluster.local:6379
             - name: RPC_URL
-              value: https://rpc.ankr.com/eth_goerli,https://ethereum-goerli.publicnode.com,https://goerli.gateway.tenderly.co
+              value: https://rpc.ankr.com/eth_sepolia,https://ethereum-sepolia.publicnode.com,https://sepolia.gateway.tenderly.co
             - name: UNIVERSAL_RESOLVER
-              value: 0x3952Be0b2186f8B113193a84b69bD71ad3fc1ae3
+              value: 0x21B000Fd62a880b2125A61e36a284BB757b76025
           resources:
             requests:
               cpu: 100m
@@ -76,11 +76,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: enstate-goerli
+  name: enstate-sepolia
   namespace: enstate
 spec:
   selector:
-    app: enstate-goerli
+    app: enstate-sepolia
   ports:
     - protocol: TCP
       port: 3000
@@ -89,24 +89,24 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: enstate-goerli
+  name: enstate-sepolia
   namespace: enstate
   annotations:
     cert-manager.io/issuer: le-http
 spec:
   ingressClassName: traefik
   rules:
-    - host: goerli.enstate.rs
+    - host: sepolia.enstate.rs
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: enstate-goerli
+                name: enstate-sepolia
                 port:
                   number: 3000
   tls:
   - hosts:
-    - goerli.enstate.rs
-    secretName: tls-goerli-enstate-ingress-http
+    - sepolia.enstate.rs
+    secretName: tls-sepolia-enstate-ingress-http

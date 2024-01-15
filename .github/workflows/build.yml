@@ -3,20 +3,18 @@ on:
   push:
     tags:
       - "v*.*.*"
-    branches:
-      - "feat/universal_resolver"
   workflow_call:
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # test_server:
-  #   uses: ./.github/workflows/test.yml
+  test_server:
+    uses: ./.github/workflows/test.yml
   build:
     name: Build ENState 🚀
     runs-on: ubuntu-latest
-    # needs: [test_server]
+    needs: [test_server]
     env:
       SCCACHE_GHA_ENABLED: "true"
       RUSTC_WRAPPER: "sccache"
