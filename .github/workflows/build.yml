@@ -3,6 +3,8 @@ on:
   push:
     tags:
       - "v*.*.*"
+    branches:
+      - "feat/universal_resolver"
   workflow_call:
 
 env:
