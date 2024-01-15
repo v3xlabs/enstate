@@ -15,7 +15,7 @@ let server: Subprocess<'ignore', 'pipe', 'inherit'> | undefined;
 beforeAll(async () => {
     console.log('Building worker...');
 
-    server = Bun.spawn(['wrangler', 'dev', '--port', '3000'], { cwd: '../worker' });
+    server = Bun.spawn(['pnpm', 'dev', '--port', '3000'], { cwd: '../worker' });
 
     console.log('Waiting for server to start...');
 

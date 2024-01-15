@@ -36,6 +36,10 @@ jobs:
       - run: npm i -g pnpm && pnpm install && pnpm build
         if: ${{ matrix.suite == 'worker' }}
         working-directory: worker
+        env:
+          RPC_URL: https://rpc.ankr.com/eth
+          OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
+          UNIVERSAL_RESOLVER: '0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62'
 
       - run: cargo build --release
         if: ${{ matrix.suite == 'server' }}
