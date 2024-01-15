@@ -51,7 +51,7 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
         .var("UNIVERSAL_RESOLVER")
         .expect("UNIVERSAL_RESOLVER should've been set")
         .to_string()
-        .parse()
+        .parse::<H160>()
         .expect("UNIVERSAL_RESOLVER should be a valid address");
 
     let service = ProfileService {

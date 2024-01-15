@@ -11,6 +11,11 @@ jobs:
     strategy:
       matrix:
         suite: [server, worker]
+        include:
+          - suite: server
+            build: bun install --global pnpm && pnpm install && pnpm build
+          - suite: worker
+            build: cargo build --release
     steps:
       - uses: actions/checkout@v3
         with:
@@ -30,20 +35,12 @@ jobs:
       - run: bun install
         working-directory: test
 
-      - run: bun install --global wrangler
-        if: ${{ matrix.suite == 'worker' }}
-
-      - run: npm i -g pnpm && pnpm install && pnpm build
-        if: ${{ matrix.suite == 'worker' }}
-        working-directory: worker
+      - run: ${{ matrix.build }}
+        working-directory: ${{ matrix.suite }}
         env:
           RPC_URL: https://rpc.ankr.com/eth
           OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
-          UNIVERSAL_RESOLVER: '0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62'
-
-      - run: cargo build --release
-        if: ${{ matrix.suite == 'server' }}
-        working-directory: server
+          UNIVERSAL_RESOLVER: "0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62"
 
       - name: Test
         run: bun test ${{ matrix.suite }}
@@ -51,4 +48,4 @@ jobs:
         env:
           RPC_URL: https://rpc.ankr.com/eth
           OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
-          UNIVERSAL_RESOLVER: '0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62'
+          UNIVERSAL_RESOLVER: "0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62"

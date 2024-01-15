@@ -1,7 +1,6 @@
 use std::vec;
 
 use ethers::prelude::ProviderError::JsonRpcClientError;
-use ethers::providers::Middleware;
 use ethers::{
     providers::namehash,
     types::{transaction::eip2718::TypedTransaction, Address, Bytes},
@@ -11,7 +10,6 @@ use ethers_contract::abigen;
 use ethers_core::abi;
 use ethers_core::abi::{ParamType, Token};
 use ethers_core::types::H160;
-use lazy_static::lazy_static;
 
 use crate::models::lookup::ENSLookup;
 use crate::models::profile::CCIPProvider;
@@ -59,7 +57,7 @@ pub async fn resolve_universal(
     let transaction_data = [resolve_selector, encoded_data].concat();
 
     // Setup the transaction
-    typed_transaction.set_to(universal_resolver.clone());
+    typed_transaction.set_to(*universal_resolver);
     typed_transaction.set_data(Bytes::from(transaction_data));
 
     // Call the transaction

@@ -10,7 +10,6 @@ use crate::models::lookup::image::Image;
 use crate::models::lookup::multicoin::Multicoin;
 use crate::models::lookup::ENSLookupError;
 use crate::models::profile::ProfileService;
-use crate::models::universal_resolver;
 use crate::models::{
     lookup::{addr::Addr, text::Text, ENSLookup, LookupState},
     profile::Profile,
@@ -105,7 +104,7 @@ impl ProfileService {
             resolves.push(resolve_universal(name, chunk, &rpc, &self.universal_resolver).await?);
         }
 
-        let Some((_, resolver, ccip_urls)) = resolves.get(0) else {
+        let Some((_, resolver, ccip_urls)) = resolves.first() else {
             return Err(ProfileError::ImplementationError(String::new()));
         };
 
