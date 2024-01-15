@@ -13,9 +13,9 @@ jobs:
         suite: [server, worker]
         include:
           - suite: server
-            build: bun install --global pnpm && pnpm install && pnpm build
-          - suite: worker
             build: cargo build --release
+          - suite: worker
+            build: bun install --global pnpm && pnpm install && pnpm build
     steps:
       - uses: actions/checkout@v3
         with:
