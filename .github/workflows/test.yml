@@ -33,6 +33,14 @@ jobs:
       - run: bun install --global wrangler
         if: ${{ matrix.suite == 'worker' }}
 
+      - run: cargo build --release
+        if: ${{ matrix.suite == 'worker' }}
+        working-directory: worker
+
+      - run: cargo build --release
+        if: ${{ matrix.suite == 'server' }}
+        working-directory: server
+
       - name: Test
         run: bun test ${{ matrix.suite }}
         working-directory: test
