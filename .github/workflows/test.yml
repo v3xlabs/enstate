@@ -39,4 +39,4 @@ jobs:
         env:
           RPC_URL: https://rpc.ankr.com/eth
           OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
-          UNIVERSAL_RESOLVER: 0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62
+          UNIVERSAL_RESOLVER: '0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62'
