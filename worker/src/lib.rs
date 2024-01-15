@@ -7,6 +7,7 @@ use enstate_shared::models::profile::ProfileService;
 use enstate_shared::models::records::Records;
 use enstate_shared::utils::factory::SimpleFactory;
 use ethers::prelude::{Http, Provider};
+use ethers::types::H160;
 use http::StatusCode;
 use lazy_static::lazy_static;
 use worker::{event, Context, Cors, Env, Headers, Method, Request, Response, Router};
@@ -49,7 +50,8 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
     let universal_resolver = env
         .var("UNIVERSAL_RESOLVER")
         .expect("UNIVERSAL_RESOLVER should've been set")
-        .parse::<H160>()
+        .to_string()
+        .parse()
         .expect("UNIVERSAL_RESOLVER should be a valid address");
 
     let service = ProfileService {
