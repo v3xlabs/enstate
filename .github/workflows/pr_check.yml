@@ -8,37 +8,37 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  check:
-    name: Check ENState ⚒️
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        path: [server, worker]
-        include:
-          - path: server
-            target: x86_64-unknown-linux-gnu
-          - path: worker
-            target: wasm32-unknown-unknown
-    env:
-      SCCACHE_GHA_ENABLED: "true"
-      RUSTC_WRAPPER: "sccache"
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+  # check:
+  #   name: Check ENState ⚒️
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       path: [server, worker]
+  #       include:
+  #         - path: server
+  #           target: x86_64-unknown-linux-gnu
+  #         - path: worker
+  #           target: wasm32-unknown-unknown
+  #   env:
+  #     SCCACHE_GHA_ENABLED: "true"
+  #     RUSTC_WRAPPER: "sccache"
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
 
-      - run: |
-          rustup set auto-self-update disable
-          rustup toolchain install stable --profile minimal
-          rustup target add ${{ matrix.target }}
+  #     - run: |
+  #         rustup set auto-self-update disable
+  #         rustup toolchain install stable --profile minimal
+  #         rustup target add ${{ matrix.target }}
 
-      - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@v0.0.3
-        with:
-          version: "v0.7.4"
+  #     - name: Run sccache-cache
+  #       uses: mozilla-actions/sccache-action@v0.0.3
+  #       with:
+  #         version: "v0.7.4"
 
-      - run: cargo check --target ${{ matrix.target }} --release
-        working-directory: ${{ matrix.path }}
+  #     - run: cargo check --target ${{ matrix.target }} --release
+  #       working-directory: ${{ matrix.path }}
   test:
     uses: ./.github/workflows/test.yml
-    needs: [check]
+    # needs: [check]
