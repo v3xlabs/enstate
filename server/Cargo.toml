@@ -8,7 +8,7 @@ description = "enstate"
 repository = "https://github.com/v3xlabs/enstate"
 authors = [
     "Luc van Kampen <luc@v3x.email>",
-    "Antonio Fran Štignjedec <antony@antony.red>",
+    "Antonio Fran Trstenjak <antony@antony.red>",
     "Miguel Piedrafita <sup@miguel.build>",
 ]
 
