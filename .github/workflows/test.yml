@@ -33,7 +33,7 @@ jobs:
       - run: bun install --global wrangler
         if: ${{ matrix.suite == 'worker' }}
 
-      - run: cargo build --release
+      - run: pnpm build
         if: ${{ matrix.suite == 'worker' }}
         working-directory: worker
 
