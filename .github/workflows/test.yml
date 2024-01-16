@@ -25,6 +25,7 @@ jobs:
 
       - run: |
           rustup set auto-self-update disable
+          rustup set auto-self-update disable
           rustup toolchain install stable --profile minimal
 
       - name: Run sccache-cache

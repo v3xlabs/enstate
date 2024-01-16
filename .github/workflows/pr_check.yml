@@ -28,9 +28,9 @@ jobs:
           fetch-depth: 0
 
       - run: |
-          sudo apt-get update -y && sudo apt-get -y install curl
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup.sh
-          bash rustup.sh --default-toolchain stable --profile minimal --target ${{ matrix.target }} -y
+          rustup set auto-self-update disable
+          rustup toolchain install stable --profile minimal
+          rustup target add ${{ matrix.target }}
 
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.3
@@ -39,8 +39,8 @@ jobs:
 
       - run: cargo check --target ${{ matrix.target }} --release
         working-directory: ${{ matrix.path }}
-  # test:
-  #   name: Test ENState 🧪
-  #   uses: ./.github/workflows/test.yml
-  #   secrets: inherit
-  #   needs: [check]
+  test:
+    name: Test ENState 🧪
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+    needs: [check]
