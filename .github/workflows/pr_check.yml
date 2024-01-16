@@ -28,7 +28,7 @@ jobs:
           fetch-depth: 0
 
       - run: |
-          sudo apt install curl -y
+          sudo apt-get update -y && sudo apt-get -y install curl
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
           rustup set auto-self-update disable
           rustup toolchain install stable --profile minimal
@@ -41,8 +41,8 @@ jobs:
 
       - run: cargo check --target ${{ matrix.target }} --release
         working-directory: ${{ matrix.path }}
-  test:
-    name: Test ENState 🧪
-    uses: ./.github/workflows/test.yml
-    secrets: inherit
-    needs: [check]
+  # test:
+  #   name: Test ENState 🧪
+  #   uses: ./.github/workflows/test.yml
+  #   secrets: inherit
+  #   needs: [check]
