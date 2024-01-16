@@ -28,7 +28,7 @@ jobs:
           fetch-depth: 0
 
       - run: |
-          apt install curl -y
+          sudo apt install curl -y
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
           rustup set auto-self-update disable
           rustup toolchain install stable --profile minimal
