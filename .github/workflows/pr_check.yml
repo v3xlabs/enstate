@@ -29,7 +29,8 @@ jobs:
 
       - run: |
           sudo apt-get update -y && sudo apt-get -y install curl
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup.sh
+          bash rustup.sh -y
           rustup -y set auto-self-update disable
           rustup -y toolchain install stable --profile minimal
           rustup -y target add ${{ matrix.target }}
