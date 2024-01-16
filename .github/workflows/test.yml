@@ -56,5 +56,5 @@ jobs:
         working-directory: ${{ matrix.suite }}
 
       - name: Test
-        run: bun test ${{ matrix.suite }}
+        run: bun test ${{ matrix.suite }} --timeout 10000 --rerun-each 2
         working-directory: test
