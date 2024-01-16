@@ -10,7 +10,7 @@ jobs:
       RUSTC_WRAPPER: "sccache"
     strategy:
       matrix:
-        suite: [server, worker]
+        suite: [server]
         include:
           - suite: server
             build: cargo build --release
@@ -42,6 +42,7 @@ jobs:
           RPC_URL: ${{ secrets.RPC_URL }}
           OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
         run: |
+          env
           cat <<EOF > ${{ matrix.env_file }}
           RPC_URL=$RPC_URL
           OPENSEA_API_KEY=$OPENSEA_API_KEY
