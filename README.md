@@ -24,7 +24,7 @@ docker run \
   -p 3000:3000 \
   -e REDIS_URL=redis://0.0.0.0:6379 \
   -e RPC_URL=https://rpc.ankr.com/eth \
-  ghcr.io/v3xlabs/enstate:0.0.5
+  ghcr.io/v3xlabs/enstate:1.0.5
 ```
 
 ### 🐳 Docker Compose
@@ -33,7 +33,7 @@ docker run \
 version: "3.8"
 services:
     enstate:
-        image: ghcr.io/v3xlabs/enstate:0.0.5
+        image: ghcr.io/v3xlabs/enstate:1.0.5
         ports:
             - 3000:3000
         environment:
