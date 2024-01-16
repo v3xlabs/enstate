@@ -4,9 +4,9 @@ on:
 jobs:
   test:
     name: Test ENState 🚀
-    runs-on: ubuntu-latest
+    runs-on: arc-runner-set
     env:
-      SCCACHE_GHA_ENABLED: "true"
+      SCCACHE_REDIS: "redis://redis.redis.svc.cluster.local:6379"
       RUSTC_WRAPPER: "sccache"
     strategy:
       matrix:
@@ -24,6 +24,7 @@ jobs:
           fetch-depth: 0
 
       - run: |
+          rustup set auto-self-update disable
           rustup set auto-self-update disable
           rustup toolchain install stable --profile minimal
 
