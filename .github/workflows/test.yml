@@ -16,6 +16,7 @@ jobs:
       SCCACHE_REDIS: "redis://redis.redis.svc.cluster.local:6379"
       RUSTC_WRAPPER: "sccache"
     strategy:
+      fail-fast: false
       matrix:
         suite: [server, worker]
         include:
