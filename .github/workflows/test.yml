@@ -37,17 +37,14 @@ jobs:
       - run: bun install
         working-directory: test
 
-      - run: echo ${{ secrets.RPC_URL }} | base64
-      - run: |
-          cat <<EOF | base64
-          ${{ secrets.RPC_URL }}
-          EOF
-
       - name: Set-up environment > ${{ matrix.env_file }}
+        env:
+          RPC_URL: ${{ secrets.RPC_URL }}
+          OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
         run: |
           cat <<EOF > ${{ matrix.env_file }}
-          RPC_URL=${{ secrets.RPC_URL }}
-          OPENSEA_API_KEY=${{ secrets.OPENSEA_API_KEY }}
+          RPC_URL=$RPC_URL
+          OPENSEA_API_KEY=$OPENSEA_API_KEY
           UNIVERSAL_RESOLVER=0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62
           EOF
         working-directory: ${{ matrix.suite }}
