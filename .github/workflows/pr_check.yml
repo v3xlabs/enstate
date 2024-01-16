@@ -10,7 +10,7 @@ env:
 jobs:
   check:
     name: Check ENState ⚒️
-    runs-on: ubuntu-latest
+    runs-on: arc-runner-set
     strategy:
       matrix:
         path: [server, worker]

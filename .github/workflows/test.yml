@@ -4,7 +4,7 @@ on:
 jobs:
   test:
     name: Test ENState 🚀
-    runs-on: ubuntu-latest
+    runs-on: arc-runner-set
     env:
       SCCACHE_GHA_ENABLED: "true"
       RUSTC_WRAPPER: "sccache"
