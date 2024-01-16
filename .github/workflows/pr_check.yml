@@ -42,7 +42,7 @@ jobs:
   test:
     name: Test ENState 🧪
     uses: ./.github/workflows/test.yml
-    secrets:
-      RPC_URL: ${{ secrets.RPC_URL }}
-      OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
+    # secrets:
+    #   RPC_URL: ${{ secrets.RPC_URL }}
+    #   OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
     needs: [check]
