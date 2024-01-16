@@ -40,5 +40,6 @@ jobs:
       - run: cargo check --target ${{ matrix.target }} --release
         working-directory: ${{ matrix.path }}
   test:
+    name: Test ENState 🧪
     uses: ./.github/workflows/test.yml
     needs: [check]

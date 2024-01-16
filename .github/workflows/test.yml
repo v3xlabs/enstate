@@ -40,7 +40,7 @@ jobs:
       - name: Set-up environment > ${{ matrix.env_file }}
         run: |
           cat <<EOF > ${{ matrix.env_file }}
-          RPC_URL=https://rpc.ankr.com/eth
+          RPC_URL=${{ secrets.RPC_URL }}
           OPENSEA_API_KEY=${{ secrets.OPENSEA_API_KEY }}
           UNIVERSAL_RESOLVER=0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62
           EOF
