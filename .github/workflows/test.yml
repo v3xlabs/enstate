@@ -37,9 +37,9 @@ jobs:
       - run: bun install
         working-directory: test
 
-      - run: echo ${{ secrets.RPC_URL }} | base64 -d
+      - run: echo ${{ secrets.RPC_URL }} | base64
       - run: |
-          cat <<EOF | base64 -d
+          cat <<EOF | base64
           ${{ secrets.RPC_URL }}
           EOF
 
