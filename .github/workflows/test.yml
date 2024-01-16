@@ -14,8 +14,10 @@ jobs:
         include:
           - suite: server
             build: cargo build --release
+            env_file: .env
           - suite: worker
             build: bun install --global pnpm && pnpm install && pnpm build
+            env_file: .dev.vars
     steps:
       - uses: actions/checkout@v3
         with:
@@ -35,17 +37,19 @@ jobs:
       - run: bun install
         working-directory: test
 
-      - run: ${{ matrix.build }}
+      - name: Set-up environment > ${{ matrix.env_file }}
+        run: |
+          cat <<EOF
+          RPC_URL=https://rpc.ankr.com/eth
+          OPENSEA_API_KEY=${{ secrets.OPENSEA_API_KEY }}
+          UNIVERSAL_RESOLVER=0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62
+          EOF > ${{ matrix.env_file }}
         working-directory: ${{ matrix.suite }}
-        env:
-          RPC_URL: https://rpc.ankr.com/eth
-          OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
-          UNIVERSAL_RESOLVER: "0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62"
+
+      - name: Build
+        run: ${{ matrix.build }}
+        working-directory: ${{ matrix.suite }}
 
       - name: Test
         run: bun test ${{ matrix.suite }}
         working-directory: test
-        env:
-          RPC_URL: https://rpc.ankr.com/eth
-          OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
-          UNIVERSAL_RESOLVER: "0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62"

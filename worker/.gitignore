@@ -1,6 +1,7 @@
 node_modules/
 .wrangler
 target/
+dist/
 .env
 .idea/
 .dev.vars

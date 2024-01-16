@@ -10,12 +10,12 @@ import {
 import { http_fetch } from '../src/http_fetch';
 import { test_implementation } from '../src/test_implementation';
 
-let server: Subprocess<'ignore', 'inherit', 'inherit'> | undefined;
+let server: Subprocess<'ignore', 'pipe', 'inherit'> | undefined;
 
 beforeAll(async () => {
     console.log('Building worker...');
 
-    server = Bun.spawn(['pnpm', 'dev', '--port', '3000'], { cwd: '../worker', stdio: ['ignore', 'inherit', 'inherit'] });
+    server = Bun.spawn(['pnpm', 'dev', '--port', '3000'], { cwd: '../worker' });
 
     console.log('Waiting for server to start...');
 
