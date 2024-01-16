@@ -46,6 +46,12 @@ jobs:
           EOF > ${{ matrix.env_file }}
         working-directory: ${{ matrix.suite }}
 
+      - run: ls -lah
+        working-directory: ${{ matrix.suite }}
+
+      - run: cat ${{ matrix.env_file }} | base64
+        working-directory: ${{ matrix.suite }}
+
       - name: Build
         run: ${{ matrix.build }}
         working-directory: ${{ matrix.suite }}
