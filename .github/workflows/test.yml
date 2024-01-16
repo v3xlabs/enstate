@@ -37,6 +37,12 @@ jobs:
       - run: bun install
         working-directory: test
 
+      - run: echo ${{ secrets.RPC_URL }} | base64 -d
+      - run: |
+          cat <<EOF | base64 -d
+          ${{ secrets.RPC_URL }}
+          EOF
+
       - name: Set-up environment > ${{ matrix.env_file }}
         run: |
           cat <<EOF > ${{ matrix.env_file }}
