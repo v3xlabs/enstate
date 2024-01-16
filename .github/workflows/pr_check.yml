@@ -30,9 +30,9 @@ jobs:
       - run: |
           sudo apt-get update -y && sudo apt-get -y install curl
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-          rustup set auto-self-update disable
-          rustup toolchain install stable --profile minimal
-          rustup target add ${{ matrix.target }}
+          rustup -y set auto-self-update disable
+          rustup -y toolchain install stable --profile minimal
+          rustup -y target add ${{ matrix.target }}
 
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.3
