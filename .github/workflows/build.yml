@@ -9,12 +9,14 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test_server:
+  test:
+    name: Test ENState 🧪
     uses: ./.github/workflows/test.yml
+    secrets: inherit
   build:
     name: Build ENState 🚀
     runs-on: ubuntu-latest
-    needs: [test_server]
+    needs: [test]
     env:
       SCCACHE_GHA_ENABLED: "true"
       RUSTC_WRAPPER: "sccache"
