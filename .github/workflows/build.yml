@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test]
     env:
-      SCCACHE_GHA_ENABLED: "true"
+      SCCACHE_REDIS: "redis://redis.redis.svc.cluster.local:6379"
       RUSTC_WRAPPER: "sccache"
     steps:
       - uses: actions/checkout@v3
