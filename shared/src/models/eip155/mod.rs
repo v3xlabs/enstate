@@ -97,7 +97,7 @@ pub async fn resolve_eip155(
     // Example url: https://my.nft.metadata.test/1234/2257
     // Content: json encoded {name: "", description: "", image: "", ...}
     let mut token_metadata_url = result
-        .get(0)
+        .first()
         // should never trigger
         .ok_or_else(|| EIP155Error::ImplementationError("".to_string()))?
         .to_string();
@@ -129,8 +129,11 @@ pub async fn resolve_eip155(
 #[cfg(test)]
 mod tests {
     use std::env;
+    use std::sync::Arc;
 
     use ethers::middleware::MiddlewareBuilder;
+    use ethers::providers::{Http, Provider};
+    use ethers_ccip_read::CCIPReadMiddleware;
 
     use super::*;
 
@@ -138,7 +141,7 @@ mod tests {
     async fn test_calldata_avatar_erc721() {
         let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth")
             .unwrap()
-            .wrap_into(CCIPReadMiddleware::new);
+            .wrap_into(|it| CCIPReadMiddleware::new(Arc::from(it)));
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
         let data = resolve_eip155(
@@ -159,7 +162,7 @@ mod tests {
     async fn test_calldata_avatar_erc1155() {
         let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth")
             .unwrap()
-            .wrap_into(CCIPReadMiddleware::new);
+            .wrap_into(|it| CCIPReadMiddleware::new(Arc::from(it)));
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
         let data = resolve_eip155(
@@ -184,7 +187,7 @@ mod tests {
     async fn test_calldata_avatar_erc1155_opensea() {
         let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth")
             .unwrap()
-            .wrap_into(CCIPReadMiddleware::new);
+            .wrap_into(|it| CCIPReadMiddleware::new(Arc::from(it)));
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
         let data = resolve_eip155(

@@ -7,6 +7,7 @@ use enstate_shared::models::profile::ProfileService;
 use enstate_shared::models::records::Records;
 use enstate_shared::utils::factory::SimpleFactory;
 use ethers::prelude::{Http, Provider};
+use ethers::types::H160;
 use http::StatusCode;
 use lazy_static::lazy_static;
 use worker::{event, Context, Cors, Env, Headers, Method, Request, Response, Router};
@@ -46,12 +47,20 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
     let rpc = Provider::<Http>::try_from(rpc_url)
         .map_err(|_| http_simple_status_error(StatusCode::BAD_REQUEST))?;
 
+    let universal_resolver = env
+        .var("UNIVERSAL_RESOLVER")
+        .expect("UNIVERSAL_RESOLVER should've been set")
+        .to_string()
+        .parse::<H160>()
+        .expect("UNIVERSAL_RESOLVER should be a valid address");
+
     let service = ProfileService {
         cache,
         rpc: Box::new(SimpleFactory::from(Arc::new(rpc))),
         opensea_api_key: opensea_api_key.to_string(),
         profile_records: Arc::from(profile_records),
         profile_chains: Arc::from(profile_chains),
+        universal_resolver,
     };
 
     // TODO (@antony1060): I don't like this, there needs to be a better way

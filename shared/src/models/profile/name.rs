@@ -101,10 +101,10 @@ impl ProfileService {
         let mut resolves = Vec::new();
 
         for chunk in calldata.chunks(50) {
-            resolves.push(resolve_universal(name, chunk, &rpc).await?);
+            resolves.push(resolve_universal(name, chunk, &rpc, &self.universal_resolver).await?);
         }
 
-        let Some((_, resolver, ccip_urls)) = resolves.get(0) else {
+        let Some((_, resolver, ccip_urls)) = resolves.first() else {
             return Err(ProfileError::ImplementationError(String::new()));
         };
 

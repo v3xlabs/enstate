@@ -9,7 +9,7 @@ use ethers_ccip_read::{CCIPReadMiddlewareError, CCIPRequest};
 use ethers_contract::abigen;
 use ethers_core::abi;
 use ethers_core::abi::{ParamType, Token};
-use lazy_static::lazy_static;
+use ethers_core::types::H160;
 
 use crate::models::lookup::ENSLookup;
 use crate::models::profile::CCIPProvider;
@@ -25,13 +25,6 @@ abigen!(
     ]"#,
 );
 
-lazy_static! {
-    // Setup address of universal resolver
-    static ref UNIVERSAL_RESOLVER_ADDRESS: Address = "0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62"
-        .parse::<Address>()
-        .expect("UNIVERSAL_RESOLVER_ADDRESS should be a valid address");
-}
-
 const MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE: &str =
     "execution reverted: UniversalResolver: Wildcard on non-extended resolvers is not supported";
 
@@ -39,6 +32,7 @@ pub async fn resolve_universal(
     name: &str,
     data: &[Box<dyn ENSLookup + Send + Sync>],
     provider: &CCIPProvider,
+    universal_resolver: &H160,
 ) -> Result<(Vec<Vec<u8>>, Address, Vec<String>), ProfileError> {
     let name_hash = namehash(name);
 
@@ -63,7 +57,7 @@ pub async fn resolve_universal(
     let transaction_data = [resolve_selector, encoded_data].concat();
 
     // Setup the transaction
-    typed_transaction.set_to(*UNIVERSAL_RESOLVER_ADDRESS);
+    typed_transaction.set_to(*universal_resolver);
     typed_transaction.set_data(Bytes::from(transaction_data));
 
     // Call the transaction
@@ -201,6 +195,7 @@ mod tests {
             "antony.sh",
             &calldata,
             &CCIPReadMiddleware::new(Arc::new(provider)),
+            &Address::from_str("0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62").unwrap(),
         )
         .await
         .unwrap();

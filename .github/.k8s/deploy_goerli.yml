@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis
+  name: redis-goerli
   namespace: enstate
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: redis
+      app: redis-goerli
   template:
     metadata:
       labels:
-        app: redis
+        app: redis-goerli
     spec:
       containers:
-        - name: redis
+        - name: redis-goerli
           image: redis:6.0.9-alpine
           ports:
             - containerPort: 6379
@@ -22,11 +22,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis
+  name: redis-goerli
   namespace: enstate
 spec:
   selector:
-    app: redis
+    app: redis-goerli
   ports:
     - protocol: TCP
       port: 6379
@@ -35,21 +35,21 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: enstate
+  name: enstate-goerli
   namespace: enstate
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: enstate
+      app: enstate-goerli
   template:
     metadata:
       labels:
-        app: enstate
+        app: enstate-goerli
     spec:
       containers:
-        - name: enstate
-          image: ghcr.io/v3xlabs/enstate:1.0.0-1
+        - name: enstate-goerli
+          image: ghcr.io/v3xlabs/enstate:sha-749e1d2
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
@@ -60,11 +60,11 @@ spec:
                   name: opensea-api-key
                   key: api-key
             - name: REDIS_URL
-              value: redis://redis.enstate.svc.cluster.local:6379
+              value: redis://redis-goerli.enstate.svc.cluster.local:6379
             - name: RPC_URL
-              value: https://eth.llamarpc.com,https://rpc.payload.de,https://rpc.ankr.com/eth
+              value: https://rpc.ankr.com/eth_goerli,https://ethereum-goerli.publicnode.com,https://goerli.gateway.tenderly.co
             - name: UNIVERSAL_RESOLVER
-              value: 0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62
+              value: 0x3952Be0b2186f8B113193a84b69bD71ad3fc1ae3
           resources:
             requests:
               cpu: 100m
@@ -76,11 +76,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: enstate
+  name: enstate-goerli
   namespace: enstate
 spec:
   selector:
-    app: enstate
+    app: enstate-goerli
   ports:
     - protocol: TCP
       port: 3000
@@ -89,24 +89,24 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: enstate
+  name: enstate-goerli
   namespace: enstate
   annotations:
     cert-manager.io/issuer: le-http
 spec:
   ingressClassName: traefik
   rules:
-    - host: enstate.rs
+    - host: goerli.enstate.rs
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: enstate
+                name: enstate-goerli
                 port:
                   number: 3000
   tls:
   - hosts:
-    - enstate.rs
-    secretName: tls-enstate-ingress-http
+    - goerli.enstate.rs
+    secretName: tls-goerli-enstate-ingress-http

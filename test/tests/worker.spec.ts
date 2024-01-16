@@ -15,7 +15,7 @@ let server: Subprocess<'ignore', 'pipe', 'inherit'> | undefined;
 beforeAll(async () => {
     console.log('Building worker...');
 
-    server = Bun.spawn(['wrangler', 'dev', '--port', '3000'], { cwd: '../worker' });
+    server = Bun.spawn(['pnpm', 'dev', '--port', '3000'], { cwd: '../worker' });
 
     console.log('Waiting for server to start...');
 
@@ -26,10 +26,11 @@ beforeAll(async () => {
             console.log('Attempting heartbeat...');
             await fetch('http://0.0.0.0:3000/');
             console.log('Heartbeat succes!');
+            await new Promise<void>((resolve) => setTimeout(resolve, 2000));
             break;
         } catch {
-            console.log('Waiting another 1s for heartbeat...');
-            await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+            console.log('Waiting another 5s for heartbeat...');
+            await new Promise<void>((resolve) => setTimeout(resolve, 5000));
             continue;
         }
     }
