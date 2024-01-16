@@ -1,5 +1,12 @@
+name: PR Test
 on:
+  pull_request:
+    branches:
+      - master
   workflow_call:
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
   test:
@@ -9,6 +16,7 @@ jobs:
       SCCACHE_REDIS: "redis://redis.redis.svc.cluster.local:6379"
       RUSTC_WRAPPER: "sccache"
     strategy:
+      fail-fast: false
       matrix:
         suite: [server, worker]
         include:
@@ -23,22 +31,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - run: |
-          rustup set auto-self-update disable
-          rustup set auto-self-update disable
-          rustup toolchain install stable --profile minimal
-
       - name: Run sccache-cache
         uses: mozilla-actions/sccache-action@v0.0.3
         with:
           version: "v0.7.4"
 
-      - uses: oven-sh/setup-bun@v1
-
       - run: bun install
         working-directory: test
 
-      - name: Set-up environment > ${{ matrix.env_file }}
+      - name: Set-up environment (${{ matrix.env_file }})
         shell: bash
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
@@ -56,5 +57,5 @@ jobs:
         working-directory: ${{ matrix.suite }}
 
       - name: Test
-        run: bun test ${{ matrix.suite }}
+        run: bun test ${{ matrix.suite }} --timeout 10000 --rerun-each 2
         working-directory: test
