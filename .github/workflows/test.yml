@@ -41,7 +41,7 @@ jobs:
         with:
           key: "${{ matrix.suite }}-cargo"
           paths: |
-            ${{ matrix.suite }}-target/
+            ${{ matrix.suite }}/target/
           redis-url: "redis://redis.redis.svc.cluster.local:6379"
 
       - run: bun install
