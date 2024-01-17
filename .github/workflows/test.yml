@@ -37,7 +37,7 @@ jobs:
           version: "v0.7.4"
 
       - name: Cache target folder
-        uses: Antony1060/action-cache-redis
+        uses: Antony1060/action-cache-redis@00d589ae79f86da0e1ee1e67964c876bc35a1375
         with:
           key: "${{ matrix.suite }}-cargo"
           paths: |
