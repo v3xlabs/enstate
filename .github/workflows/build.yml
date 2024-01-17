@@ -38,12 +38,13 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: |
-            enstate-runner
+            ghcr.io/v3xlabs/enstate
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=edge
+            type=sha
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
@@ -67,3 +68,5 @@ jobs:
           context: server
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=ghcr.io/v3xlabs/enstate:edge
+          cache-to: type=inline
