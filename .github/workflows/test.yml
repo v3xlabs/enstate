@@ -37,10 +37,14 @@ jobs:
           version: "v0.7.4"
 
       - name: Cache target folder
-        uses: Antony1060/action-cache-redis@4082f94f13faf3e54ea9da9268efe703e807b95d
+        uses: Antony1060/action-cache-redis@17300b494fe47ef768972203bc7730c0385aa837
         with:
           key: "${{ matrix.suite }}-cargo"
           paths: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
             ${{ matrix.suite }}/target/
           redis-url: "redis://redis.redis.svc.cluster.local:6379"
 
