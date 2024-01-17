@@ -41,7 +41,6 @@ jobs:
         with:
           key: "${{ matrix.suite }}-cargo"
           paths: |
-            ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
