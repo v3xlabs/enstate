@@ -69,4 +69,3 @@ jobs:
           context: server
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          builder: kubernetes
