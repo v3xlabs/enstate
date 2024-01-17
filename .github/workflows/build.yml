@@ -1,8 +1,6 @@
 name: Build and Deploy
 on:
   push:
-    branches:
-      - test/build-action
     tags:
       - "v*.*.*"
   workflow_call:
@@ -11,14 +9,14 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  #test:
-  #  name: Test ENState 🧪
-  #  uses: ./.github/workflows/test.yml
-  #  secrets: inherit
+  test:
+    name: Test ENState 🧪
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
   build:
     name: Build ENState 🚀
     runs-on: arc-runner-set
-    #needs: [test]
+    needs: [test]
     env:
       SCCACHE_REDIS: "redis://redis.redis.svc.cluster.local:6379"
       RUSTC_WRAPPER: "sccache"
@@ -64,7 +62,7 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v3
         with:
-          push: false
+          push: true
           file: .github/.docker/Dockerfile
           context: server
           tags: ${{ steps.meta.outputs.tags }}
