@@ -12,9 +12,9 @@ jobs:
   test:
     name: Test ENState 🚀
     runs-on: arc-runner-set
-    # env:
-    #   SCCACHE_REDIS: "redis://redis.redis.svc.cluster.local:6379"
-    #   RUSTC_WRAPPER: "sccache"
+    env:
+      SCCACHE_REDIS: "redis://redis.redis.svc.cluster.local:6379"
+      RUSTC_WRAPPER: "sccache"
     strategy:
       fail-fast: false
       matrix:
@@ -31,13 +31,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      # - name: Run sccache-cache
-      #   uses: mozilla-actions/sccache-action@v0.0.3
-      #   with:
-      #     version: "v0.7.4"
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.3
+        with:
+          version: "v0.7.4"
 
       - name: Cache target folder
-        uses: Antony1060/action-cache-redis@17300b494fe47ef768972203bc7730c0385aa837
+        uses: Antony1060/action-cache-redis@4f34ba65a5e476d907df582b2a28e1bba9876171
         with:
           key: "${{ matrix.suite }}-cargo"
           paths: |
