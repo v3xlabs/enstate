@@ -49,7 +49,7 @@ spec:
     spec:
       containers:
         - name: enstate
-          image: ghcr.io/v3xlabs/enstate:1.0.0-1
+          image: ghcr.io/v3xlabs/enstate:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
