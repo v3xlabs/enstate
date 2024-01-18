@@ -59,22 +59,10 @@ impl ProfileService {
         }
 
         // Preset Hardcoded Lookups
-        let mut calldata: Vec<Box<dyn ENSLookup + Send + Sync>> = vec![
+        let mut calldata: Vec<Box<dyn ENSLookup>> = vec![
             Addr {}.to_boxed(),
-            Image {
-                // TODO: Default IPFS Gateway
-                ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
-                name: name.to_string(),
-                record: "avatar".to_string(),
-            }
-            .to_boxed(),
-            Image {
-                // TODO: Default IPFS Gateway
-                ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
-                name: name.to_string(),
-                record: "header".to_string(),
-            }
-            .to_boxed(),
+            Image::from("avatar").to_boxed(),
+            Image::from("header").to_boxed(),
             Text::from("display").to_boxed(),
         ];
 
@@ -208,5 +196,81 @@ impl ProfileService {
             })?;
 
         Ok(value)
+    }
+
+    // TODO: multiple calldata
+    pub async fn resolve_from_name_single<Name: AsRef<str>>(
+        &self,
+        name: Name,
+        calldata: Box<dyn ENSLookup>,
+        fresh: bool,
+    ) -> Result<String, ProfileError> {
+        let name = name.as_ref();
+
+        if !test_domain(name) {
+            return Err(ProfileError::NotFound);
+        }
+
+        let cache_key = format!("n:{name}:{record}", record = calldata.name());
+
+        let rpc = self.rpc.get_instance();
+
+        let rpc = rpc.wrap_into(CCIPReadMiddleware::new);
+
+        info!(
+            name = name,
+            cache_key = cache_key,
+            fresh = fresh,
+            rpc_url = rpc.inner().url().to_string(),
+            "Looking up record ({record}) for {name}...",
+            record = calldata.name()
+        );
+
+        // If the value is in the cache, return it
+        if !fresh {
+            if let Ok(value) = self.cache.get(&cache_key).await {
+                if value.is_empty() {
+                    return Err(ProfileError::NotFound);
+                }
+
+                return Ok(value);
+            }
+        }
+
+        let rpc = Arc::new(rpc);
+
+        let mut calldata_input = vec![calldata];
+
+        let (data, _, _) =
+            resolve_universal(name, &calldata_input, &rpc, &self.universal_resolver).await?;
+
+        let lookup_state = LookupState {
+            rpc,
+            opensea_api_key: self.opensea_api_key.clone(),
+        };
+
+        // hacky, don't ask
+        let calldata = calldata_input.remove(0);
+
+        let result = calldata
+            .decode(&data[0], &lookup_state)
+            .await
+            .map_err(|err| ProfileError::Other(format!("ENSLookupError: {}", err)))?;
+
+        info!(
+            name = name,
+            result = result,
+            "Record {record} for {name} found",
+            record = calldata.name(),
+        );
+
+        self.cache
+            .set(&cache_key, &result, 600)
+            .await
+            .map_err(|CacheError::Other(err)| {
+                ProfileError::Other(format!("cache set failed: {}", err))
+            })?;
+
+        Ok(result)
     }
 }

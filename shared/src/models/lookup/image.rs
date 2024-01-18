@@ -14,11 +14,7 @@ use crate::models::multicoin::cointype::evm::ChainId;
 
 use super::{abi_decode_universal_ccip, ENSLookup, ENSLookupError, LookupState};
 
-pub struct Image {
-    pub ipfs_gateway: String,
-    pub name: String,
-    pub record: String,
-}
+const IPFS_GATEWAY: &str = "https://ipfs.io/ipfs/";
 
 lazy_static! {
     static ref IPFS_REGEX: regex::Regex =
@@ -26,6 +22,10 @@ lazy_static! {
     static ref EIP155_REGEX: regex::Regex =
         regex::Regex::new(r"eip155:([0-9]+)/(erc1155|erc721):0x([0-9a-fA-F]{40})/([0-9]+)")
             .expect("should be a valid regex");
+}
+
+pub struct Image {
+    key: String,
 }
 
 #[derive(Error, Debug)]
@@ -40,6 +40,14 @@ impl From<ImageLookupError> for ENSLookupError {
     }
 }
 
+impl From<&str> for Image {
+    fn from(value: &str) -> Self {
+        Self {
+            key: value.to_string(),
+        }
+    }
+}
+
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl ENSLookup for Image {
@@ -48,7 +56,7 @@ impl ENSLookup for Image {
 
         let data = ethers_core::abi::encode(&[
             Token::FixedBytes(namehash.as_fixed_bytes().to_vec()),
-            Token::String(self.record.clone()),
+            Token::String(self.key.clone()),
         ]);
 
         [fn_selector, data].concat()
@@ -66,7 +74,7 @@ impl ENSLookup for Image {
         if let Some(captures) = IPFS_REGEX.captures(value) {
             let hash = captures.get(1).unwrap().as_str();
 
-            return Ok(format!("{}{hash}", self.ipfs_gateway));
+            return Ok(format!("{}{hash}", IPFS_GATEWAY));
         }
 
         let Some(captures) = EIP155_REGEX.captures(value) else {
@@ -124,7 +132,7 @@ impl ENSLookup for Image {
     }
 
     fn name(&self) -> String {
-        self.record.clone()
+        self.key.clone()
     }
 }
 
@@ -137,11 +145,7 @@ mod tests {
     #[test]
     fn test_calldata_avatar() {
         assert_eq!(
-            Image {
-                ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
-                name: "luc.eth".to_string(),
-                record: "avatar".to_string()
-            }.calldata(&namehash("luc.eth")),
+            Image::from("avatar").calldata(&namehash("luc.eth")),
             hex_literal::hex!("59d1d43ce1e7bcf2ca33c28a806ee265cfedf02fedf1b124ca73b2203ca80cc7c91a02ad000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000066176617461720000000000000000000000000000000000000000000000000000")
         );
     }

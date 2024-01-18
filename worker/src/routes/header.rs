@@ -1,4 +1,7 @@
+use enstate_shared::models::lookup::image::Image;
+use enstate_shared::models::lookup::ENSLookup;
 use enstate_shared::models::profile::ProfileService;
+use futures_util::TryFutureExt;
 use http::StatusCode;
 use worker::{Request, Response, RouteContext};
 
@@ -13,15 +16,15 @@ pub async fn get(req: Request, ctx: RouteContext<ProfileService>) -> worker::Res
         .param("name_or_address")
         .ok_or_else(|| http_simple_status_error(StatusCode::BAD_REQUEST))?;
 
-    let profile = ctx
+    let header = ctx
         .data
-        .resolve_from_name_or_address(name_or_address, query.fresh)
+        .name_from_name_or_address(name_or_address, query.fresh)
+        .and_then(|thing| {
+            ctx.data
+                .resolve_from_name_single(thing, Image::from("header").to_boxed(), query.fresh)
+        })
         .await
         .map_err(profile_http_error_mapper)?;
-
-    let Some(header) = profile.header else {
-        return Err(http_simple_status_error(StatusCode::NOT_FOUND));
-    };
 
     redirect_url(&header)
 }

@@ -41,7 +41,7 @@ pub enum ENSLookupError {
 
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-pub trait ENSLookup {
+pub trait ENSLookup: Send + Sync {
     fn calldata(&self, namehash: &H256) -> Vec<u8>;
     async fn decode(&self, data: &[u8], state: &LookupState) -> Result<String, ENSLookupError>;
     fn name(&self) -> String;
@@ -54,7 +54,7 @@ pub trait ENSLookup {
     }
 }
 
-impl Display for dyn ENSLookup + Send + Sync {
+impl Display for dyn ENSLookup {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         write!(f, "ENSLookup({})", self.name())
     }
