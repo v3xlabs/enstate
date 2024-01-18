@@ -1,0 +1,22 @@
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_call:
+
+jobs:
+  test:
+    name: Test ENState 🚀
+    runs-on: arc-runner-set
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [enstate.rs, worker.enstate.rs]
+    steps:
+      - run: bun install
+        working-directory: test
+
+      - name: Test
+        run: bun test remote --rerun-each 2
+        env:
+          REMOTE_URL: https://${{ matrix.suite }}
+        working-directory: test
