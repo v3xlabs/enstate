@@ -30,7 +30,7 @@ const MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE: &str =
 
 pub async fn resolve_universal(
     name: &str,
-    data: &[Box<dyn ENSLookup + Send + Sync>],
+    data: &[Box<dyn ENSLookup>],
     provider: &CCIPProvider,
     universal_resolver: &H160,
 ) -> Result<(Vec<Vec<u8>>, Address, Vec<String>), ProfileError> {

@@ -1,10 +1,12 @@
 use std::sync::Arc;
 
 use axum::extract::{Path, Query, State};
-use axum::http::StatusCode;
 use axum::response::Redirect;
+use enstate_shared::models::lookup::image::Image;
+use enstate_shared::models::lookup::ENSLookup;
+use futures::TryFutureExt;
 
-use crate::routes::{http_simple_status_error, profile_http_error_mapper, FreshQuery, RouteError};
+use crate::routes::{profile_http_error_mapper, FreshQuery, RouteError};
 
 // #[utoipa::path(
 //     get,
@@ -24,15 +26,18 @@ pub async fn get(
     Query(query): Query<FreshQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> Result<Redirect, RouteError> {
-    let profile = state
+    let header = state
         .service
-        .resolve_from_name_or_address(&name_or_address, query.fresh)
+        .name_from_name_or_address(&name_or_address, query.fresh)
+        .and_then(|name| {
+            state.service.resolve_from_name_single(
+                name,
+                Image::from("header").to_boxed(),
+                query.fresh,
+            )
+        })
         .await
         .map_err(profile_http_error_mapper)?;
-
-    let Some(header) = profile.header else {
-        return Err(http_simple_status_error(StatusCode::NOT_FOUND));
-    };
 
     Ok(Redirect::to(header.as_str()))
 }

@@ -1,22 +1,28 @@
-use ethers::{
-    providers::{Middleware, ProviderError},
-    types::H160,
-};
+use ethers::providers::{Middleware, ProviderError};
+use ethers_core::types::Address;
 
 use super::{error::ProfileError, Profile, ProfileService};
 
 impl ProfileService {
-    pub async fn resolve_from_address(
+    // TODO: probably can be written nicer
+    pub async fn primary_from_address(
         &self,
-        address: H160,
+        address: Address,
         fresh: bool,
-    ) -> Result<Profile, ProfileError> {
+    ) -> Result<String, ProfileError> {
         let cache_key = format!("a:{address:?}");
 
         let rpc = self.rpc.get_instance();
 
+        // TODO: improve
+        let cached_name = if fresh {
+            None
+        } else {
+            self.cache.get(&cache_key).await.ok()
+        };
+
         // Get value from the cache otherwise compute
-        let name = if let Ok(name) = self.cache.get(&cache_key).await {
+        let name = if let Some(name) = cached_name {
             name
         } else {
             let result = rpc
@@ -41,6 +47,16 @@ impl ProfileService {
         if name.is_empty() {
             return Err(ProfileError::NotFound);
         }
+
+        Ok(name)
+    }
+
+    pub async fn resolve_from_address(
+        &self,
+        address: Address,
+        fresh: bool,
+    ) -> Result<Profile, ProfileError> {
+        let name = self.primary_from_address(address, fresh).await?;
 
         self.resolve_from_name(&name, fresh).await
     }
