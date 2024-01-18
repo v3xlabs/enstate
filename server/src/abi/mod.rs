@@ -2,7 +2,7 @@
 #[allow(non_snake_case)]
 pub mod IResolver {
     use ethers::prelude::abigen;
-    
+
     abigen!(Resolver, "./src/abi/resolver.json");
 }
 
@@ -10,6 +10,6 @@ pub mod IResolver {
 #[allow(non_snake_case)]
 pub mod UResolver {
     use ethers::prelude::abigen;
-    
+
     abigen!(UniversalResolver, "./src/abi/universal_resolver.json");
 }

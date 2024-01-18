@@ -51,8 +51,13 @@ async fn main() {
 
     let shutdown_clone = shutdown_signal.clone();
 
-    let server_future = async {
-        let http_result = http::setup(state).listen(3000, shutdown_clone).await;
+    let port: u16 = env::var("PORT")
+        .unwrap_or_else(|_| "3000".to_string())
+        .parse()
+        .expect("PORT should be a number");
+
+    let server_future = async move {
+        let http_result = http::setup(state).listen(port, shutdown_clone).await;
 
         if let Err(err) = http_result {
             error!("HTTP server error: {}", err);
