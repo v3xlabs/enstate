@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
 use enstate_shared::core::Profile;
 use utoipa::ToSchema;
@@ -22,7 +22,7 @@ pub struct ENSProfile {
     // Resolver the information was fetched from
     pub resolver: String,
     // Errors encountered while fetching & decoding
-    pub errors: HashMap<String, String>,
+    pub errors: BTreeMap<String, String>,
 }
 
 impl From<Profile> for ENSProfile {

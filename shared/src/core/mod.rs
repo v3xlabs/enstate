@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use ethers::prelude::Http;
@@ -45,7 +45,7 @@ pub struct Profile {
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub ccip_urls: Vec<String>,
     // Errors encountered while fetching & decoding
-    pub errors: HashMap<String, String>,
+    pub errors: BTreeMap<String, String>,
 }
 
 // name feels very java-esque, consider renaming
