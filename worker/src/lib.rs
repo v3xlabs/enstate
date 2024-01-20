@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use enstate_shared::cache::CacheLayer;
+use enstate_shared::core::ENSService;
 use enstate_shared::meta::gen_app_meta;
 use enstate_shared::models::multicoin::cointype::Coins;
-use enstate_shared::models::profile::ProfileService;
 use enstate_shared::models::records::Records;
 use enstate_shared::utils::factory::SimpleFactory;
 use ethers::prelude::{Http, Provider};
@@ -54,7 +54,7 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
         .parse::<H160>()
         .expect("UNIVERSAL_RESOLVER should be a valid address");
 
-    let service = ProfileService {
+    let service = ENSService {
         cache,
         rpc: Box::new(SimpleFactory::from(Arc::new(rpc))),
         opensea_api_key: opensea_api_key.to_string(),

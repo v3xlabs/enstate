@@ -4,7 +4,7 @@ use ethers_core::types::U256;
 
 use super::{evm::ChainId, slip44::SLIP44};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum CoinType {
     Slip44(SLIP44),
     Evm(ChainId),

@@ -11,12 +11,11 @@ use ethers_core::abi;
 use ethers_core::abi::{ParamType, Token};
 use ethers_core::types::H160;
 
+use crate::core::error::ProfileError;
+use crate::core::CCIPProvider;
 use crate::models::lookup::ENSLookup;
-use crate::models::profile::CCIPProvider;
 use crate::utils::dns::dns_encode;
 use crate::utils::vec::dedup_ord;
-
-use super::profile::error::ProfileError;
 
 abigen!(
     IUResolver,
@@ -30,7 +29,7 @@ const MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE: &str =
 
 pub async fn resolve_universal(
     name: &str,
-    data: &[Box<dyn ENSLookup>],
+    data: &[ENSLookup],
     provider: &CCIPProvider,
     universal_resolver: &H160,
 ) -> Result<(Vec<Vec<u8>>, Address, Vec<String>), ProfileError> {

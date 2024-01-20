@@ -1,55 +1,30 @@
-use async_trait::async_trait;
 use ethers_core::{
     abi::{ParamType, Token},
     types::H256,
 };
 use hex_literal::hex;
 
-use super::{abi_decode_universal_ccip, ENSLookup, ENSLookupError, LookupState};
+use super::{abi_decode_universal_ccip, ENSLookupError};
 
-pub struct Text {
-    key: String,
+pub fn function_selector() -> [u8; 4] {
+    hex!("59d1d43c")
 }
 
-impl Text {
-    pub const fn new(key: String) -> Self {
-        Self { key }
-    }
+pub fn calldata(namehash: &H256, record: &str) -> Vec<u8> {
+    let data = ethers_core::abi::encode(&[
+        Token::FixedBytes(namehash.as_fixed_bytes().to_vec()),
+        Token::String(record.to_string()),
+    ]);
+
+    [&function_selector() as &[u8], &data].concat()
 }
 
-impl From<&str> for Text {
-    fn from(value: &str) -> Self {
-        Self {
-            key: value.to_string(),
-        }
-    }
-}
+pub async fn decode(data: &[u8]) -> Result<String, ENSLookupError> {
+    let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::String])?;
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl ENSLookup for Text {
-    fn calldata(&self, namehash: &H256) -> Vec<u8> {
-        let fn_selector = hex!("59d1d43c").to_vec();
+    let Some(Token::String(value)) = decoded_abi.get(0) else {
+        return Err(ENSLookupError::AbiDecodeError);
+    };
 
-        let data = ethers_core::abi::encode(&[
-            Token::FixedBytes(namehash.as_fixed_bytes().to_vec()),
-            Token::String(self.key.to_string()),
-        ]);
-
-        [fn_selector, data].concat()
-    }
-
-    async fn decode(&self, data: &[u8], _: &LookupState) -> Result<String, ENSLookupError> {
-        let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::String])?;
-
-        let Some(Token::String(value)) = decoded_abi.get(0) else {
-            return Err(ENSLookupError::AbiDecodeError);
-        };
-
-        Ok(value.to_string())
-    }
-
-    fn name(&self) -> String {
-        format!("records.{}", self.key)
-    }
+    Ok(value.to_string())
 }

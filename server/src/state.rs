@@ -3,7 +3,7 @@ use ethers_core::types::H160;
 use std::env;
 use std::sync::Arc;
 
-use enstate_shared::models::profile::ProfileService;
+use enstate_shared::core::ENSService;
 use enstate_shared::models::{
     multicoin::cointype::{coins::CoinType, Coins},
     records::Records,
@@ -15,7 +15,7 @@ use crate::{cache, database};
 
 #[allow(clippy::module_name_repetitions)]
 pub struct AppState {
-    pub service: ProfileService,
+    pub service: ENSService,
 }
 
 impl AppState {
@@ -69,7 +69,7 @@ impl AppState {
             .expect("UNIVERSAL_RESOLVER should be a valid address");
 
         Self {
-            service: ProfileService {
+            service: ENSService {
                 cache,
                 rpc: Box::new(provider),
                 opensea_api_key,

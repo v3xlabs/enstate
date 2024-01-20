@@ -1,5 +1,4 @@
-use enstate_shared::models::profile::error::ProfileError;
-use enstate_shared::models::profile::Profile;
+use enstate_shared::core::{error::ProfileError, Profile};
 use utoipa::ToSchema;
 
 use crate::models::error::ErrorResponse;

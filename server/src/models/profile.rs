@@ -1,6 +1,6 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
-use enstate_shared::models::profile::Profile;
+use enstate_shared::core::Profile;
 use utoipa::ToSchema;
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, ToSchema)]
@@ -22,7 +22,7 @@ pub struct ENSProfile {
     // Resolver the information was fetched from
     pub resolver: String,
     // Errors encountered while fetching & decoding
-    pub errors: BTreeMap<String, String>,
+    pub errors: HashMap<String, String>,
 }
 
 impl From<Profile> for ENSProfile {

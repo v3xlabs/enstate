@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use ethers_core::types::U256;
 use ethers_core::{
     abi::{ParamType, Token},
@@ -12,9 +11,7 @@ use tracing::info;
 use crate::models::eip155::{resolve_eip155, EIP155ContractType};
 use crate::models::multicoin::cointype::evm::ChainId;
 
-use super::{abi_decode_universal_ccip, ENSLookup, ENSLookupError, LookupState};
-
-const IPFS_GATEWAY: &str = "https://ipfs.io/ipfs/";
+use super::{abi_decode_universal_ccip, ENSLookupError, LookupState};
 
 lazy_static! {
     static ref IPFS_REGEX: regex::Regex =
@@ -23,10 +20,7 @@ lazy_static! {
         regex::Regex::new(r"eip155:([0-9]+)/(erc1155|erc721):0x([0-9a-fA-F]{40})/([0-9]+)")
             .expect("should be a valid regex");
 }
-
-pub struct Image {
-    key: String,
-}
+const IPFS_GATEWAY: &str = "https://ipfs.io/ipfs/";
 
 #[derive(Error, Debug)]
 enum ImageLookupError {
@@ -40,107 +34,87 @@ impl From<ImageLookupError> for ENSLookupError {
     }
 }
 
-impl From<&str> for Image {
-    fn from(value: &str) -> Self {
-        Self {
-            key: value.to_string(),
-        }
-    }
+pub fn function_selector() -> [u8; 4] {
+    hex!("59d1d43c")
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl ENSLookup for Image {
-    fn calldata(&self, namehash: &H256) -> Vec<u8> {
-        let fn_selector = hex!("59d1d43c").to_vec();
+pub fn calldata(namehash: &H256, record: &str) -> Vec<u8> {
+    let data = ethers_core::abi::encode(&[
+        Token::FixedBytes(namehash.as_fixed_bytes().to_vec()),
+        Token::String(record.to_string()),
+    ]);
 
-        let data = ethers_core::abi::encode(&[
-            Token::FixedBytes(namehash.as_fixed_bytes().to_vec()),
-            Token::String(self.key.clone()),
-        ]);
+    [&function_selector() as &[u8], &data].concat()
+}
 
-        [fn_selector, data].concat()
+pub async fn decode(data: &[u8], state: &LookupState) -> Result<String, ENSLookupError> {
+    let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::String])?;
+
+    let Some(Token::String(value)) = decoded_abi.get(0) else {
+        return Err(ENSLookupError::AbiDecodeError);
+    };
+
+    let opensea_api_key = state.opensea_api_key.clone();
+
+    if let Some(captures) = IPFS_REGEX.captures(value) {
+        let hash = captures.get(1).unwrap().as_str();
+
+        return Ok(format!("{}{hash}", IPFS_GATEWAY));
     }
 
-    async fn decode(&self, data: &[u8], state: &LookupState) -> Result<String, ENSLookupError> {
-        let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::String])?;
+    let Some(captures) = EIP155_REGEX.captures(value) else {
+        return Ok(value.to_string());
+    };
 
-        let Some(Token::String(value)) = decoded_abi.get(0) else {
-            return Err(ENSLookupError::AbiDecodeError);
-        };
+    let (Some(chain_id), Some(contract_type), Some(contract_address), Some(token_id)) = (
+        captures.get(1),
+        captures.get(2),
+        captures.get(3),
+        captures.get(4),
+    ) else {
+        return Err(ENSLookupError::AbiDecodeError);
+    };
 
-        let opensea_api_key = state.opensea_api_key.clone();
+    let chain_id = chain_id
+        .as_str()
+        .parse::<u64>()
+        .map_err(|err| ImageLookupError::FormatError(err.to_string()))?;
 
-        if let Some(captures) = IPFS_REGEX.captures(value) {
-            let hash = captures.get(1).unwrap().as_str();
+    let token_id = U256::from_dec_str(token_id.as_str())
+        .map_err(|err| ImageLookupError::FormatError(err.to_string()))?;
 
-            return Ok(format!("{}{hash}", IPFS_GATEWAY));
-        }
+    let contract_type = match contract_type.as_str() {
+        "erc721" => EIP155ContractType::ERC721,
+        "erc1155" => EIP155ContractType::ERC1155,
+        _ => return Err(ImageLookupError::FormatError("invalid contract type".to_string()).into()),
+    };
 
-        let Some(captures) = EIP155_REGEX.captures(value) else {
-            return Ok(value.to_string());
-        };
+    let contract_address = contract_address.as_str();
 
-        let (Some(chain_id), Some(contract_type), Some(contract_address), Some(token_id)) = (
-            captures.get(1),
-            captures.get(2),
-            captures.get(3),
-            captures.get(4),
-        ) else {
-            return Err(ENSLookupError::AbiDecodeError);
-        };
+    info!(
+        "Encountered Avatar: {chain_id} {contract_type} {contract_address} {token_id}",
+        chain_id = chain_id,
+        contract_type = contract_type.as_str(),
+        contract_address = contract_address,
+        token_id = token_id
+    );
 
-        let chain_id = chain_id
-            .as_str()
-            .parse::<u64>()
-            .map_err(|err| ImageLookupError::FormatError(err.to_string()))?;
+    let resolved_uri = resolve_eip155(
+        ChainId::from(chain_id),
+        contract_type,
+        contract_address,
+        token_id,
+        &state.rpc,
+        &opensea_api_key,
+    )
+    .await?;
 
-        let token_id = U256::from_dec_str(token_id.as_str())
-            .map_err(|err| ImageLookupError::FormatError(err.to_string()))?;
-
-        let contract_type = match contract_type.as_str() {
-            "erc721" => EIP155ContractType::ERC721,
-            "erc1155" => EIP155ContractType::ERC1155,
-            _ => {
-                return Err(
-                    ImageLookupError::FormatError("invalid contract type".to_string()).into(),
-                )
-            }
-        };
-
-        let contract_address = contract_address.as_str();
-
-        info!(
-            "Encountered Avatar: {chain_id} {contract_type} {contract_address} {token_id}",
-            chain_id = chain_id,
-            contract_type = contract_type.as_str(),
-            contract_address = contract_address,
-            token_id = token_id
-        );
-
-        let resolved_uri = resolve_eip155(
-            ChainId::from(chain_id),
-            contract_type,
-            contract_address,
-            token_id,
-            &state.rpc,
-            &opensea_api_key,
-        )
-        .await?;
-
-        return Ok(resolved_uri);
-    }
-
-    fn name(&self) -> String {
-        self.key.clone()
-    }
+    return Ok(resolved_uri);
 }
 
 #[cfg(test)]
 mod tests {
     use ethers::providers::namehash;
-
-    use super::*;
 
     #[test]
     fn test_calldata_avatar() {

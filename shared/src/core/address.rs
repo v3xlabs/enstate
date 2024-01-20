@@ -1,15 +1,27 @@
 use ethers::providers::{Middleware, ProviderError};
 use ethers_core::types::Address;
+use thiserror::Error;
 
-use super::{error::ProfileError, Profile, ProfileService};
+use crate::core::ENSService;
 
-impl ProfileService {
-    // TODO: probably can be written nicer
+#[derive(Error, Debug)]
+pub enum AddressResolveError {
+    #[error("Primary name not found")]
+    NotFound,
+
+    #[error("Cache operation failed: {0}")]
+    CacheFail(&'static str),
+
+    #[error("RPC error: {0}")]
+    RPCError(#[from] ProviderError),
+}
+
+impl ENSService {
     pub async fn primary_from_address(
         &self,
-        address: Address,
+        address: &Address,
         fresh: bool,
-    ) -> Result<String, ProfileError> {
+    ) -> Result<String, AddressResolveError> {
         let cache_key = format!("a:{address:?}");
 
         let rpc = self.rpc.get_instance();
@@ -26,7 +38,7 @@ impl ProfileService {
             name
         } else {
             let result = rpc
-                .lookup_address(address)
+                .lookup_address(*address)
                 .await
                 .or_else(|error| match error {
                     // address doesn't resolve, cache ""
@@ -39,25 +51,15 @@ impl ProfileService {
             self.cache
                 .set(&cache_key, &result, 600)
                 .await
-                .map_err(|_| ProfileError::Other("cache set failed".to_string()))?;
+                .map_err(|_| AddressResolveError::CacheFail("set"))?;
 
             result
         };
 
         if name.is_empty() {
-            return Err(ProfileError::NotFound);
+            return Err(AddressResolveError::NotFound);
         }
 
         Ok(name)
-    }
-
-    pub async fn resolve_from_address(
-        &self,
-        address: Address,
-        fresh: bool,
-    ) -> Result<Profile, ProfileError> {
-        let name = self.primary_from_address(address, fresh).await?;
-
-        self.resolve_from_name(&name, fresh).await
     }
 }

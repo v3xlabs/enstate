@@ -4,7 +4,7 @@ use ethers_core::types::U256;
 
 use super::CoinType;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum SLIP44 {
     Tezos,
     Hedera,

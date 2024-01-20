@@ -1,4 +1,4 @@
-use enstate_shared::models::profile::error::ProfileError;
+use enstate_shared::core::error::ProfileError;
 use ethers::prelude::ProviderError;
 use http::status::StatusCode;
 use serde::de::DeserializeOwned;

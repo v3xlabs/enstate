@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use ethers_core::{
     abi::{ParamType, Token},
     types::H256,
@@ -7,41 +6,31 @@ use hex_literal::hex;
 
 use crate::models::multicoin::cointype::coins::CoinType;
 
-use super::{abi_decode_universal_ccip, ENSLookup, ENSLookupError, LookupState};
+use super::{abi_decode_universal_ccip, ENSLookupError};
 
-pub struct Multicoin {
-    pub coin_type: CoinType,
+pub fn function_selector() -> [u8; 4] {
+    hex!("f1cb7e06")
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl ENSLookup for Multicoin {
-    fn calldata(&self, namehash: &H256) -> Vec<u8> {
-        let fn_selector = hex!("f1cb7e06").to_vec();
+pub fn calldata(namehash: &H256, coin_type: &CoinType) -> Vec<u8> {
+    let data = ethers_core::abi::encode(&[
+        Token::FixedBytes(namehash.as_fixed_bytes().to_vec()),
+        Token::Uint(coin_type.clone().into()),
+    ]);
 
-        let data = ethers_core::abi::encode(&[
-            Token::FixedBytes(namehash.as_fixed_bytes().to_vec()),
-            Token::Uint(self.coin_type.clone().into()),
-        ]);
+    [&function_selector() as &[u8], &data].concat()
+}
 
-        [fn_selector, data].concat()
+pub async fn decode(data: &[u8], coin_type: &CoinType) -> Result<String, ENSLookupError> {
+    let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::Bytes])?;
+
+    let Some(Token::Bytes(bytes)) = decoded_abi.first() else {
+        return Err(ENSLookupError::AbiDecodeError);
+    };
+
+    if bytes.is_empty() {
+        return Ok(String::new());
     }
 
-    async fn decode(&self, data: &[u8], _: &LookupState) -> Result<String, ENSLookupError> {
-        let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::Bytes])?;
-
-        let Some(Token::Bytes(bytes)) = decoded_abi.get(0) else {
-            return Err(ENSLookupError::AbiDecodeError);
-        };
-
-        if bytes.is_empty() {
-            return Ok(String::new());
-        }
-
-        Ok(self.coin_type.decode(bytes.as_ref())?)
-    }
-
-    fn name(&self) -> String {
-        format!("chains.{}", self.coin_type)
-    }
+    Ok(coin_type.decode(bytes.as_ref())?)
 }
