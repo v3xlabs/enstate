@@ -5,7 +5,8 @@ use axum::{
     http::StatusCode,
     Json,
 };
-use enstate_shared::models::profile::Profile;
+use enstate_shared::core::lookup_data::LookupInfo;
+use enstate_shared::core::Profile;
 use ethers_core::types::Address;
 use futures::future::join_all;
 use serde::Deserialize;
@@ -86,7 +87,7 @@ pub async fn get_bulk(
         .map(|address| {
             state
                 .service
-                .resolve_from_address(*address, query.fresh.fresh)
+                .resolve_profile(LookupInfo::Address(*address), query.fresh.fresh)
         })
         .collect::<Vec<_>>();
 

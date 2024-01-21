@@ -9,7 +9,7 @@ use tracing::info;
 
 use crate::models::ipfs::{URLFetchError, OPENSEA_BASE_PREFIX};
 use crate::models::multicoin::cointype::evm::ChainId;
-use crate::models::profile::CCIPProvider;
+use crate::core::CCIPProvider;
 
 use super::ipfs::IPFSURLUnparsed;
 

@@ -1,6 +1,6 @@
 use crate::http_util::{profile_http_error_mapper, ErrorResponse, ValidationError};
-use enstate_shared::models::profile::error::ProfileError;
-use enstate_shared::models::profile::Profile;
+use enstate_shared::core::error::ProfileError;
+use enstate_shared::core::Profile;
 use enstate_shared::utils::vec::dedup_ord;
 
 #[derive(serde::Serialize)]

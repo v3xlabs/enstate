@@ -1,14 +1,17 @@
-use ethers::prelude::Http;
-use ethers::providers::{Provider, ProviderError};
+use crate::core::address::AddressResolveError;
+use ethers::prelude::{Provider, ProviderError};
+use ethers::providers::Http;
 use ethers_ccip_read::CCIPReadMiddlewareError;
 use std::sync::Arc;
 use thiserror::Error;
 
-#[allow(clippy::module_name_repetitions)]
 #[derive(Error, Debug)]
 pub enum ProfileError {
     #[error("Not Found")]
     NotFound,
+
+    #[error("Address resolve error: {0}")]
+    AddressResolveError(#[from] AddressResolveError),
 
     #[error("RPC error: {0}")]
     RPCError(#[from] ProviderError),

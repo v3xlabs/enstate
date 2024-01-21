@@ -2,7 +2,7 @@ use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum::http::StatusCode;
 use axum::Json;
-use enstate_shared::models::profile::error::ProfileError;
+use enstate_shared::core::error::ProfileError;
 use enstate_shared::utils::vec::dedup_ord;
 use ethers::prelude::ProviderError;
 use serde::{Deserialize, Deserializer};

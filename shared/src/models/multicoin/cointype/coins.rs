@@ -4,7 +4,7 @@ use ethers_core::types::U256;
 
 use super::{evm::ChainId, slip44::SLIP44};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum CoinType {
     Slip44(SLIP44),
     Evm(ChainId),
@@ -77,14 +77,14 @@ mod tests {
 
     #[test]
     fn test_to_coin_type_evm() {
-        let coin_type: CoinType = CoinType::from(1);
+        let coin_type: CoinType = CoinType::from(2147483649);
 
         assert_eq!(coin_type, CoinType::Evm(ChainId::Ethereum));
     }
 
     #[test]
     fn test_to_coin_type_evm_gnosis() {
-        let coin_type: CoinType = CoinType::from(2147483658);
+        let coin_type: CoinType = CoinType::from(2147483748);
 
         assert_eq!(coin_type, CoinType::Evm(ChainId::Gnosis));
     }

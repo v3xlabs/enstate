@@ -11,12 +11,11 @@ use ethers_core::abi;
 use ethers_core::abi::{ParamType, Token};
 use ethers_core::types::H160;
 
+use crate::core::error::ProfileError;
+use crate::core::CCIPProvider;
 use crate::models::lookup::ENSLookup;
-use crate::models::profile::CCIPProvider;
 use crate::utils::dns::dns_encode;
 use crate::utils::vec::dedup_ord;
-
-use super::profile::error::ProfileError;
 
 abigen!(
     IUResolver,
@@ -30,7 +29,7 @@ const MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE: &str =
 
 pub async fn resolve_universal(
     name: &str,
-    data: &[Box<dyn ENSLookup>],
+    data: &[ENSLookup],
     provider: &CCIPProvider,
     universal_resolver: &H160,
 ) -> Result<(Vec<Vec<u8>>, Address, Vec<String>), ProfileError> {
@@ -173,8 +172,6 @@ mod tests {
     use ethers_core::abi::ParamType;
     use ethers_core::types::Address;
 
-    use crate::models::lookup::addr::Addr;
-    use crate::models::lookup::text::Text;
     use crate::models::lookup::ENSLookup;
     use crate::models::universal_resolver;
 
@@ -182,13 +179,13 @@ mod tests {
     async fn test_resolve_universal() {
         let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
 
-        let calldata: Vec<Box<dyn ENSLookup + Send + Sync>> = vec![
-            Addr {}.to_boxed(),
-            Text::from("com.discord").to_boxed(),
-            Text::from("com.github").to_boxed(),
-            Text::from("com.twitter").to_boxed(),
-            Text::from("org.telegram").to_boxed(),
-            Text::from("location").to_boxed(),
+        let calldata: Vec<ENSLookup> = vec![
+            ENSLookup::Addr,
+            ENSLookup::StaticText("com.discord"),
+            ENSLookup::StaticText("com.github"),
+            ENSLookup::StaticText("com.twitter"),
+            ENSLookup::StaticText("org.telegram"),
+            ENSLookup::StaticText("location"),
         ];
 
         let res = universal_resolver::resolve_universal(
@@ -202,7 +199,7 @@ mod tests {
 
         let address = ethers_core::abi::decode(&[ParamType::Address], &res.0[0])
             .unwrap()
-            .get(0)
+            .first()
             .unwrap()
             .clone()
             .into_address()
@@ -213,7 +210,7 @@ mod tests {
             .map(|t| {
                 ethers_core::abi::decode(&[ParamType::String], t)
                     .unwrap()
-                    .get(0)
+                    .first()
                     .unwrap()
                     .clone()
                     .into_string()

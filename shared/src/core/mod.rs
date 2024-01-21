@@ -13,8 +13,9 @@ use crate::utils::factory::Factory;
 
 pub mod address;
 pub mod error;
-pub mod name;
-pub mod universal;
+pub mod lookup_data;
+pub mod profile;
+pub mod records;
 
 pub type CCIPProvider = CCIPReadMiddleware<Arc<Provider<Http>>>;
 
@@ -47,8 +48,7 @@ pub struct Profile {
     pub errors: BTreeMap<String, String>,
 }
 
-// name feels very java-esque, consider renaming
-pub struct ProfileService {
+pub struct ENSService {
     pub cache: Box<dyn crate::cache::CacheLayer>,
     pub rpc: Box<dyn Factory<Arc<Provider<Http>>>>,
     pub opensea_api_key: String,

@@ -4,7 +4,9 @@ use axum::{
     extract::{Path, Query, State},
     Json,
 };
-use enstate_shared::models::profile::Profile;
+use enstate_shared::core::error::ProfileError;
+use enstate_shared::core::lookup_data::{LookupInfo, NameParseError};
+use enstate_shared::core::{ENSService, Profile};
 use futures::future::join_all;
 use serde::Deserialize;
 
@@ -74,13 +76,24 @@ pub async fn get_bulk(
     let profiles = queries
         .iter()
         .map(|input| {
-            state
-                .service
-                .resolve_from_name_or_address(input, query.fresh.fresh)
+            profile_from_lookup_guess(LookupInfo::guess(input), &state.service, query.fresh.fresh)
         })
         .collect::<Vec<_>>();
 
     let joined = join_all(profiles).await.into();
 
     Ok(Json(joined))
+}
+
+// helper function for above
+async fn profile_from_lookup_guess(
+    lookup: Result<LookupInfo, NameParseError>,
+    service: &ENSService,
+    fresh: bool,
+) -> Result<Profile, ProfileError> {
+    let Ok(lookup) = lookup else {
+        return Err(ProfileError::NotFound);
+    };
+
+    service.resolve_profile(lookup, fresh).await
 }

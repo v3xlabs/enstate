@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use enstate_shared::cache::CacheLayer;
+use enstate_shared::core::ENSService;
 use enstate_shared::meta::gen_app_meta;
 use enstate_shared::models::multicoin::cointype::Coins;
-use enstate_shared::models::profile::ProfileService;
 use enstate_shared::models::records::Records;
 use enstate_shared::utils::factory::SimpleFactory;
 use ethers::prelude::{Http, Provider};
@@ -54,7 +54,7 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
         .parse::<H160>()
         .expect("UNIVERSAL_RESOLVER should be a valid address");
 
-    let service = ProfileService {
+    let service = ENSService {
         cache,
         rpc: Box::new(SimpleFactory::from(Arc::new(rpc))),
         opensea_api_key: opensea_api_key.to_string(),
@@ -63,8 +63,6 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
         universal_resolver,
     };
 
-    // TODO (@antony1060): I don't like this, there needs to be a better way
-    //  also, very not efficient in worker context
     let response = Router::with_data(service)
         .get("/", |_, _| root_handler().with_cors(&CORS))
         .get_async("/a/:address", routes::address::get)

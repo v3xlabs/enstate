@@ -1,15 +1,15 @@
-use std::fmt::Display;
+use std::hash::Hash;
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use ethers_core::abi;
 use ethers_core::abi::Token;
 use ethers_core::types::H256;
 use lazy_static::lazy_static;
 use thiserror::Error;
 
+use crate::core::CCIPProvider;
 use crate::models::eip155::EIP155Error;
-use crate::models::profile::CCIPProvider;
+use crate::models::multicoin::cointype::coins::CoinType;
 
 use super::multicoin::decoding::MulticoinDecoderError;
 
@@ -39,26 +39,66 @@ pub enum ENSLookupError {
     CCIPError { status: u16, message: String },
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-pub trait ENSLookup: Send + Sync {
-    fn calldata(&self, namehash: &H256) -> Vec<u8>;
-    async fn decode(&self, data: &[u8], state: &LookupState) -> Result<String, ENSLookupError>;
-    fn name(&self) -> String;
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub enum ENSLookup {
+    Addr,
+    Text(String),
+    StaticText(&'static str),
+    Image(String),
+    StaticImage(&'static str),
+    Multicoin(CoinType),
+}
 
-    fn to_boxed(self) -> Box<Self>
-    where
-        Self: Sized,
-    {
-        Box::new(self)
+impl ENSLookup {
+    pub fn function_selector(&self) -> [u8; 4] {
+        match self {
+            ENSLookup::Addr => addr::function_selector(),
+            ENSLookup::Text(_) => text::function_selector(),
+            ENSLookup::StaticText(_) => text::function_selector(),
+            ENSLookup::Image(_) => image::function_selector(),
+            ENSLookup::StaticImage(_) => image::function_selector(),
+            ENSLookup::Multicoin(_) => multicoin::function_selector(),
+        }
+    }
+
+    pub fn calldata(&self, namehash: &H256) -> Vec<u8> {
+        match self {
+            ENSLookup::Addr => addr::calldata(namehash),
+            ENSLookup::Text(record) => text::calldata(namehash, record),
+            ENSLookup::StaticText(record) => text::calldata(namehash, record),
+            ENSLookup::Image(record) => image::calldata(namehash, record),
+            ENSLookup::StaticImage(record) => image::calldata(namehash, record),
+            ENSLookup::Multicoin(coin_type) => multicoin::calldata(namehash, coin_type),
+        }
+    }
+
+    pub async fn decode(
+        &self,
+        data: &[u8],
+        lookup_state: &LookupState,
+    ) -> Result<String, ENSLookupError> {
+        match self {
+            ENSLookup::Addr => addr::decode(data).await,
+            ENSLookup::Text(_) => text::decode(data).await,
+            ENSLookup::StaticText(_) => text::decode(data).await,
+            ENSLookup::Image(_) => image::decode(data, lookup_state).await,
+            ENSLookup::StaticImage(_) => image::decode(data, lookup_state).await,
+            ENSLookup::Multicoin(coin_type) => multicoin::decode(data, coin_type).await,
+        }
+    }
+
+    pub fn name(&self) -> String {
+        match self {
+            ENSLookup::Addr => "addr".to_string(),
+            ENSLookup::Text(record) => format!("records.{}", record),
+            ENSLookup::StaticText(record) => format!("records.{}", record),
+            ENSLookup::Image(record) => format!("image.{}", record),
+            ENSLookup::StaticImage(record) => format!("image.{}", record),
+            ENSLookup::Multicoin(coin_type) => format!("chains.{}", coin_type),
+        }
     }
 }
 
-impl Display for dyn ENSLookup {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        write!(f, "ENSLookup({})", self.name())
-    }
-}
 pub struct LookupState {
     pub rpc: Arc<CCIPProvider>,
     pub opensea_api_key: String,
@@ -86,16 +126,16 @@ pub fn abi_decode_universal_ccip(
             return ENSLookupError::AbiError(err);
         };
 
-        let Some(Token::Array(errors)) = results.get(0) else {
+        let Some(Token::Array(errors)) = results.first() else {
             return ENSLookupError::AbiError(err);
         };
 
-        let Some(Token::Tuple(tuple)) = errors.get(0) else {
+        let Some(Token::Tuple(tuple)) = errors.first() else {
             return ENSLookupError::AbiError(err);
         };
 
         let (Some(Token::Uint(status)), Some(Token::String(message))) =
-            (tuple.get(0), tuple.get(1))
+            (tuple.first(), tuple.get(1))
         else {
             return ENSLookupError::AbiError(err);
         };

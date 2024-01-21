@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 
 use super::CoinType;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum ChainId {
     Ethereum,
     Polygon,

@@ -35,6 +35,7 @@ hex = "0.4.3"
 reqwest = "0.11.22"
 ethers-ccip-read = { git = "https://github.com/ensdomains/ethers-ccip-read" }
 build-info = "0.0.34"
+itertools = "0.12.0"
 
 # needed to enable the "js" feature for compatibility with wasm,
 # see https://docs.rs/getrandom/#webassembly-support

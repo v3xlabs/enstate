@@ -2,9 +2,9 @@ use std::sync::Arc;
 
 use axum::extract::{Path, Query, State};
 use axum::response::Redirect;
-use enstate_shared::models::lookup::image::Image;
+use enstate_shared::core::error::ProfileError;
+use enstate_shared::core::lookup_data::LookupInfo;
 use enstate_shared::models::lookup::ENSLookup;
-use futures::TryFutureExt;
 
 use crate::routes::{profile_http_error_mapper, FreshQuery, RouteError};
 
@@ -26,16 +26,12 @@ pub async fn get(
     Query(query): Query<FreshQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> Result<Redirect, RouteError> {
+    let info = LookupInfo::guess(name_or_address)
+        .map_err(|_| profile_http_error_mapper(ProfileError::NotFound))?;
+
     let avatar = state
         .service
-        .name_from_name_or_address(&name_or_address, query.fresh)
-        .and_then(|name| {
-            state.service.resolve_from_name_single(
-                name,
-                Image::from("avatar").to_boxed(),
-                query.fresh,
-            )
-        })
+        .resolve_record_simple(info, ENSLookup::Image("avatar".to_string()), query.fresh)
         .await
         .map_err(profile_http_error_mapper)?;
 

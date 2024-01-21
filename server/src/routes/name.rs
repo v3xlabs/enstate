@@ -4,7 +4,8 @@ use axum::{
     extract::{Path, Query, State},
     Json,
 };
-use enstate_shared::models::profile::Profile;
+use enstate_shared::core::lookup_data::LookupInfo;
+use enstate_shared::core::Profile;
 use futures::future::join_all;
 use serde::Deserialize;
 
@@ -70,8 +71,12 @@ pub async fn get_bulk(
     let names = validate_bulk_input(&query.names, 10)?;
 
     let profiles = names
-        .iter()
-        .map(|name| state.service.resolve_from_name(name, query.fresh.fresh))
+        .into_iter()
+        .map(|name| {
+            state
+                .service
+                .resolve_profile(LookupInfo::Name(name), query.fresh.fresh)
+        })
         .collect::<Vec<_>>();
 
     let joined = join_all(profiles).await.into();
