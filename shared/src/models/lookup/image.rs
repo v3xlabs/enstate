@@ -109,7 +109,7 @@ pub async fn decode(data: &[u8], state: &LookupState) -> Result<String, ENSLooku
     )
     .await?;
 
-    return Ok(resolved_uri);
+    Ok(resolved_uri)
 }
 
 #[cfg(test)]
@@ -120,7 +120,7 @@ mod tests {
     #[test]
     fn test_calldata_avatar() {
         assert_eq!(
-            ENSLookup::Image("avatar".to_string()).calldata(&namehash("luc.eth")),
+            ENSLookup::StaticImage("avatar").calldata(&namehash("luc.eth")),
             hex_literal::hex!("59d1d43ce1e7bcf2ca33c28a806ee265cfedf02fedf1b124ca73b2203ca80cc7c91a02ad000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000066176617461720000000000000000000000000000000000000000000000000000")
         );
     }

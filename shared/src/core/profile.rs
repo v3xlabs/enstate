@@ -60,9 +60,9 @@ impl ENSService {
 
         let (addr_key, avatar_key, header_key, display_key) = (
             ENSLookup::Addr,
-            ENSLookup::Image("avatar".to_string()),
-            ENSLookup::Image("header".to_string()),
-            ENSLookup::Text("display".to_string()),
+            ENSLookup::StaticImage("avatar"),
+            ENSLookup::StaticImage("header"),
+            ENSLookup::StaticText("display"),
         );
 
         calldata.extend([

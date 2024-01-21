@@ -181,11 +181,11 @@ mod tests {
 
         let calldata: Vec<ENSLookup> = vec![
             ENSLookup::Addr,
-            ENSLookup::Text("com.discord".to_string()),
-            ENSLookup::Text("com.github".to_string()),
-            ENSLookup::Text("com.twitter".to_string()),
-            ENSLookup::Text("org.telegram".to_string()),
-            ENSLookup::Text("location".to_string()),
+            ENSLookup::StaticText("com.discord"),
+            ENSLookup::StaticText("com.github"),
+            ENSLookup::StaticText("com.twitter"),
+            ENSLookup::StaticText("org.telegram"),
+            ENSLookup::StaticText("location"),
         ];
 
         let res = universal_resolver::resolve_universal(
@@ -199,7 +199,7 @@ mod tests {
 
         let address = ethers_core::abi::decode(&[ParamType::Address], &res.0[0])
             .unwrap()
-            .get(0)
+            .first()
             .unwrap()
             .clone()
             .into_address()
@@ -210,7 +210,7 @@ mod tests {
             .map(|t| {
                 ethers_core::abi::decode(&[ParamType::String], t)
                     .unwrap()
-                    .get(0)
+                    .first()
                     .unwrap()
                     .clone()
                     .into_string()

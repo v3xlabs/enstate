@@ -43,7 +43,9 @@ pub enum ENSLookupError {
 pub enum ENSLookup {
     Addr,
     Text(String),
+    StaticText(&'static str),
     Image(String),
+    StaticImage(&'static str),
     Multicoin(CoinType),
 }
 
@@ -52,7 +54,9 @@ impl ENSLookup {
         match self {
             ENSLookup::Addr => addr::function_selector(),
             ENSLookup::Text(_) => text::function_selector(),
+            ENSLookup::StaticText(_) => text::function_selector(),
             ENSLookup::Image(_) => image::function_selector(),
+            ENSLookup::StaticImage(_) => image::function_selector(),
             ENSLookup::Multicoin(_) => multicoin::function_selector(),
         }
     }
@@ -61,7 +65,9 @@ impl ENSLookup {
         match self {
             ENSLookup::Addr => addr::calldata(namehash),
             ENSLookup::Text(record) => text::calldata(namehash, record),
+            ENSLookup::StaticText(record) => text::calldata(namehash, record),
             ENSLookup::Image(record) => image::calldata(namehash, record),
+            ENSLookup::StaticImage(record) => image::calldata(namehash, record),
             ENSLookup::Multicoin(coin_type) => multicoin::calldata(namehash, coin_type),
         }
     }
@@ -74,7 +80,9 @@ impl ENSLookup {
         match self {
             ENSLookup::Addr => addr::decode(data).await,
             ENSLookup::Text(_) => text::decode(data).await,
+            ENSLookup::StaticText(_) => text::decode(data).await,
             ENSLookup::Image(_) => image::decode(data, lookup_state).await,
+            ENSLookup::StaticImage(_) => image::decode(data, lookup_state).await,
             ENSLookup::Multicoin(coin_type) => multicoin::decode(data, coin_type).await,
         }
     }
@@ -83,7 +91,9 @@ impl ENSLookup {
         match self {
             ENSLookup::Addr => "addr".to_string(),
             ENSLookup::Text(record) => format!("records.{}", record),
+            ENSLookup::StaticText(record) => format!("records.{}", record),
             ENSLookup::Image(record) => format!("image.{}", record),
+            ENSLookup::StaticImage(record) => format!("image.{}", record),
             ENSLookup::Multicoin(coin_type) => format!("chains.{}", coin_type),
         }
     }
@@ -116,16 +126,16 @@ pub fn abi_decode_universal_ccip(
             return ENSLookupError::AbiError(err);
         };
 
-        let Some(Token::Array(errors)) = results.get(0) else {
+        let Some(Token::Array(errors)) = results.first() else {
             return ENSLookupError::AbiError(err);
         };
 
-        let Some(Token::Tuple(tuple)) = errors.get(0) else {
+        let Some(Token::Tuple(tuple)) = errors.first() else {
             return ENSLookupError::AbiError(err);
         };
 
         let (Some(Token::Uint(status)), Some(Token::String(message))) =
-            (tuple.get(0), tuple.get(1))
+            (tuple.first(), tuple.get(1))
         else {
             return ENSLookupError::AbiError(err);
         };
