@@ -63,8 +63,6 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
         universal_resolver,
     };
 
-    // TODO (@antony1060): I don't like this, there needs to be a better way
-    //  also, very not efficient in worker context
     let response = Router::with_data(service)
         .get("/", |_, _| root_handler().with_cors(&CORS))
         .get_async("/a/:address", routes::address::get)

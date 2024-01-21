@@ -55,7 +55,6 @@ impl ENSService {
         }
 
         // Preset Hardcoded Lookups
-
         let mut calldata: HashSet<ENSLookup> = HashSet::new();
 
         let (addr_key, avatar_key, header_key, display_key) = (

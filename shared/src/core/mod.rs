@@ -48,7 +48,6 @@ pub struct Profile {
     pub errors: BTreeMap<String, String>,
 }
 
-// name feels very java-esque, consider renaming
 pub struct ENSService {
     pub cache: Box<dyn crate::cache::CacheLayer>,
     pub rpc: Box<dyn Factory<Arc<Provider<Http>>>>,

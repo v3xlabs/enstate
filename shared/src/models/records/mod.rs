@@ -25,7 +25,7 @@ impl Default for Records {
             "social.bsky",
             "org.telegram",
             "social.mastodon",
-            "network.dm3.core",
+            "network.dm3.profile",
             "network.dm3.deliveryService",
         ]
         .into_iter()
