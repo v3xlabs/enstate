@@ -32,15 +32,17 @@ mod tests {
     use ethers::providers::namehash;
     use hex_literal::hex;
 
+    use crate::models::lookup::ENSLookup;
+
     #[test]
     fn test_calldata_address() {
         assert_eq!(
-            Addr {}.calldata(&namehash("eth")),
+            ENSLookup::Addr.calldata(&namehash("eth")),
             hex!("3b3b57de93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae")
         );
 
         assert_eq!(
-            Addr {}.calldata(&namehash("foo.eth")),
+            ENSLookup::Addr.calldata(&namehash("foo.eth")),
             hex!("3b3b57dede9b09fd7c5f901e23a3f19fecc54828e9c848539801e86591bd9801b019f84f")
         );
     }

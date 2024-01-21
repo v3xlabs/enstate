@@ -172,8 +172,6 @@ mod tests {
     use ethers_core::abi::ParamType;
     use ethers_core::types::Address;
 
-    use crate::models::lookup::addr::Addr;
-    use crate::models::lookup::text::Text;
     use crate::models::lookup::ENSLookup;
     use crate::models::universal_resolver;
 
@@ -181,13 +179,13 @@ mod tests {
     async fn test_resolve_universal() {
         let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth").unwrap();
 
-        let calldata: Vec<Box<dyn ENSLookup + Send + Sync>> = vec![
-            Addr {}.to_boxed(),
-            Text::from("com.discord").to_boxed(),
-            Text::from("com.github").to_boxed(),
-            Text::from("com.twitter").to_boxed(),
-            Text::from("org.telegram").to_boxed(),
-            Text::from("location").to_boxed(),
+        let calldata: Vec<ENSLookup> = vec![
+            ENSLookup::Addr,
+            ENSLookup::Text("com.discord".to_string()),
+            ENSLookup::Text("com.github".to_string()),
+            ENSLookup::Text("com.twitter".to_string()),
+            ENSLookup::Text("org.telegram".to_string()),
+            ENSLookup::Text("location".to_string()),
         ];
 
         let res = universal_resolver::resolve_universal(
