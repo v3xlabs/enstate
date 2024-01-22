@@ -1,6 +1,7 @@
 use enstate_shared::core::error::ProfileError;
 use ethers::prelude::ProviderError;
 use http::status::StatusCode;
+use lazy_static::lazy_static;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
 use thiserror::Error;
@@ -23,11 +24,15 @@ where
     Ok(value.map(|it| it == "true").unwrap_or(false))
 }
 
+lazy_static! {
+    static ref SERDE_QS_CONFIG: serde_qs::Config = serde_qs::Config::new(2, false);
+}
+
 pub fn parse_query<T: DeserializeOwned>(req: &Request) -> worker::Result<T> {
     let url = req.url()?;
     let query = url.query().unwrap_or("");
 
-    serde_qs::from_str::<T>(query).map_err(|_| http_simple_status_error(StatusCode::BAD_REQUEST))
+    SERDE_QS_CONFIG.deserialize_str::<T>(query).map_err(|_| http_simple_status_error(StatusCode::BAD_REQUEST))
 }
 
 #[derive(Error, Debug)]
