@@ -1,3 +1,4 @@
+#: schema https://github.com/cloudflare/workers-sdk/files/12887590/wrangler.schema.json
 name = "enstate-worker"
 main = "build/worker/shim.mjs"
 compatibility_date = "2023-03-22"
@@ -14,4 +15,4 @@ kv_namespaces = [
 command = "cargo install -q worker-build && worker-build --release"
 
 [vars]
-OPENSEA_API_KEY="xxxx"
+UNIVERSAL_RESOLVER="0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62"

@@ -47,21 +47,57 @@ services:
             - 6379:6379
 ```
 
-### 🦀 Cloudflare Worker
-
-Running the cloudflare worker is as easy as running the following command:
-Additionally, there is a hosted instance available at [worker.enstate.rs](https://worker.enstate.rs).
+### 🦀 Cloudflare Workers
 
 ```sh
-cd worker && pnpx wrangler deploy
+cd worker
 ```
+
+#### Run the worker locally
+
+```sh
+cp .dev.vars.example .dev.vars
+```
+
+Edit your `.dev.vars` file at this time to include environment variables for `UNIVERSAL_RESOLVER`, `RPC_URL` (optional) and `OPENSEA_API_KEY` (optional).
+
+To run the worker locally you can now run:
+
+```
+pnpm dev
+```
+
+#### Deploying to Cloudflare Workers
+
+Create a [**KV namespace**](https://developers.cloudflare.com/kv/get-started/#3-create-a-kv-namespace) via `wrangler` or the Cloudflare dashboard.
+
+```sh
+pnpm wrangler kv:namespace create <YOUR_NAMESPACE>
+```
+
+Copy the `id` of your newly created KV namespace to your [`wrangler.toml`](./worker/wrangler.toml). The `binding` value should remain as `enstate-1` regardless of what you named yours when you created it.
+
+Deploy the worker:
+
+```sh
+pnpm wrangler deploy
+```
+
+Upload your secrets:
+
+```sh
+echo "https://rpc.ankr.com/eth/XXXXXX" | pnpm wrangler secret put RPC_URL
+echo "XXXXX" | pnpm wrangler secret put OPENSEA_API_KEY
+```
+
+Additionally, there is a hosted instance available at [worker.enstate.rs](https://worker.enstate.rs).
 
 ## Contributing
 
 ### Standalone Server
 
 ```sh
-cargo run -p enstate
+cd server && cargo run -p enstate
 ```
 
 ### Cloudflare Worker
@@ -69,3 +105,5 @@ cargo run -p enstate
 ```sh
 cd worker && pnpm dev
 ```
+
+For more information on running the worker locally, please see [running Cloudflare Workers locally](#run-the-worker-locally).
