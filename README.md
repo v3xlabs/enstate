@@ -49,42 +49,49 @@ services:
 
 ### 🦀 Cloudflare Workers
 
-#### Running locally:
+```sh
+cd worker
+```
 
--
-    ```sh
-    cd worker
-    ```
-- Copy `.dev.vars.example` to [`.dev.vars`](https://developers.cloudflare.com/workers/configuration/environment-variables/#interact-with-environment-variables-locally) and fill in the values:
+#### Run the worker locally
 
-    ```sh
-    # .dev.vars is Cloudflare Wrangler's .env equivalent
-    cp .dev.vars.example .dev.vars
-    ```
-- Run the worker locally:
-    ```sh
-    pnpm dev
-    ```
-#### Deploying:
+```sh
+cp .dev.vars.example .dev.vars
+```
 
-- Create a [**KV namespace**](https://developers.cloudflare.com/kv/get-started/#3-create-a-kv-namespace) via `Wrangler`:
-    ```sh
-    pnpm wrangler kv:namespace create <YOUR_NAMESPACE>
-    ```
-- From the output, copy the `id` and replace the one in [`wrangler.toml`](./worker/wrangler.toml) line 8 with it. The `binding` value should remain as `enstate-1` regardless of what you named yours when you created it,
+Edit your `.dev.vars` file at this time to include environment variables for `UNIVERSAL_RESOLVER`, `RPC_URL` (optional) and `OPENSEA_API_KEY` (optional).
 
-- Deploy the worker:
+To run the worker locally you can now run:
 
-    ```sh
-    pnpm wrangler deploy
-    ```
-- Upload your secrets:
-    ```sh
-    echo "https://rpc.ankr.com/eth/XXXXXX" | pnpm wrangler secret put RPC_URL
-    echo "XXXXX" | pnpm wrangler secret put OPENSEA_API_KEY
-    ```
+```
+pnpm dev
+```
+
+#### Deploying to Cloudflare Workers
+
+Create a [**KV namespace**](https://developers.cloudflare.com/kv/get-started/#3-create-a-kv-namespace) via `wrangler` or the Cloudflare dashboard.
+
+```sh
+pnpm wrangler kv:namespace create <YOUR_NAMESPACE>
+```
+
+Copy the `id` of your newly created KV namespace to your [`wrangler.toml`](./worker/wrangler.toml). The `binding` value should remain as `enstate-1` regardless of what you named yours when you created it.
+
+Deploy the worker:
+
+```sh
+pnpm wrangler deploy
+```
+
+Upload your secrets:
+
+```sh
+echo "https://rpc.ankr.com/eth/XXXXXX" | pnpm wrangler secret put RPC_URL
+echo "XXXXX" | pnpm wrangler secret put OPENSEA_API_KEY
+```
 
 Additionally, there is a hosted instance available at [worker.enstate.rs](https://worker.enstate.rs).
+
 ## Contributing
 
 ### Standalone Server
@@ -95,4 +102,8 @@ cd server && cargo run -p enstate
 
 ### Cloudflare Worker
 
-See [running Cloudflare Workers locally](#running-locally).
+```sh
+cd worker && pnpm dev
+```
+
+For more information on running the worker locally, please see [running Cloudflare Workers locally](#run-the-worker-locally).
