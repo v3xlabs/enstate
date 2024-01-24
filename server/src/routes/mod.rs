@@ -5,6 +5,7 @@ use axum::Json;
 use enstate_shared::core::error::ProfileError;
 use enstate_shared::utils::vec::dedup_ord;
 use ethers::prelude::ProviderError;
+use lazy_static::lazy_static;
 use serde::{Deserialize, Deserializer};
 use thiserror::Error;
 
@@ -116,6 +117,10 @@ pub fn validate_bulk_input(
 
 pub struct Qs<T>(T);
 
+lazy_static! {
+    static ref SERDE_QS_CONFIG: serde_qs::Config = serde_qs::Config::new(2, false);
+}
+
 #[axum::async_trait]
 impl<T, S> FromRequestParts<S> for Qs<T>
 where
@@ -126,7 +131,9 @@ where
     async fn from_request_parts(parts: &mut Parts, _: &S) -> Result<Self, Self::Rejection> {
         let query = parts.uri.query().unwrap_or("");
         Ok(Self(
-            serde_qs::from_str(query).map_err(|error| error.to_string())?,
+            SERDE_QS_CONFIG
+                .deserialize_str(query)
+                .map_err(|error| error.to_string())?,
         ))
     }
 }
