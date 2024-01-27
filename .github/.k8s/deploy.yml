@@ -59,10 +59,13 @@ spec:
                 secretKeyRef:
                   name: opensea-api-key
                   key: api-key
+            - name: RPC_URL
+              valueFrom:
+                secretKeyRef:
+                  name: rpc-url-mainnet
+                  key: rpc-url
             - name: REDIS_URL
               value: redis://redis.enstate.svc.cluster.local:6379
-            - name: RPC_URL
-              value: https://eth.llamarpc.com,https://rpc.payload.de,https://rpc.ankr.com/eth
             - name: UNIVERSAL_RESOLVER
               value: 0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62
           resources:
