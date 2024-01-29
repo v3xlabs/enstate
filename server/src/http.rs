@@ -63,6 +63,7 @@ pub fn setup(state: AppState) -> App {
         .directory_route("/bulk/a", get(routes::address::get_bulk))
         .directory_route("/bulk/n", get(routes::name::get_bulk))
         .directory_route("/bulk/u", get(routes::universal::get_bulk))
+        .directory_route("/sse/u", get(routes::universal::get_bulk_sse))
         .fallback(routes::four_oh_four::handler)
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())

@@ -62,17 +62,14 @@ pub fn profile_http_error_mapper<T: AsRef<ProfileError>>(err: T) -> ErrorRespons
     }
 }
 
-pub fn http_simple_status_error(status: StatusCode) -> RouteError {
-    (
-        status,
-        Json(ErrorResponse {
-            status: status.as_u16(),
-            error: status
-                .canonical_reason()
-                .unwrap_or("Unknown error")
-                .to_string(),
-        }),
-    )
+pub fn http_simple_status_error(status: StatusCode) -> ErrorResponse {
+    ErrorResponse {
+        status: status.as_u16(),
+        error: status
+            .canonical_reason()
+            .unwrap_or("Unknown error")
+            .to_string(),
+    }
 }
 
 pub fn http_error(status: StatusCode, error: &str) -> RouteError {
