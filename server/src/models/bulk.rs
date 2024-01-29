@@ -4,7 +4,7 @@ use utoipa::ToSchema;
 use crate::models::error::ErrorResponse;
 use crate::routes::profile_http_error_mapper;
 
-#[derive(serde::Serialize)]
+#[derive(Debug, serde::Serialize)]
 #[serde(tag = "type")]
 pub enum BulkResponse<Ok> {
     #[serde(rename = "success")]
