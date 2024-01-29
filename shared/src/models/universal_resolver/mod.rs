@@ -25,7 +25,7 @@ abigen!(
 );
 
 const MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE: &str =
-    "execution reverted: UniversalResolver: Wildcard on non-extended resolvers is not supported";
+    "Wildcard on non-extended resolvers is not supported";
 
 pub async fn resolve_universal(
     name: &str,
@@ -72,7 +72,7 @@ pub async fn resolve_universal(
                 return ProfileError::RPCError(provider_error);
             };
 
-            if matches!(rpc_err.as_error_response(), Some(rpc_err_raw) if rpc_err_raw.message == MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE) {
+            if matches!(rpc_err.as_error_response(), Some(rpc_err_raw) if rpc_err_raw.message.contains(MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE)) {
                 return ProfileError::NotFound;
             }
 
