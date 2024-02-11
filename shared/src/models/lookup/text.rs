@@ -22,7 +22,7 @@ pub fn calldata(namehash: &H256, record: &str) -> Vec<u8> {
 pub async fn decode(data: &[u8]) -> Result<String, ENSLookupError> {
     let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::String])?;
 
-    let Some(Token::String(value)) = decoded_abi.get(0) else {
+    let Some(Token::String(value)) = decoded_abi.first() else {
         return Err(ENSLookupError::AbiDecodeError);
     };
 

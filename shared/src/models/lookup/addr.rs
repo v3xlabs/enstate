@@ -20,7 +20,7 @@ pub async fn decode(data: &[u8]) -> Result<String, ENSLookupError> {
     let decoded_abi = ethers_core::abi::decode(&[ParamType::Address], data)
         .map_err(|_| ENSLookupError::AbiDecodeError)?;
 
-    let Some(Token::Address(address)) = decoded_abi.get(0) else {
+    let Some(Token::Address(address)) = decoded_abi.first() else {
         return Err(ENSLookupError::AbiDecodeError);
     };
 

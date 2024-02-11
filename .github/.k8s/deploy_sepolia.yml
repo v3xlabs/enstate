@@ -64,7 +64,7 @@ spec:
             - name: RPC_URL
               value: https://rpc.ankr.com/eth_sepolia,https://ethereum-sepolia.publicnode.com,https://sepolia.gateway.tenderly.co
             - name: UNIVERSAL_RESOLVER
-              value: 0x21B000Fd62a880b2125A61e36a284BB757b76025
+              value: 0xBaBC7678D7A63104f1658c11D6AE9A21cdA09725
           resources:
             requests:
               cpu: 100m

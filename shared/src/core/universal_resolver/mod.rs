@@ -6,41 +6,45 @@ use ethers::{
     types::{transaction::eip2718::TypedTransaction, Address, Bytes},
 };
 use ethers_ccip_read::{CCIPReadMiddlewareError, CCIPRequest};
-use ethers_contract::abigen;
 use ethers_core::abi;
 use ethers_core::abi::{ParamType, Token};
 use ethers_core::types::H160;
+use hex_literal::hex;
+use lazy_static::lazy_static;
 
 use crate::core::error::ProfileError;
 use crate::core::CCIPProvider;
-use crate::models::lookup::ENSLookup;
+use crate::models::lookup::{addr, ENSLookup};
 use crate::utils::dns::dns_encode;
 use crate::utils::vec::dedup_ord;
 
-abigen!(
-    IUResolver,
-    r#"[
-        function resolve(bytes name, bytes[] data) external view returns (bytes[], address)
-    ]"#,
-);
+lazy_static! {
+    static ref OFFCHAIN_DNS_RESOLVER: Address =
+        Address::from(hex!("F142B308cF687d4358410a4cB885513b30A42025"));
+}
 
-const MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE: &str =
-    "Wildcard on non-extended resolvers is not supported";
+pub struct UniversalResolverResult {
+    pub(crate) success: bool,
+    pub(crate) data: Vec<u8>,
+}
 
 pub async fn resolve_universal(
     name: &str,
     data: &[ENSLookup],
     provider: &CCIPProvider,
     universal_resolver: &H160,
-) -> Result<(Vec<Vec<u8>>, Address, Vec<String>), ProfileError> {
+) -> Result<(Vec<UniversalResolverResult>, Address, Vec<String>), ProfileError> {
     let name_hash = namehash(name);
 
     // Prepare the variables
     let dns_encoded_node = dns_encode(name).map_err(ProfileError::DNSEncodeError)?;
 
+    // FIXME: don't force address lookup
+    let data = [&[ENSLookup::Addr] as &[ENSLookup], data].concat();
+
     let wildcard_data = data
         .iter()
-        .map(|x| x.calldata(&name_hash))
+        .map(|it| it.calldata(&name_hash))
         .map(Token::Bytes)
         .collect();
 
@@ -55,34 +59,39 @@ pub async fn resolve_universal(
     // Prepare transaction data
     let transaction_data = [resolve_selector, encoded_data].concat();
 
-    // Setup the transaction
+    // Set up the transaction
     typed_transaction.set_to(*universal_resolver);
     typed_transaction.set_data(Bytes::from(transaction_data));
 
     // Call the transaction
-    let (res, ccip_requests) = provider
-        .call_ccip(&typed_transaction, None)
-        .await
-        .map_err(|err| {
-            let CCIPReadMiddlewareError::MiddlewareError(provider_error) = err else {
-                return ProfileError::CCIPError(err);
-            };
+    let (res, ccip_requests) =
+        provider
+            .call_ccip(&typed_transaction, None)
+            .await
+            .map_err(|err| {
+                let CCIPReadMiddlewareError::MiddlewareError(provider_error) = err else {
+                    return ProfileError::CCIPError(err);
+                };
 
-            let JsonRpcClientError(rpc_err) = &provider_error else {
-                return ProfileError::RPCError(provider_error);
-            };
+                let JsonRpcClientError(rpc_err) = &provider_error else {
+                    return ProfileError::RPCError(provider_error);
+                };
 
-            if matches!(rpc_err.as_error_response(), Some(rpc_err_raw) if rpc_err_raw.message.contains(MAGIC_UNIVERSAL_RESOLVER_ERROR_MESSAGE)) {
-                return ProfileError::NotFound;
-            }
+                // TODO: better error handling
+                if rpc_err.as_error_response().is_some() {
+                    return ProfileError::NotFound;
+                }
 
-            ProfileError::RPCError(provider_error)
-        })?;
+                ProfileError::RPCError(provider_error)
+            })?;
 
     // Abi Decode
     let result = abi::decode(
         &[
-            ParamType::Array(Box::new(ParamType::Bytes)),
+            ParamType::Array(Box::new(ParamType::Tuple(vec![
+                ParamType::Bool,
+                ParamType::Bytes,
+            ]))),
             ParamType::Address,
         ],
         res.as_ref(),
@@ -94,24 +103,50 @@ pub async fn resolve_universal(
         return Err(ProfileError::ImplementationError("".to_string()));
     }
 
-    let result_data = result.get(0).expect("result[0] should exist").clone();
+    let result_data = result.first().expect("result[0] should exist").clone();
     let result_address = result.get(1).expect("result[1] should exist").clone();
 
     let resolver = result_address
         .into_address()
         .expect("result[1] should be an address");
 
-    if resolver.is_zero() {
+    let mut parsed: Vec<UniversalResolverResult> = result_data
+        .into_array()
+        .expect("result[0] should be an array")
+        .into_iter()
+        .map(|t| {
+            let tuple = t.into_tuple().expect("result[0] should be a tuple");
+
+            let success = tuple
+                .first()
+                .expect("result[0][0] should exist")
+                .clone()
+                .into_bool()
+                .expect("result[0][0] should be a boolean");
+            let data = tuple
+                .get(1)
+                .expect("result[0][1] should exist")
+                .clone()
+                .into_bytes()
+                .expect("result[0][1] elements should be bytes");
+
+            UniversalResolverResult { success, data }
+        })
+        .collect();
+
+    let addr = addr::decode(&parsed.remove(0).data).await;
+
+    // if we got a CCIP response, where the resolver is an OffchainDNSResolver and the address if zero
+    //  it's a non-existing name
+    if resolver.is_zero()
+        || (resolver == *OFFCHAIN_DNS_RESOLVER
+            && matches!(addr, Ok(ref addr) if addr == "0x0000000000000000000000000000000000000000"))
+    {
         return Err(ProfileError::NotFound);
     }
 
     Ok((
-        result_data
-            .into_array()
-            .expect("result[0] should be an array")
-            .into_iter()
-            .map(|t| t.into_bytes().expect("result[0] elements should be bytes"))
-            .collect(),
+        parsed,
         resolver,
         dedup_ord(
             &ccip_requests
@@ -137,7 +172,7 @@ fn urls_from_request(request: &CCIPRequest) -> Vec<String> {
     )
     .unwrap_or_default();
 
-    let Some(Token::Array(requests)) = decoded.get(0) else {
+    let Some(Token::Array(requests)) = decoded.first() else {
         return Vec::new();
     };
 
@@ -172,8 +207,8 @@ mod tests {
     use ethers_core::abi::ParamType;
     use ethers_core::types::Address;
 
+    use crate::core::universal_resolver;
     use crate::models::lookup::ENSLookup;
-    use crate::models::universal_resolver;
 
     #[tokio::test]
     async fn test_resolve_universal() {
@@ -192,12 +227,12 @@ mod tests {
             "antony.sh",
             &calldata,
             &CCIPReadMiddleware::new(Arc::new(provider)),
-            &Address::from_str("0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62").unwrap(),
+            &Address::from_str("0x8cab227b1162f03b8338331adaad7aadc83b895e").unwrap(),
         )
         .await
         .unwrap();
 
-        let address = ethers_core::abi::decode(&[ParamType::Address], &res.0[0])
+        let address = ethers_core::abi::decode(&[ParamType::Address], &res.0[0].data)
             .unwrap()
             .first()
             .unwrap()
@@ -208,7 +243,7 @@ mod tests {
         let text_response: Vec<String> = res.0[1..]
             .iter()
             .map(|t| {
-                ethers_core::abi::decode(&[ParamType::String], t)
+                ethers_core::abi::decode(&[ParamType::String], &t.data)
                     .unwrap()
                     .first()
                     .unwrap()

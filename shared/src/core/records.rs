@@ -9,7 +9,8 @@ use crate::core::error::ProfileError;
 use crate::core::lookup_data::LookupInfo;
 use crate::core::ENSService;
 use crate::models::lookup::{ENSLookup, ENSLookupError, LookupState};
-use crate::models::universal_resolver::resolve_universal;
+
+use super::universal_resolver::resolve_universal;
 
 pub struct ResolvedCalldata {
     pub resolver: Address,
@@ -80,7 +81,14 @@ impl ENSService {
         // Assume results & calldata have the same length
         // Look through all calldata and decode the results at the same index
         for (index, calldata) in calldata.iter().enumerate() {
-            let result = calldata.decode(data[index], &lookup_state).await;
+            let res = data[index];
+            // TODO: think about this
+            //  current behaviour ignores all errors from a resolver
+            let result = if res.success {
+                calldata.decode(&res.data, &lookup_state).await
+            } else {
+                Ok(String::new())
+            };
 
             match result {
                 Ok(result) if !result.is_empty() => {

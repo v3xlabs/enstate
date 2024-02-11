@@ -16,6 +16,7 @@ pub mod error;
 pub mod lookup_data;
 pub mod profile;
 pub mod records;
+pub mod universal_resolver;
 
 pub type CCIPProvider = CCIPReadMiddleware<Arc<Provider<Http>>>;
 

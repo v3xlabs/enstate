@@ -23,7 +23,7 @@ pub fn gen_app_meta() -> AppMeta {
 
     let tag = info
         .tags
-        .get(0)
+        .first()
         .map(|val| val.to_string())
         .unwrap_or_else(|| format!("git:{}", &commit_id));
 

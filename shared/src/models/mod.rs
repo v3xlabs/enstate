@@ -4,4 +4,3 @@ pub mod ipfs;
 pub mod lookup;
 pub mod multicoin;
 pub mod records;
-pub mod universal_resolver;

@@ -4,7 +4,7 @@ use crate::utils::eip55::RSKIPChain;
 use super::{MulticoinDecoder, MulticoinDecoderError};
 
 pub struct EvmDecoder {
-    pub(crate) chain: RSKIPChain
+    pub(crate) chain: RSKIPChain,
 }
 
 impl MulticoinDecoder for EvmDecoder {
