@@ -58,6 +58,17 @@ export const dataset_name_bulk: Dataset<
         },
     },
     {
+        label: 'DNSRegistry (offchain DNSSEC)',
+        arg: qs.stringify({ names: ['antony.cash', 'cold.antony.cash'] }, { encode: false }),
+        expected: {
+            response: [
+                { type: 'success', address: '0x2B5c7025998f88550Ef2fEce8bf87935f542C190' },
+                { type: 'success', address: '0x797664168c3DEffdF3Eb3Ae18b29a2c7A7156feB' },
+            ],
+            response_length: 2,
+        },
+    },
+    {
         label: 'CCIP',
         arg: qs.stringify({ names: ['luc.willbreak.eth', 'lucemans.cb.id'] }, { encode: false }),
         expected: {

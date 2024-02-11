@@ -64,7 +64,7 @@ spec:
             - name: RPC_URL
               value: https://rpc.ankr.com/eth_goerli,https://ethereum-goerli.publicnode.com,https://goerli.gateway.tenderly.co
             - name: UNIVERSAL_RESOLVER
-              value: 0x3952Be0b2186f8B113193a84b69bD71ad3fc1ae3
+              value: 0xfc4AC75C46C914aF5892d6d3eFFcebD7917293F1
           resources:
             requests:
               cpu: 100m

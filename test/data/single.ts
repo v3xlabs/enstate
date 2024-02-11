@@ -29,6 +29,11 @@ export const dataset_name_single: Dataset<{ address: string } | { status: number
         expected: { address: '0x2B5c7025998f88550Ef2fEce8bf87935f542C190' },
     },
     {
+        label: 'DNSRegistry (offchain DNSSEC)',
+        arg: 'antony.cash',
+        expected: { address: '0x2B5c7025998f88550Ef2fEce8bf87935f542C190' },
+    },
+    {
         label: 'DNSRegistry (not found)',
         arg: randomBytes(8).toString('hex') + '.com',
         expected: { status: 404 },
@@ -117,6 +122,11 @@ export const dataset_universal_single: Dataset<
         label: 'DNSRegistry',
         arg: 'luc.computer',
         expected: { address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
+    },
+    {
+        label: 'DNSRegistry (offchain DNSSEC)',
+        arg: 'antony.cash',
+        expected: { address: '0x2B5c7025998f88550Ef2fEce8bf87935f542C190' },
     },
     {
         label: 'DNSRegistry',

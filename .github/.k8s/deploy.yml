@@ -67,7 +67,7 @@ spec:
             - name: REDIS_URL
               value: redis://redis.enstate.svc.cluster.local:6379
             - name: UNIVERSAL_RESOLVER
-              value: 0xc0497E381f536Be9ce14B0dD3817cBcAe57d2F62
+              value: 0x8cab227b1162f03b8338331adaad7aadc83b895e
           resources:
             requests:
               cpu: 100m
