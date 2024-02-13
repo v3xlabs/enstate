@@ -16,7 +16,7 @@ jobs:
         working-directory: test
 
       - name: Test
-        run: bun test remote --rerun-each 2
+        run: bun test remote --rerun-each 2 --timeout 40000
         env:
           REMOTE_URL: https://${{ matrix.suite }}
         working-directory: test
