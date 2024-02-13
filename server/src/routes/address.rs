@@ -1,5 +1,9 @@
+use std::convert::Infallible;
 use std::sync::Arc;
+use std::time::Duration;
 
+use axum::response::sse::Event;
+use axum::response::{IntoResponse, Sse};
 use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
@@ -10,9 +14,14 @@ use enstate_shared::core::Profile;
 use ethers_core::types::Address;
 use futures::future::join_all;
 use serde::Deserialize;
+use tokio_stream::wrappers::UnboundedReceiverStream;
 
 use crate::models::bulk::{BulkResponse, ListResponse};
-use crate::routes::{http_simple_status_error, validate_bulk_input, FreshQuery, Qs, RouteError};
+use crate::models::sse::SSEResponse;
+use crate::routes::{
+    http_simple_status_error, profile_http_error_mapper, validate_bulk_input, FreshQuery, Qs,
+    RouteError,
+};
 
 #[utoipa::path(
     get,
@@ -94,4 +103,45 @@ pub async fn get_bulk(
     let joined = join_all(profiles).await.into();
 
     Ok(Json(joined))
+}
+
+pub async fn get_bulk_sse(
+    Qs(query): Qs<AddressGetBulkQuery>,
+    State(state): State<Arc<crate::AppState>>,
+) -> impl IntoResponse {
+    let addresses = validate_bulk_input(&query.addresses, 10).unwrap();
+
+    let (event_tx, event_rx) = tokio::sync::mpsc::unbounded_channel::<Result<Event, Infallible>>();
+
+    for address_input in addresses {
+        let state_clone = state.clone();
+        let event_tx_clone = event_tx.clone();
+        tokio::spawn(async move {
+            let profile = 'a: {
+                let address = address_input.parse::<Address>();
+
+                let Ok(address) = address else {
+                    break 'a Err(http_simple_status_error(StatusCode::BAD_REQUEST));
+                };
+
+                state_clone
+                    .service
+                    .resolve_profile(LookupInfo::Address(address), query.fresh.fresh)
+                    .await
+                    .map_err(profile_http_error_mapper)
+            };
+
+            let sse_response = SSEResponse {
+                query: address_input,
+                response: profile.into(),
+            };
+
+            event_tx_clone.send(Ok(Event::default()
+                .json_data(sse_response)
+                .expect("json_data should've succeeded")))
+        });
+    }
+
+    Sse::new(UnboundedReceiverStream::new(event_rx))
+        .keep_alive(axum::response::sse::KeepAlive::new().interval(Duration::from_secs(1)))
 }

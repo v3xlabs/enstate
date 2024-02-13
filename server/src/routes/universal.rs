@@ -14,9 +14,9 @@ use enstate_shared::core::{ENSService, Profile};
 use futures::future::join_all;
 use serde::Deserialize;
 use tokio_stream::wrappers::UnboundedReceiverStream;
-use tracing::info;
 
 use crate::models::bulk::{BulkResponse, ListResponse};
+use crate::models::sse::SSEResponse;
 use crate::routes::{profile_http_error_mapper, validate_bulk_input, FreshQuery, Qs, RouteError};
 
 #[utoipa::path(
@@ -91,20 +91,11 @@ pub async fn get_bulk(
     Ok(Json(joined))
 }
 
-#[derive(Debug, serde::Serialize)]
-struct SSEResponse {
-    query: String,
-    response: BulkResponse<Profile>,
-}
-
 pub async fn get_bulk_sse(
     Qs(query): Qs<UniversalGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> impl IntoResponse {
-    // TODO:
     let queries = validate_bulk_input(&query.queries, 10).unwrap();
-
-    info!("Got SSE request: {} entries", queries.len());
 
     let (event_tx, event_rx) = tokio::sync::mpsc::unbounded_channel::<Result<Event, Infallible>>();
 
@@ -125,9 +116,9 @@ pub async fn get_bulk_sse(
                 response: profile.into(),
             };
 
-            let json = serde_json::to_string(&sse_response).expect("to_string should've succeeded");
-
-            event_tx_clone.send(Ok(Event::default().data(json)))
+            event_tx_clone.send(Ok(Event::default()
+                .json_data(sse_response)
+                .expect("json_data should've succeeded")))
         });
     }
 
