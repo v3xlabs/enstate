@@ -59,11 +59,12 @@ impl ENSService {
         // Preset Hardcoded Lookups
         let mut calldata: HashSet<ENSLookup> = HashSet::new();
 
-        let (addr_key, avatar_key, header_key, display_key) = (
+        let (addr_key, avatar_key, header_key, display_key, contenthash_key) = (
             ENSLookup::Addr,
             ENSLookup::StaticImage("avatar"),
             ENSLookup::StaticImage("header"),
             ENSLookup::StaticText("display"),
+            ENSLookup::ContentHash,
         );
 
         calldata.extend([
@@ -71,6 +72,7 @@ impl ENSService {
             avatar_key.clone(),
             header_key.clone(),
             display_key.clone(),
+            contenthash_key.clone(),
         ]);
 
         calldata.extend(self.profile_records.iter().cloned().map(ENSLookup::Text));
@@ -107,6 +109,8 @@ impl ENSService {
             "Profile for {name} found"
         );
 
+        let contenthash = resolved.records.get(&contenthash_key).cloned();
+
         let records: BTreeMap<String, String> = self
             .profile_records
             .iter()
@@ -135,6 +139,7 @@ impl ENSService {
             avatar,
             header,
             display,
+            contenthash,
             records,
             chains,
             fresh: chrono::offset::Utc::now().timestamp_millis(),

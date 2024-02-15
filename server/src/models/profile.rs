@@ -17,6 +17,8 @@ pub struct ENSProfile {
     // Preferred Capitalization of Name
     #[schema(example = "LuC.eTh")]
     pub display: String,
+    // Content Hash
+    pub contenthash: Option<String>,
     // Records
     pub records: BTreeMap<String, String>,
     // Addresses on different chains
@@ -38,6 +40,7 @@ impl From<Profile> for ENSProfile {
             address: profile.address.map(|a| a.to_string()),
             avatar: profile.avatar,
             display: profile.display,
+            contenthash: profile.contenthash,
             records: profile.records,
             chains: profile.chains,
             fresh: profile.fresh,
