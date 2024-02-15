@@ -3,7 +3,6 @@ use ethers_core::{
     types::H256,
 };
 use hex_literal::hex;
-use tracing::info;
 
 use super::ENSLookupError;
 
@@ -25,9 +24,22 @@ pub async fn decode(data: &[u8]) -> Result<String, ENSLookupError> {
         return Err(ENSLookupError::AbiDecodeError);
     };
 
-    let contenthash = hex::encode(contenthash);
+    let proto_code = contenthash[0];
+    let value = &contenthash[1..];
 
-    Ok(contenthash)
+    match proto_code {
+        0xe3 => {
+            // ipfs
+            Ok(format!("ipfs://{value:?}"))
+        },
+        0xe4 => {
+            // swarm
+            Err(ENSLookupError::Unsupported("Swarm contenthash is not supported".to_string()))
+        },
+        _ => {
+            Err(ENSLookupError::Unsupported("Contenthash of this protoCode is not supported".to_string()))
+        }
+    }
 }
 
 #[cfg(test)]
