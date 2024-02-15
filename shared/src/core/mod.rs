@@ -35,6 +35,9 @@ pub struct Profile {
     pub header: Option<String>,
     // Preferred Capitalization of Name
     pub display: String,
+    // Content Hash
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contenthash: Option<String>,
     // Records
     pub records: BTreeMap<String, String>,
     // Addresses on different chains
