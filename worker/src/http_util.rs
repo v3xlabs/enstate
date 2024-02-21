@@ -32,7 +32,9 @@ pub fn parse_query<T: DeserializeOwned>(req: &Request) -> worker::Result<T> {
     let url = req.url()?;
     let query = url.query().unwrap_or("");
 
-    SERDE_QS_CONFIG.deserialize_str::<T>(query).map_err(|_| http_simple_status_error(StatusCode::BAD_REQUEST))
+    SERDE_QS_CONFIG
+        .deserialize_str::<T>(query)
+        .map_err(|_| http_simple_status_error(StatusCode::BAD_REQUEST))
 }
 
 #[derive(Error, Debug)]

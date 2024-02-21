@@ -1,10 +1,13 @@
-use crate::models::lookup::image::IPFS_REGEX;
 use lazy_static::lazy_static;
 use reqwest::header::HeaderValue;
 use thiserror::Error;
+
+use crate::models::lookup::image::IPFS_REGEX;
 use crate::models::lookup::LookupState;
 
 use super::erc721::metadata::NFTMetadata;
+
+use lazy_static::lazy_static;
 
 #[derive(Debug, PartialEq)]
 pub enum IPFSURLUnparsed {
@@ -51,7 +54,9 @@ impl IPFSURLUnparsed {
     pub fn to_url_or_gateway(&self, state: &LookupState) -> String {
         match self {
             IPFSURLUnparsed::URL(url) => url.to_string(),
-            IPFSURLUnparsed::IPFS(hash) => format!("{gateway}/{hash}", gateway=state.ipfs_gateway),
+            IPFSURLUnparsed::IPFS(hash) => {
+                format!("{gateway}/{hash}", gateway = state.ipfs_gateway)
+            }
         }
     }
 

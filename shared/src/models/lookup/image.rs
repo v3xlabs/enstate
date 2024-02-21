@@ -110,8 +110,9 @@ pub async fn decode(data: &[u8], state: &LookupState) -> Result<String, ENSLooku
 
 #[cfg(test)]
 mod tests {
-    use crate::models::lookup::ENSLookup;
     use ethers::providers::namehash;
+
+    use crate::models::lookup::ENSLookup;
 
     #[test]
     fn test_calldata_avatar() {
