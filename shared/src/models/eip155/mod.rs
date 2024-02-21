@@ -8,8 +8,8 @@ use thiserror::Error;
 use tracing::info;
 
 use crate::models::ipfs::{URLFetchError, OPENSEA_BASE_PREFIX};
+use crate::models::lookup::LookupState;
 use crate::models::multicoin::cointype::evm::ChainId;
-use crate::core::CCIPProvider;
 
 use super::ipfs::IPFSURLUnparsed;
 
@@ -56,8 +56,7 @@ pub async fn resolve_eip155(
     contract_type: EIP155ContractType,
     contract_address: &str,
     token_id: U256,
-    provider: &CCIPProvider,
-    opensea_api_key: &str,
+    state: &LookupState,
 ) -> Result<String, EIP155Error> {
     let chain_id: u64 = chain_id.into();
 
@@ -86,7 +85,7 @@ pub async fn resolve_eip155(
     typed_transaction.set_to(contract_h160);
     typed_transaction.set_data(Bytes::from(transaction_data));
 
-    let res = provider.provider().call_raw(&typed_transaction).await?;
+    let res = state.rpc.provider().call_raw(&typed_transaction).await?;
 
     let res_data = res.to_vec();
 
@@ -115,13 +114,13 @@ pub async fn resolve_eip155(
     // TODO: Validate URL here
     let token_metadata_url = IPFSURLUnparsed::from_unparsed(token_metadata_url);
 
-    let token_metadata = token_metadata_url.fetch(opensea_api_key).await?;
+    let token_metadata = token_metadata_url.fetch(state).await?;
 
     let image = token_metadata.image.ok_or(EIP155Error::Other)?;
 
     info!("Image: {}", image);
 
-    let token_image_url = IPFSURLUnparsed::from_unparsed(image).to_url_or_gateway();
+    let token_image_url = IPFSURLUnparsed::from_unparsed(image).to_url_or_gateway(state);
 
     Ok(token_image_url)
 }
@@ -144,13 +143,18 @@ mod tests {
             .wrap_into(|it| CCIPReadMiddleware::new(Arc::from(it)));
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
+        let state = LookupState {
+            rpc: Arc::new(provider),
+            opensea_api_key,
+            ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
+        };
+
         let data = resolve_eip155(
             ChainId::Ethereum,
             EIP155ContractType::ERC721,
             "0xc92ceddfb8dd984a89fb494c376f9a48b999aafc",
             U256::from_dec_str("2257").unwrap(),
-            &provider,
-            &opensea_api_key,
+            &state,
         )
         .await
         .unwrap();
@@ -165,13 +169,18 @@ mod tests {
             .wrap_into(|it| CCIPReadMiddleware::new(Arc::from(it)));
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
+        let state = LookupState {
+            rpc: Arc::new(provider),
+            opensea_api_key,
+            ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
+        };
+
         let data = resolve_eip155(
             ChainId::Ethereum,
             EIP155ContractType::ERC1155,
             "0xb32979486938aa9694bfc898f35dbed459f44424",
             U256::from_dec_str("10063").unwrap(),
-            &provider,
-            &opensea_api_key,
+            &state,
         )
         .await
         .unwrap();
@@ -190,6 +199,12 @@ mod tests {
             .wrap_into(|it| CCIPReadMiddleware::new(Arc::from(it)));
         let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
 
+        let state = LookupState {
+            rpc: Arc::new(provider),
+            opensea_api_key,
+            ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
+        };
+
         let data = resolve_eip155(
             ChainId::Ethereum,
             EIP155ContractType::ERC1155,
@@ -198,8 +213,7 @@ mod tests {
                 "8112316025873927737505937898915153732580103913704334048512380490797008551937",
             )
             .unwrap(),
-            &provider,
-            &opensea_api_key,
+            &state,
         )
         .await
         .unwrap();

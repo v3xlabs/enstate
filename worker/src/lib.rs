@@ -33,6 +33,11 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
         .expect("OPENSEA_API_KEY should've been set")
         .to_string();
 
+    let ipfs_gateway = env
+        .var("IPFS_GATEWAY")
+        .map(|it| it.to_string())
+        .unwrap_or_else(|_| "https://ipfs.io/ipfs/".to_string());
+
     let cache: Box<dyn CacheLayer> = Box::new(CloudflareKVCache {
         env: Env::from(env.clone()),
     });
@@ -57,7 +62,8 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
     let service = ENSService {
         cache,
         rpc: Box::new(SimpleFactory::from(Arc::new(rpc))),
-        opensea_api_key: opensea_api_key.to_string(),
+        opensea_api_key,
+        ipfs_gateway,
         profile_records: Arc::from(profile_records),
         profile_chains: Arc::from(profile_chains),
         universal_resolver,

@@ -14,14 +14,13 @@ use crate::models::multicoin::cointype::evm::ChainId;
 use super::{abi_decode_universal_ccip, ENSLookupError, LookupState};
 
 lazy_static! {
-    static ref IPFS_REGEX: regex::Regex =
-        regex::Regex::new(r"ipfs://([0-9a-zA-Z]+)").expect("should be a valid regex");
+    pub static ref IPFS_REGEX: regex::Regex =
+        regex::Regex::new(r"^ipfs://(ip[fn]s/)?([0-9a-zA-Z]+(/.*)?)")
+            .expect("should be a valid regex");
     static ref EIP155_REGEX: regex::Regex =
         regex::Regex::new(r"eip155:([0-9]+)/(erc1155|erc721):0x([0-9a-fA-F]{40})/([0-9]+)")
             .expect("should be a valid regex");
 }
-const IPFS_GATEWAY: &str = "https://ipfs.io/ipfs/";
-
 #[derive(Error, Debug)]
 enum ImageLookupError {
     #[error("Format error: {0}")]
@@ -54,12 +53,10 @@ pub async fn decode(data: &[u8], state: &LookupState) -> Result<String, ENSLooku
         return Err(ENSLookupError::AbiDecodeError);
     };
 
-    let opensea_api_key = state.opensea_api_key.clone();
-
     if let Some(captures) = IPFS_REGEX.captures(value) {
-        let hash = captures.get(1).unwrap().as_str();
+        let hash = captures.get(2).unwrap().as_str();
 
-        return Ok(format!("{}{hash}", IPFS_GATEWAY));
+        return Ok(format!("{gateway}{hash}", gateway = state.ipfs_gateway));
     }
 
     let Some(captures) = EIP155_REGEX.captures(value) else {
@@ -104,8 +101,7 @@ pub async fn decode(data: &[u8], state: &LookupState) -> Result<String, ENSLooku
         contract_type,
         contract_address,
         token_id,
-        &state.rpc,
-        &opensea_api_key,
+        state,
     )
     .await?;
 
@@ -114,8 +110,9 @@ pub async fn decode(data: &[u8], state: &LookupState) -> Result<String, ENSLooku
 
 #[cfg(test)]
 mod tests {
-    use crate::models::lookup::ENSLookup;
     use ethers::providers::namehash;
+
+    use crate::models::lookup::ENSLookup;
 
     #[test]
     fn test_calldata_avatar() {
