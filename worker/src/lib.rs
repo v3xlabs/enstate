@@ -10,7 +10,7 @@ use ethers::prelude::{Http, Provider};
 use ethers::types::H160;
 use http::StatusCode;
 use lazy_static::lazy_static;
-use worker::{event, Context, Cors, Env, Headers, Method, Request, Response, Router};
+use worker::{event, Context, Cors, Env, Headers, Method, Request, Response, Router, Var};
 
 use crate::http_util::http_simple_status_error;
 use crate::kv_cache::CloudflareKVCache;
@@ -32,6 +32,11 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
         .var("OPENSEA_API_KEY")
         .expect("OPENSEA_API_KEY should've been set")
         .to_string();
+
+    let ipfs_gateway = env
+        .var("IPFS_GATEWAY")
+        .map(|it| it.to_string())
+        .unwrap_or_else(|_| "https://ipfs.io/ipfs/".to_string());
 
     let cache: Box<dyn CacheLayer> = Box::new(CloudflareKVCache {
         env: Env::from(env.clone()),
@@ -57,7 +62,8 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
     let service = ENSService {
         cache,
         rpc: Box::new(SimpleFactory::from(Arc::new(rpc))),
-        opensea_api_key: opensea_api_key.to_string(),
+        opensea_api_key,
+        ipfs_gateway,
         profile_records: Arc::from(profile_records),
         profile_chains: Arc::from(profile_chains),
         universal_resolver,

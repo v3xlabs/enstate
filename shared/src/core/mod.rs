@@ -53,6 +53,7 @@ pub struct ENSService {
     pub cache: Box<dyn crate::cache::CacheLayer>,
     pub rpc: Box<dyn Factory<Arc<Provider<Http>>>>,
     pub opensea_api_key: String,
+    pub ipfs_gateway: String,
     pub profile_records: Arc<[String]>,
     pub profile_chains: Arc<[CoinType]>,
     pub universal_resolver: H160,

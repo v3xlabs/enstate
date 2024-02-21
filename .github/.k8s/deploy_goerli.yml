@@ -65,6 +65,8 @@ spec:
               value: https://rpc.ankr.com/eth_goerli,https://ethereum-goerli.publicnode.com,https://goerli.gateway.tenderly.co
             - name: UNIVERSAL_RESOLVER
               value: 0xfc4AC75C46C914aF5892d6d3eFFcebD7917293F1
+            - name: IPFS_GATEWAY
+              value: https://cloudflare-ipfs.com/ipfs/
           resources:
             requests:
               cpu: 100m

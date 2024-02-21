@@ -68,6 +68,8 @@ spec:
               value: redis://redis.enstate.svc.cluster.local:6379
             - name: UNIVERSAL_RESOLVER
               value: 0x8cab227b1162f03b8338331adaad7aadc83b895e
+            - name: IPFS_GATEWAY
+              value: https://cloudflare-ipfs.com/ipfs/
           resources:
             requests:
               cpu: 100m

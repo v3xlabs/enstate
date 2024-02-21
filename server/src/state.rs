@@ -1,13 +1,13 @@
-use enstate_shared::cache::{CacheLayer, PassthroughCacheLayer};
-use ethers_core::types::H160;
 use std::env;
 use std::sync::Arc;
 
+use enstate_shared::cache::{CacheLayer, PassthroughCacheLayer};
 use enstate_shared::core::ENSService;
 use enstate_shared::models::{
     multicoin::cointype::{coins::CoinType, Coins},
     records::Records,
 };
+use ethers_core::types::H160;
 use tracing::{info, warn};
 
 use crate::provider::RoundRobin;
@@ -63,6 +63,9 @@ impl AppState {
         let opensea_api_key =
             env::var("OPENSEA_API_KEY").expect("OPENSEA_API_KEY should've been set");
 
+        let ipfs_gateway =
+            env::var("IPFS_GATEWAY").unwrap_or_else(|_| "https://ipfs.io/ipfs/".to_string());
+
         let universal_resolver = env::var("UNIVERSAL_RESOLVER")
             .expect("UNIVERSAL_RESOLVER should've been set")
             .parse::<H160>()
@@ -73,6 +76,7 @@ impl AppState {
                 cache,
                 rpc: Box::new(provider),
                 opensea_api_key,
+                ipfs_gateway,
                 profile_records: Arc::from(profile_records),
                 profile_chains: Arc::from(multicoin_chains),
                 universal_resolver,

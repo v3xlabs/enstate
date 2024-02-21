@@ -1,6 +1,8 @@
+use crate::models::lookup::image::IPFS_REGEX;
 use lazy_static::lazy_static;
 use reqwest::header::HeaderValue;
 use thiserror::Error;
+use crate::models::lookup::LookupState;
 
 use super::erc721::metadata::NFTMetadata;
 
@@ -26,10 +28,6 @@ lazy_static! {
     static ref RAW_IPFS_REGEX: regex::Regex =
         regex::Regex::new(r"^Qm[1-9A-HJ-NP-Za-km-z]{44,}|b[A-Za-z2-7]{58,}|B[A-Z2-7]{58,}|z[1-9A-HJ-NP-Za-km-z]{48,}|F[0-9A-F]{50,}$")
             .expect("should be a valid regex");
-
-    static ref IPFS_REGEX: regex::Regex =
-        regex::Regex::new(r"^ipfs://(ip[fn]s/)?([0-9a-zA-Z]+(/.*)?)")
-            .expect("should be a valid regex");
 }
 
 impl IPFSURLUnparsed {
@@ -49,26 +47,22 @@ impl IPFSURLUnparsed {
         IPFSURLUnparsed::URL(value)
     }
 
-    pub fn from_ipfs(value: String) -> Self {
-        Self::from_unparsed(value)
-    }
-
     // This function turns the unparsed
-    pub fn to_url_or_gateway(&self) -> String {
+    pub fn to_url_or_gateway(&self, state: &LookupState) -> String {
         match self {
             IPFSURLUnparsed::URL(url) => url.to_string(),
-            IPFSURLUnparsed::IPFS(hash) => format!("https://ipfs.io/ipfs/{}", hash),
+            IPFSURLUnparsed::IPFS(hash) => format!("{gateway}/{hash}", gateway=state.ipfs_gateway),
         }
     }
 
-    pub async fn fetch(&self, opensea_api_key: &str) -> Result<NFTMetadata, URLFetchError> {
-        let url = self.to_url_or_gateway();
+    pub async fn fetch(&self, state: &LookupState) -> Result<NFTMetadata, URLFetchError> {
+        let url = self.to_url_or_gateway(state);
         let mut client_headers = reqwest::header::HeaderMap::new();
 
         if url.starts_with(OPENSEA_BASE_PREFIX) {
             client_headers.insert(
                 "X-API-KEY",
-                HeaderValue::from_str(opensea_api_key)
+                HeaderValue::from_str(&state.opensea_api_key)
                     .unwrap_or_else(|_| HeaderValue::from_static("")),
             );
         }
