@@ -10,7 +10,7 @@ use ethers::prelude::{Http, Provider};
 use ethers::types::H160;
 use http::StatusCode;
 use lazy_static::lazy_static;
-use worker::{event, Context, Cors, Env, Headers, Method, Request, Response, Router, Var};
+use worker::{event, Context, Cors, Env, Headers, Method, Request, Response, Router};
 
 use crate::http_util::http_simple_status_error;
 use crate::kv_cache::CloudflareKVCache;

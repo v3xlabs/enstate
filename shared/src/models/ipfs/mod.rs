@@ -7,8 +7,6 @@ use crate::models::lookup::LookupState;
 
 use super::erc721::metadata::NFTMetadata;
 
-use lazy_static::lazy_static;
-
 #[derive(Debug, PartialEq)]
 pub enum IPFSURLUnparsed {
     URL(String),
