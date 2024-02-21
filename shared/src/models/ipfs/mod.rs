@@ -1,3 +1,5 @@
+use crate::models::lookup::image::IPFS_REGEX;
+use crate::models::lookup::LookupState;
 use lazy_static::lazy_static;
 use reqwest::header::HeaderValue;
 use thiserror::Error;
