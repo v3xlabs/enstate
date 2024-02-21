@@ -65,7 +65,7 @@ spec:
               value: https://rpc.ankr.com/eth_sepolia,https://ethereum-sepolia.publicnode.com,https://sepolia.gateway.tenderly.co
             - name: UNIVERSAL_RESOLVER
               value: 0xBaBC7678D7A63104f1658c11D6AE9A21cdA09725
-            - name: IPFS_GATEWAY,
+            - name: IPFS_GATEWAY
               value: https://cloudflare-ipfs.com/ipfs/
           resources:
             requests:

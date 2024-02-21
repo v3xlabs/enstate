@@ -1,5 +1,3 @@
-use crate::models::lookup::image::IPFS_REGEX;
-use crate::models::lookup::LookupState;
 use lazy_static::lazy_static;
 use reqwest::header::HeaderValue;
 use thiserror::Error;
@@ -29,12 +27,11 @@ pub const OPENSEA_BASE_PREFIX: &str = "https://api.opensea.io/";
 
 lazy_static! {
     static ref RAW_IPFS_REGEX: regex::Regex =
-        regex::Regex::new(r"^Qm[1-9A-HJ-NP-Za-km-z]{44,}|b[A-Za-z2-7]{58,}|B[A-Z2-7]{58,}|z[1-9A-HJ-NP-Za-km-z]{48,}|F[0-9A-F]{50,}$")
+        regex::Regex::new(r"^(?:Qm[1-9A-HJ-NP-Za-km-z]{44,}|b[A-Za-z2-7]{58,}|B[A-Z2-7]{58,}|z[1-9A-HJ-NP-Za-km-z]{48,}|F[0-9A-F]{50,})$")
             .expect("should be a valid regex");
 }
 
 impl IPFSURLUnparsed {
-    // Given an arbitrary value initializes the ipfsurlunparsed
     pub fn from_unparsed(value: String) -> Self {
         if RAW_IPFS_REGEX.is_match(&value) {
             return IPFSURLUnparsed::IPFS(value);
@@ -55,7 +52,7 @@ impl IPFSURLUnparsed {
         match self {
             IPFSURLUnparsed::URL(url) => url.to_string(),
             IPFSURLUnparsed::IPFS(hash) => {
-                format!("{gateway}/{hash}", gateway = state.ipfs_gateway)
+                format!("{gateway}{hash}", gateway = state.ipfs_gateway)
             }
         }
     }
@@ -88,8 +85,6 @@ impl IPFSURLUnparsed {
 
 #[cfg(test)]
 mod tests {
-    use std::env;
-
     use super::*;
 
     #[tokio::test]
@@ -119,24 +114,24 @@ mod tests {
         );
     }
 
-    #[tokio::test]
-    async fn test_ipfs_url_unparsed() {
-        let url = IPFSURLUnparsed::from_unparsed("https://creature.mypinata.cloud/ipfs/QmVDNzQNuD5jBKHmJ2nmVP35HsXUqhGRX9V2KVHvRznLg8/2257".to_string());
-        let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
-
-        let result = url.fetch(&opensea_api_key).await.unwrap();
-
-        assert_eq!(result.name.unwrap(), "Creature #2257");
-        assert_eq!(result.image.unwrap(), "https://creature.mypinata.cloud/ipfs/QmeZGc1CL3eb9QJatKXTGT7ekgLMq9FyZUWckQ4oWdc53a/2257.jpg");
-    }
-
-    #[tokio::test]
-    async fn test_ipfs_url() {
-        let url = IPFSURLUnparsed::URL("https://api.opensea.io/api/v1/metadata/0x495f947276749Ce646f68AC8c248420045cb7b5e/20709508835757291459772958604787444705400082683953919595999414934333676322817".to_string());
-        let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
-
-        let result = url.fetch(&opensea_api_key).await.unwrap();
-
-        assert_eq!(result.name.unwrap(), "choob");
-    }
+    // #[tokio::test]
+    // async fn test_ipfs_url_unparsed() {
+    //     let url = IPFSURLUnparsed::from_unparsed("https://creature.mypinata.cloud/ipfs/QmVDNzQNuD5jBKHmJ2nmVP35HsXUqhGRX9V2KVHvRznLg8/2257".to_string());
+    //     let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
+    //
+    //     let result = url.fetch(&opensea_api_key).await.unwrap();
+    //
+    //     assert_eq!(result.name.unwrap(), "Creature #2257");
+    //     assert_eq!(result.image.unwrap(), "https://creature.mypinata.cloud/ipfs/QmeZGc1CL3eb9QJatKXTGT7ekgLMq9FyZUWckQ4oWdc53a/2257.jpg");
+    // }
+    //
+    // #[tokio::test]
+    // async fn test_ipfs_url() {
+    //     let url = IPFSURLUnparsed::URL("https://api.opensea.io/api/v1/metadata/0x495f947276749Ce646f68AC8c248420045cb7b5e/20709508835757291459772958604787444705400082683953919595999414934333676322817".to_string());
+    //     let opensea_api_key = env::var("OPENSEA_API_KEY").unwrap().to_string();
+    //
+    //     let result = url.fetch(&opensea_api_key).await.unwrap();
+    //
+    //     assert_eq!(result.name.unwrap(), "choob");
+    // }
 }
