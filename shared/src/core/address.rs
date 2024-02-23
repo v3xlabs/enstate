@@ -1,8 +1,11 @@
-use ethers::providers::{Middleware, ProviderError};
+use ethers::middleware::MiddlewareBuilder;
+use ethers::providers::ProviderError;
+use ethers_ccip_read::CCIPReadMiddleware;
 use ethers_core::types::Address;
 use thiserror::Error;
 
 use crate::core::ENSService;
+use crate::core::resolvers::reverse::{resolve_reverse, ReverseResolveError};
 
 #[derive(Error, Debug)]
 pub enum AddressResolveError {
@@ -14,6 +17,9 @@ pub enum AddressResolveError {
 
     #[error("RPC error: {0}")]
     RPCError(#[from] ProviderError),
+
+    #[error("Reverse resolution error: {0}")]
+    ReverseResolutionError(#[from] ReverseResolveError),
 }
 
 impl ENSService {
@@ -25,6 +31,7 @@ impl ENSService {
         let cache_key = format!("a:{address:?}");
 
         let rpc = self.rpc.get_instance();
+        let rpc = rpc.wrap_into(CCIPReadMiddleware::new);
 
         // TODO: improve
         let cached_name = if fresh {
@@ -37,14 +44,15 @@ impl ENSService {
         let name = if let Some(name) = cached_name {
             name
         } else {
-            let result = rpc
-                .lookup_address(*address)
+            let result = resolve_reverse(&rpc, address, &self.universal_resolver)
                 .await
-                .or_else(|error| match error {
-                    // address doesn't resolve, cache ""
-                    ProviderError::EnsError(_) => Ok("".to_string()),
-                    // yield error up, don't cache
-                    _ => Err(error),
+                .or_else(|error| {
+                    match error {
+                        // address doesn't resolve, cache ""
+                        ReverseResolveError::MissingPrimaryName => Ok("".to_string()),
+                        // yield error up, don't cache
+                        _ => Err(error),
+                    }
                 })?;
 
             // Cache the value, and expire it after 10 minutes
