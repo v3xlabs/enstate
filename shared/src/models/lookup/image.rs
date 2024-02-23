@@ -1,20 +1,20 @@
-use ethers_core::types::U256;
 use ethers_core::{
     abi::{ParamType, Token},
     types::H256,
 };
+use ethers_core::types::U256;
 use hex_literal::hex;
 use lazy_static::lazy_static;
 use thiserror::Error;
 use tracing::info;
 
-use crate::models::eip155::{resolve_eip155, EIP155ContractType};
+use crate::models::eip155::{EIP155ContractType, resolve_eip155};
 use crate::models::multicoin::cointype::evm::ChainId;
 
 use super::{abi_decode_universal_ccip, ENSLookupError, LookupState};
 
 lazy_static! {
-    pub static ref IPFS_REGEX: regex::Regex =
+    static ref IPFS_REGEX: regex::Regex =
         regex::Regex::new(r"^ipfs://(ip[fn]s/)?([0-9a-zA-Z]+(/.*)?)")
             .expect("should be a valid regex");
     static ref EIP155_REGEX: regex::Regex =

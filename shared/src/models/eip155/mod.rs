@@ -2,16 +2,16 @@ use ethers::middleware::Middleware;
 use ethers::providers::ProviderError;
 use ethers_core::{
     abi::{ParamType, Token},
-    types::{transaction::eip2718::TypedTransaction, Bytes, H160, U256},
+    types::{Bytes, H160, transaction::eip2718::TypedTransaction, U256},
 };
 use thiserror::Error;
 use tracing::info;
 
-use crate::models::ipfs::{URLFetchError, OPENSEA_BASE_PREFIX};
+use crate::models::eip155::url::{OPENSEA_BASE_PREFIX, URLFetchError, URLParseError, URLUnparsed};
 use crate::models::lookup::LookupState;
 use crate::models::multicoin::cointype::evm::ChainId;
 
-use super::ipfs::IPFSURLUnparsed;
+mod url;
 
 #[derive(Error, Debug)]
 pub enum EIP155Error {
@@ -23,6 +23,9 @@ pub enum EIP155Error {
 
     #[error("Metadata fetch error: {0}")]
     MetadataFetchError(#[from] URLFetchError),
+
+    #[error("Not a valid URL: {0}")]
+    InvalidURL(#[from] URLParseError),
 
     #[error("Implementation error: {0}")]
     ImplementationError(String),
@@ -112,7 +115,7 @@ pub async fn resolve_eip155(
     info!("Token Metadata URL: {}", token_metadata_url);
 
     // TODO: Validate URL here
-    let token_metadata_url = IPFSURLUnparsed::from_unparsed(token_metadata_url);
+    let token_metadata_url = URLUnparsed::from_unparsed(&token_metadata_url)?;
 
     let token_metadata = token_metadata_url.fetch(state).await?;
 
@@ -120,7 +123,7 @@ pub async fn resolve_eip155(
 
     info!("Image: {}", image);
 
-    let token_image_url = IPFSURLUnparsed::from_unparsed(image).to_url_or_gateway(state);
+    let token_image_url = URLUnparsed::from_unparsed(&image)?.to_url_or_ipfs_gateway(state);
 
     Ok(token_image_url)
 }

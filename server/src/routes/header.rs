@@ -1,12 +1,14 @@
 use std::sync::Arc;
 
 use axum::extract::{Path, Query, State};
-use axum::response::Redirect;
+use axum::http::header::CONTENT_TYPE;
+use axum::http::StatusCode;
+use axum::response::{AppendHeaders, IntoResponse, Redirect};
 use enstate_shared::core::error::ProfileError;
 use enstate_shared::core::lookup_data::LookupInfo;
 use enstate_shared::models::lookup::ENSLookup;
 
-use crate::routes::{profile_http_error_mapper, FreshQuery, RouteError};
+use crate::routes::{FreshQuery, http_simple_status_error, profile_http_error_mapper, RouteError};
 
 // #[utoipa::path(
 //     get,
@@ -25,7 +27,7 @@ pub async fn get(
     Path(name_or_address): Path<String>,
     Query(query): Query<FreshQuery>,
     State(state): State<Arc<crate::AppState>>,
-) -> Result<Redirect, RouteError> {
+) -> Result<impl IntoResponse, RouteError> {
     let info = LookupInfo::guess(name_or_address)
         .map_err(|_| profile_http_error_mapper(ProfileError::NotFound))?;
 
@@ -35,5 +37,17 @@ pub async fn get(
         .await
         .map_err(profile_http_error_mapper)?;
 
-    Ok(Redirect::to(header.as_str()))
+    if let Some(processed) = enstate_shared::utils::data_url::process_data_url_image(&header) {
+        let Ok(processed) = processed else {
+            return Err(http_simple_status_error(StatusCode::UNSUPPORTED_MEDIA_TYPE).into());
+        };
+
+        return Ok((
+            AppendHeaders([(CONTENT_TYPE, processed.mimetype)]),
+            processed.data,
+        )
+            .into_response());
+    }
+
+    Ok(Redirect::to(header.as_str()).into_response())
 }
