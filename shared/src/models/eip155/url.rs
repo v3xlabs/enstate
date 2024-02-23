@@ -65,7 +65,7 @@ impl URLUnparsed {
             "ipfs" => {
                 let hash = match parsed.domain() {
                     Some(it) if it.to_lowercase() == "ipfs" => {
-                        if parsed.path() == "/" {
+                        if parsed.path().len() <= 1 {
                             return Err(URLParseError::InvalidIPFSUrl(value.to_string()));
                         };
 
@@ -73,7 +73,7 @@ impl URLUnparsed {
                             .replace_all(parsed.path(), "")
                             .to_string())
                     }
-                    Some(it) => Ok(it.to_string()),
+                    Some(it) => Ok(it.to_string() + parsed.path()),
                     None => Err(URLParseError::InvalidIPFSUrl(value.to_string())),
                 }?;
 
@@ -154,6 +154,15 @@ mod tests {
                 .unwrap(),
             URLUnparsed::IPFS {
                 path: "QmciEfu55sxxFx6XxXpF2wwzx6PfimpmyffYQgBJzF7pAM".to_string()
+            }
+        );
+        assert_eq!(
+            URLUnparsed::from_unparsed(
+                "ipfs://QmY5R64EkwZ7ru6Nbk2neTV8RxrMGE4LSF8h3xE4CGQttH/image.jpeg"
+            )
+                .unwrap(),
+            URLUnparsed::IPFS {
+                path: "QmY5R64EkwZ7ru6Nbk2neTV8RxrMGE4LSF8h3xE4CGQttH/image.jpeg".to_string()
             }
         );
         assert_eq!(
