@@ -3,7 +3,7 @@ use regex::Regex;
 
 lazy_static! {
     // Not exact but rough enough for now.
-    static ref DOMAIN_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9][a-zA-Z0-9-.]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$").unwrap();
+    static ref DOMAIN_REGEX: Regex = Regex::new(r"^(?:[^.]+\.)+[a-zA-Z]{2,}$").unwrap();
 
     static ref ADDRESS_REGEX: Regex = Regex::new(r"^0x[a-fA-F0-9]{40}$").unwrap();
 }
