@@ -10,6 +10,7 @@ use crate::models::lookup::LookupState;
 pub enum URLUnparsed {
     HTTP { url: String },
     IPFS { path: String },
+    Arweave { hash: String },
     Data { url: String },
     // IPNS(String),
 }
@@ -78,9 +79,9 @@ impl URLUnparsed {
                 }?;
 
                 Ok(URLUnparsed::IPFS { path: hash })
-            },
-            "ar" => Ok(URLUnparsed::HTTP {
-                url: format!("{gateway}{path}", gateway = "https://arweave.net/", path = parsed.path()),
+            }
+            "ar" => Ok(URLUnparsed::Arweave {
+                hash: parsed.path().to_string(),
             }),
             "http" | "https" => Ok(URLUnparsed::HTTP {
                 url: value.to_string(),
@@ -98,6 +99,9 @@ impl URLUnparsed {
             URLUnparsed::HTTP { url } | URLUnparsed::Data { url } => url.to_string(),
             URLUnparsed::IPFS { path } => {
                 format!("{gateway}{path}", gateway = state.ipfs_gateway)
+            }
+            URLUnparsed::Arweave { hash } => {
+                format!("{gateway}{hash}", gateway = state.arweave_gateway)
             }
         }
     }
@@ -163,7 +167,7 @@ mod tests {
             URLUnparsed::from_unparsed(
                 "ipfs://QmY5R64EkwZ7ru6Nbk2neTV8RxrMGE4LSF8h3xE4CGQttH/image.jpeg"
             )
-                .unwrap(),
+            .unwrap(),
             URLUnparsed::IPFS {
                 path: "QmY5R64EkwZ7ru6Nbk2neTV8RxrMGE4LSF8h3xE4CGQttH/image.jpeg".to_string()
             }
@@ -172,7 +176,7 @@ mod tests {
             URLUnparsed::from_unparsed(
                 "ipfs://ipfs/QmY5R64EkwZ7ru6Nbk2neTV8RxrMGE4LSF8h3xE4CGQttH/image.jpeg"
             )
-                .unwrap(),
+            .unwrap(),
             URLUnparsed::IPFS {
                 path: "QmY5R64EkwZ7ru6Nbk2neTV8RxrMGE4LSF8h3xE4CGQttH/image.jpeg".to_string()
             }
