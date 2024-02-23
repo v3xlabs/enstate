@@ -3,6 +3,7 @@
 use std::env;
 
 use dotenvy::dotenv;
+use ethers::prelude::namehash;
 use futures::FutureExt;
 use tokio::signal::unix::{signal, SignalKind};
 use tokio_util::sync::CancellationToken;

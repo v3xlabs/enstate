@@ -205,7 +205,7 @@ mod tests {
     use ethers_core::abi::ParamType;
     use ethers_core::types::Address;
 
-    use crate::core::universal_resolver;
+    use crate::core::resolvers::universal;
     use crate::models::lookup::ENSLookup;
 
     #[tokio::test]
@@ -221,7 +221,7 @@ mod tests {
             ENSLookup::StaticText("location"),
         ];
 
-        let res = universal_resolver::resolve_universal(
+        let res = universal::resolve_universal(
             "antony.sh",
             &calldata,
             &CCIPReadMiddleware::new(Arc::new(provider)),

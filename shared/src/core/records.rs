@@ -10,7 +10,7 @@ use crate::core::lookup_data::LookupInfo;
 use crate::core::ENSService;
 use crate::models::lookup::{ENSLookup, ENSLookupError, LookupState};
 
-use super::universal_resolver::resolve_universal;
+use super::resolvers::universal::resolve_universal;
 
 pub struct ResolvedCalldata {
     pub resolver: Address,
@@ -35,7 +35,6 @@ impl ENSService {
         // let cache_key = format!("n:{name}");
 
         let rpc = self.rpc.get_instance();
-
         let rpc = rpc.wrap_into(CCIPReadMiddleware::new);
 
         // If the value is in the cache, return it
