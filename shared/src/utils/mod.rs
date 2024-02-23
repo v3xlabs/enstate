@@ -1,3 +1,4 @@
+pub mod data_url;
 pub mod dns;
 pub mod eip55;
 pub mod factory;
