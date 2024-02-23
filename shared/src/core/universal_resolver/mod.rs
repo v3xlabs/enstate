@@ -1,10 +1,10 @@
 use std::vec;
 
-use ethers::prelude::ProviderError::JsonRpcClientError;
 use ethers::{
     providers::namehash,
-    types::{transaction::eip2718::TypedTransaction, Address, Bytes},
+    types::{Address, Bytes, transaction::eip2718::TypedTransaction},
 };
+use ethers::prelude::ProviderError::JsonRpcClientError;
 use ethers_ccip_read::{CCIPReadMiddlewareError, CCIPRequest};
 use ethers_core::abi;
 use ethers_core::abi::{ParamType, Token};
@@ -12,9 +12,9 @@ use ethers_core::types::H160;
 use hex_literal::hex;
 use lazy_static::lazy_static;
 
-use crate::core::error::ProfileError;
 use crate::core::CCIPProvider;
-use crate::models::lookup::{addr, ENSLookup};
+use crate::core::error::ProfileError;
+use crate::models::lookup::ENSLookup;
 use crate::utils::dns::dns_encode;
 use crate::utils::vec::dedup_ord;
 
@@ -23,6 +23,7 @@ lazy_static! {
         Address::from(hex!("F142B308cF687d4358410a4cB885513b30A42025"));
 }
 
+#[derive(Debug, Clone)]
 pub struct UniversalResolverResult {
     pub(crate) success: bool,
     pub(crate) data: Vec<u8>,
@@ -134,14 +135,11 @@ pub async fn resolve_universal(
         })
         .collect();
 
-    let addr = addr::decode(&parsed.remove(0).data).await;
+    let addr = parsed.remove(0);
 
-    // if we got a CCIP response, where the resolver is an OffchainDNSResolver and the address if zero
-    //  it's a non-existing name
-    if resolver.is_zero()
-        || (resolver == *OFFCHAIN_DNS_RESOLVER
-            && matches!(addr, Ok(ref addr) if addr == "0x0000000000000000000000000000000000000000"))
-    {
+    // if we got a CCIP response, where the resolver is an OffchainDNSResolver and
+    //  the address has failed to resolve, it's a non-existing name
+    if resolver.is_zero() || (resolver == *OFFCHAIN_DNS_RESOLVER && !addr.success) {
         return Err(ProfileError::NotFound);
     }
 
@@ -267,7 +265,7 @@ mod tests {
                 "Antony1060",
                 "AntonyThe1060",
                 "Antony1060",
-                "Croatia"
+                "Croatia",
             ]
         );
     }
