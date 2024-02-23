@@ -78,7 +78,10 @@ impl URLUnparsed {
                 }?;
 
                 Ok(URLUnparsed::IPFS { path: hash })
-            }
+            },
+            "ar" => Ok(URLUnparsed::HTTP {
+                url: format!("{gateway}{path}", gateway = "https://arweave.net/", path = parsed.path()),
+            }),
             "http" | "https" => Ok(URLUnparsed::HTTP {
                 url: value.to_string(),
             }),

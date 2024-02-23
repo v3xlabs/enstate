@@ -150,6 +150,7 @@ mod tests {
             rpc: Arc::new(provider),
             opensea_api_key,
             ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
+            arweave_gateway: "https://arweave.net/".to_string(),
         };
 
         let data = resolve_eip155(
@@ -176,6 +177,7 @@ mod tests {
             rpc: Arc::new(provider),
             opensea_api_key,
             ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
+            arweave_gateway: "https://arweave.net/".to_string(),
         };
 
         let data = resolve_eip155(
@@ -206,6 +208,7 @@ mod tests {
             rpc: Arc::new(provider),
             opensea_api_key,
             ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
+            arweave_gateway: "https://arweave.net/".to_string()
         };
 
         let data = resolve_eip155(

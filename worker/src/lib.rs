@@ -38,6 +38,11 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
         .map(|it| it.to_string())
         .unwrap_or_else(|_| "https://ipfs.io/ipfs/".to_string());
 
+    let arweave_gateway = env
+        .var("ARWEAVE_GATEWAY")
+        .map(|it| it.to_string())
+        .unwrap_or_else(|_| "https://arweave.net/".to_string());
+
     let cache: Box<dyn CacheLayer> = Box::new(CloudflareKVCache {
         env: Env::from(env.clone()),
     });
@@ -64,6 +69,7 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
         rpc: Box::new(SimpleFactory::from(Arc::new(rpc))),
         opensea_api_key,
         ipfs_gateway,
+        arweave_gateway,
         profile_records: Arc::from(profile_records),
         profile_chains: Arc::from(profile_chains),
         universal_resolver,

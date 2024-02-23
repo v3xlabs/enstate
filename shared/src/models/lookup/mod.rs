@@ -103,6 +103,7 @@ pub struct LookupState {
     pub rpc: Arc<CCIPProvider>,
     pub opensea_api_key: String,
     pub ipfs_gateway: String,
+    pub arweave_gateway: String,
 }
 
 lazy_static! {

@@ -66,6 +66,9 @@ impl AppState {
         let ipfs_gateway =
             env::var("IPFS_GATEWAY").unwrap_or_else(|_| "https://ipfs.io/ipfs/".to_string());
 
+        let arweave_gateway =
+            env::var("AR_GATEWAY").unwrap_or_else(|_| "https://arweave.net/".to_string());
+
         let universal_resolver = env::var("UNIVERSAL_RESOLVER")
             .expect("UNIVERSAL_RESOLVER should've been set")
             .parse::<H160>()
@@ -77,6 +80,7 @@ impl AppState {
                 rpc: Box::new(provider),
                 opensea_api_key,
                 ipfs_gateway,
+                arweave_gateway,
                 profile_records: Arc::from(profile_records),
                 profile_chains: Arc::from(multicoin_chains),
                 universal_resolver,

@@ -17,6 +17,9 @@ lazy_static! {
     static ref IPFS_REGEX: regex::Regex =
         regex::Regex::new(r"^ipfs://(ip[fn]s/)?([0-9a-zA-Z]+(/.*)?)")
             .expect("should be a valid regex");
+    static ref ARWEAVE_REGEX: regex::Regex =
+        regex::Regex::new(r"^ar://(.+)")
+            .expect("should be a valid regex");
     static ref EIP155_REGEX: regex::Regex =
         regex::Regex::new(r"eip155:([0-9]+)/(erc1155|erc721):0x([0-9a-fA-F]{40})/([0-9]+)")
             .expect("should be a valid regex");
@@ -57,6 +60,12 @@ pub async fn decode(data: &[u8], state: &LookupState) -> Result<String, ENSLooku
         let hash = captures.get(2).unwrap().as_str();
 
         return Ok(format!("{gateway}{hash}", gateway = state.ipfs_gateway));
+    }
+
+    if let Some(captures) = ARWEAVE_REGEX.captures(value) {
+        let hash = captures.get(1).unwrap().as_str();
+
+        return Ok(format!("{gateway}{hash}", gateway = state.arweave_gateway));
     }
 
     let Some(captures) = EIP155_REGEX.captures(value) else {

@@ -76,6 +76,7 @@ impl ENSService {
             rpc,
             opensea_api_key: self.opensea_api_key.clone(),
             ipfs_gateway: self.ipfs_gateway.clone(),
+            arweave_gateway: self.arweave_gateway.clone(),
         };
 
         // Assume results & calldata have the same length
