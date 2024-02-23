@@ -94,7 +94,7 @@ impl URLUnparsed {
         match self {
             URLUnparsed::HTTP { url } | URLUnparsed::Data { url } => url.to_string(),
             URLUnparsed::IPFS { path } => {
-                format!("{gateway}{path}0", gateway = state.ipfs_gateway)
+                format!("{gateway}{path}", gateway = state.ipfs_gateway)
             }
         }
     }
@@ -144,23 +144,26 @@ mod tests {
         // leontalbert.eth
         assert_eq!(
             URLUnparsed::from_unparsed("QmVzke12sVaUANLBqdrLcCWtzy87bW8HVC92QjdEqyZYCq").unwrap(),
-            URLUnparsed::IPFS("QmVzke12sVaUANLBqdrLcCWtzy87bW8HVC92QjdEqyZYCq".to_string())
+            URLUnparsed::IPFS {
+                path: "QmVzke12sVaUANLBqdrLcCWtzy87bW8HVC92QjdEqyZYCq".to_string()
+            }
         );
         // poap.eth
         assert_eq!(
             URLUnparsed::from_unparsed("ipfs://QmciEfu55sxxFx6XxXpF2wwzx6PfimpmyffYQgBJzF7pAM")
                 .unwrap(),
-            URLUnparsed::IPFS("QmciEfu55sxxFx6XxXpF2wwzx6PfimpmyffYQgBJzF7pAM".to_string())
+            URLUnparsed::IPFS {
+                path: "QmciEfu55sxxFx6XxXpF2wwzx6PfimpmyffYQgBJzF7pAM".to_string()
+            }
         );
-        // pedrouid.eth
         assert_eq!(
             URLUnparsed::from_unparsed(
                 "ipfs://ipfs/QmY5R64EkwZ7ru6Nbk2neTV8RxrMGE4LSF8h3xE4CGQttH/image.jpeg"
             )
-            .unwrap(),
-            URLUnparsed::IPFS(
-                "QmY5R64EkwZ7ru6Nbk2neTV8RxrMGE4LSF8h3xE4CGQttH/image.jpeg".to_string()
-            )
+                .unwrap(),
+            URLUnparsed::IPFS {
+                path: "QmY5R64EkwZ7ru6Nbk2neTV8RxrMGE4LSF8h3xE4CGQttH/image.jpeg".to_string()
+            }
         );
     }
 
@@ -168,11 +171,15 @@ mod tests {
     async fn test_http() {
         assert_eq!(
             URLUnparsed::from_unparsed("https://id.antony.cloud/img/2.png").unwrap(),
-            URLUnparsed::HTTP("https://id.antony.cloud/img/2.png".to_string())
+            URLUnparsed::HTTP {
+                url: "https://id.antony.cloud/img/2.png".to_string()
+            }
         );
         assert_eq!(
             URLUnparsed::from_unparsed("http://id.antony.cloud/img/2.png").unwrap(),
-            URLUnparsed::HTTP("http://id.antony.cloud/img/2.png".to_string())
+            URLUnparsed::HTTP {
+                url: "http://id.antony.cloud/img/2.png".to_string()
+            }
         );
     }
 
@@ -180,7 +187,9 @@ mod tests {
     async fn test_data() {
         assert_eq!(
             URLUnparsed::from_unparsed("data:application/json;base64,e30=").unwrap(),
-            URLUnparsed::Data("data:application/json;base64,e30=".to_string())
+            URLUnparsed::Data {
+                url: "data:application/json;base64,e30=".to_string()
+            }
         )
     }
 }
