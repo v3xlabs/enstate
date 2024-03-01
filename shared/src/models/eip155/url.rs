@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use data_url::{DataUrl, DataUrlError};
 use lazy_static::lazy_static;
 use reqwest::header::HeaderValue;
@@ -129,6 +131,7 @@ impl URLUnparsed {
 
             let client = reqwest::Client::builder()
                 .default_headers(client_headers)
+                .timeout(Duration::from_secs(4))
                 .build()?;
 
             let res = client.get(&url).send().await?;
