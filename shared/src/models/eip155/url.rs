@@ -1,3 +1,4 @@
+#[cfg(not(target_arch = "wasm32"))]
 use std::time::Duration;
 
 use data_url::{DataUrl, DataUrlError};
@@ -129,10 +130,12 @@ impl URLUnparsed {
                 );
             }
 
-            let client = reqwest::Client::builder()
-                .default_headers(client_headers)
-                .timeout(Duration::from_secs(4))
-                .build()?;
+            let builder = reqwest::Client::builder().default_headers(client_headers);
+
+            #[cfg(not(target_arch = "wasm32"))]
+            let builder = builder.timeout(Duration::from_secs(4));
+
+            let client = builder.build()?;
 
             let res = client.get(&url).send().await?;
 
