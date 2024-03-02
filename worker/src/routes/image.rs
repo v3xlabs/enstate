@@ -3,11 +3,19 @@ use enstate_shared::core::lookup_data::LookupInfo;
 use enstate_shared::core::ENSService;
 use enstate_shared::models::lookup::ENSLookup;
 use http::StatusCode;
+use serde::Deserialize;
 use worker::{Headers, Request, Response, RouteContext};
 
 use crate::http_util::{
-    http_simple_status_error, parse_query, profile_http_error_mapper, redirect_url, FreshQuery,
+    bool_or_false, http_simple_status_error, parse_query, profile_http_error_mapper, redirect_url,
 };
+
+#[derive(Deserialize)]
+pub struct FreshQuery {
+    #[serde(default, deserialize_with = "bool_or_false")]
+    pub(crate) fresh: bool,
+    w: Option<u32>,
+}
 
 pub async fn get(req: Request, ctx: RouteContext<ENSService>) -> worker::Result<Response> {
     let query: FreshQuery = parse_query(&req)?;
@@ -38,5 +46,14 @@ pub async fn get(req: Request, ctx: RouteContext<ENSService>) -> worker::Result<
             )])));
     }
 
-    redirect_url(&avatar)
+    if query.w.is_some() && query.w.unwrap() > 0 {
+        let w = query.w.unwrap();
+        redirect_url(&format!(
+            "https://wsrv.nl/?url={}&w={}&output=webp",
+            avatar.as_str(),
+            w
+        ))
+    } else {
+        redirect_url(&avatar)
+    }
 }

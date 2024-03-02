@@ -16,7 +16,7 @@ pub struct FreshQuery {
 }
 
 #[allow(clippy::unnecessary_wraps)]
-fn bool_or_false<'de, D>(deserializer: D) -> Result<bool, D::Error>
+pub fn bool_or_false<'de, D>(deserializer: D) -> Result<bool, D::Error>
 where
     D: Deserializer<'de>,
 {

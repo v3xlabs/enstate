@@ -8,7 +8,17 @@ use enstate_shared::core::error::ProfileError;
 use enstate_shared::core::lookup_data::LookupInfo;
 use enstate_shared::models::lookup::ENSLookup;
 
-use crate::routes::{FreshQuery, http_simple_status_error, profile_http_error_mapper, RouteError};
+use crate::routes::{
+    bool_or_false, http_simple_status_error, profile_http_error_mapper, RouteError,
+};
+
+// Create the type for the query parameters
+#[derive(serde::Deserialize)]
+pub struct ImageQuery {
+    #[serde(default, deserialize_with = "bool_or_false")]
+    fresh: bool,
+    w: Option<u32>,
+}
 
 // #[utoipa::path(
 //     get,
@@ -25,7 +35,7 @@ use crate::routes::{FreshQuery, http_simple_status_error, profile_http_error_map
 // )]
 pub async fn get(
     Path(name_or_address): Path<String>,
-    Query(query): Query<FreshQuery>,
+    Query(query): Query<ImageQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> Result<impl IntoResponse, RouteError> {
     let info = LookupInfo::guess(name_or_address)
@@ -49,5 +59,15 @@ pub async fn get(
             .into_response());
     }
 
-    Ok(Redirect::to(avatar.as_str()).into_response())
+    if query.w.is_some() && query.w.unwrap() > 0 {
+        let w = query.w.unwrap();
+        Ok(Redirect::to(&format!(
+            "https://wsrv.nl/?url={}&w={}&output=webp",
+            avatar.as_str(),
+            w
+        ))
+        .into_response())
+    } else {
+        Ok(Redirect::to(avatar.as_str()).into_response())
+    }
 }
