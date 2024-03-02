@@ -62,7 +62,7 @@ pub async fn get(
     if query.w.is_some() && query.w.unwrap() > 0 {
         let w = query.w.unwrap();
         Ok(Redirect::to(&format!(
-            "https://wsrv.nl/?url={}&w={}&output=webp&default=https://cdn.jsdelivr.net/gh/v3xlabs/enstate@latest/shared/static/fallback_image.jpg",
+            "https://wsrv.nl/?url={}&w={}&output=webp",
             avatar.as_str(),
             w
         ))
