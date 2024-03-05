@@ -1,3 +1,4 @@
+use std::cmp::min;
 use std::collections::{BTreeMap, HashSet};
 use std::str::FromStr;
 
@@ -6,11 +7,13 @@ use ethers_ccip_read::CCIPReadMiddleware;
 use tracing::info;
 
 use crate::cache::CacheError;
+use crate::core::{ENSService, Profile};
 use crate::core::error::ProfileError;
 use crate::core::lookup_data::LookupInfo;
-use crate::core::{ENSService, Profile};
 use crate::models::lookup::ENSLookup;
 use crate::utils::eip55::EIP55Address;
+
+const DEFAULT_CACHE_TIME_SECONDS: u64 = 600;
 
 impl ENSService {
     pub async fn resolve_profile(
@@ -57,19 +60,17 @@ impl ENSService {
         // Preset Hardcoded Lookups
         let mut calldata: HashSet<ENSLookup> = HashSet::new();
 
-        let (addr_key, avatar_key, header_key, display_key) = (
+        let predefined_keys = [
             ENSLookup::Addr,
             ENSLookup::StaticImage("avatar"),
             ENSLookup::StaticImage("header"),
             ENSLookup::StaticText("display"),
-        );
+            ENSLookup::TTL,
+        ];
 
-        calldata.extend([
-            addr_key.clone(),
-            avatar_key.clone(),
-            header_key.clone(),
-            display_key.clone(),
-        ]);
+        calldata.extend(predefined_keys.clone());
+
+        let [addr_key, avatar_key, header_key, display_key, ttl_key] = predefined_keys;
 
         calldata.extend(self.profile_records.iter().cloned().map(ENSLookup::Text));
         calldata.extend(
@@ -91,6 +92,11 @@ impl ENSService {
         let avatar = resolved.records.get(&avatar_key).cloned();
         let header = resolved.records.get(&header_key).cloned();
         let display_record = resolved.records.get(&display_key).cloned();
+        let ttl_record = resolved
+            .records
+            .get(&ttl_key)
+            .cloned()
+            .and_then(|it| it.parse::<u64>().ok());
 
         let display = match display_record {
             Some(display) if display.to_lowercase() == name.to_lowercase() => display,
@@ -149,7 +155,15 @@ impl ENSService {
             serde_json::to_string(&value).map_err(|err| ProfileError::Other(err.to_string()))?;
 
         self.cache
-            .set(&cache_key, &response, 600)
+            .set(
+                &cache_key,
+                &response,
+                // u64 -> u32
+                min(
+                    ttl_record.unwrap_or(DEFAULT_CACHE_TIME_SECONDS),
+                    u32::MAX as u64,
+                ) as u32,
+            )
             .await
             .map_err(|CacheError::Other(err)| {
                 ProfileError::Other(format!("cache set failed: {}", err))
