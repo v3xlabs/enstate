@@ -3,16 +3,17 @@ use std::str::FromStr;
 
 use ethers::prelude::{Middleware, MiddlewareBuilder};
 use ethers_ccip_read::CCIPReadMiddleware;
-use tracing::info;
+use tracing::{info, instrument};
 
 use crate::cache::CacheError;
+use crate::core::{ENSService, Profile};
 use crate::core::error::ProfileError;
 use crate::core::lookup_data::LookupInfo;
-use crate::core::{ENSService, Profile};
 use crate::models::lookup::ENSLookup;
 use crate::utils::eip55::EIP55Address;
 
 impl ENSService {
+    #[instrument(skip_all)]
     pub async fn resolve_profile(
         &self,
         lookup: LookupInfo,
