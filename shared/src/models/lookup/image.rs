@@ -18,8 +18,7 @@ lazy_static! {
         regex::Regex::new(r"^ipfs://(ip[fn]s/)?([0-9a-zA-Z]+(/.*)?)")
             .expect("should be a valid regex");
     static ref ARWEAVE_REGEX: regex::Regex =
-        regex::Regex::new(r"^ar://(.+)")
-            .expect("should be a valid regex");
+        regex::Regex::new(r"^ar://(.+)").expect("should be a valid regex");
     static ref EIP155_REGEX: regex::Regex =
         regex::Regex::new(r"eip155:([0-9]+)/(erc1155|erc721):0x([0-9a-fA-F]{40})/([0-9]+)")
             .expect("should be a valid regex");

@@ -6,8 +6,7 @@ use dotenvy::dotenv;
 use futures::FutureExt;
 use tokio::signal::unix::{signal, SignalKind};
 use tokio_util::sync::CancellationToken;
-use tracing::{error, info, Level};
-use tracing_subscriber::{EnvFilter, FmtSubscriber};
+use tracing::{error, info};
 
 use state::AppState;
 
@@ -19,26 +18,13 @@ mod models;
 mod provider;
 mod routes;
 mod state;
+mod telemetry;
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
 
-    let filter = EnvFilter::new(format!(
-        "enstate={},ethers_ccip_read={}",
-        Level::DEBUG,
-        Level::DEBUG
-    ));
-
-    let subscriber = FmtSubscriber::builder()
-        // all spans/events with a level higher than TRACE (e.g, debug, info, warn, etc.)
-        // will be written to stdout.
-        .with_max_level(Level::DEBUG)
-        .with_env_filter(filter)
-        // completes the builder.
-        .finish();
-
-    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+    telemetry::setup();
 
     info!("📦 enstate.rs v{}", env!("CARGO_PKG_VERSION"));
 

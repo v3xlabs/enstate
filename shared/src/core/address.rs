@@ -3,6 +3,7 @@ use ethers::providers::ProviderError;
 use ethers_ccip_read::CCIPReadMiddleware;
 use ethers_core::types::Address;
 use thiserror::Error;
+use tracing::instrument;
 
 use crate::core::ENSService;
 use crate::core::resolvers::reverse::{resolve_reverse, ReverseResolveError};
@@ -23,6 +24,7 @@ pub enum AddressResolveError {
 }
 
 impl ENSService {
+    #[instrument(skip(self))]
     pub async fn primary_from_address(
         &self,
         address: &Address,

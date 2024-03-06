@@ -6,6 +6,7 @@ use ethers_core::{
 };
 use thiserror::Error;
 use tracing::info;
+use tracing::instrument;
 
 use crate::models::eip155::url::{OPENSEA_BASE_PREFIX, URLFetchError, URLParseError, URLUnparsed};
 use crate::models::lookup::LookupState;
@@ -34,6 +35,7 @@ pub enum EIP155Error {
     Other,
 }
 
+#[derive(Debug)]
 pub enum EIP155ContractType {
     ERC721,
     ERC1155,
@@ -54,6 +56,7 @@ impl AsRef<str> for EIP155ContractType {
     }
 }
 
+#[instrument]
 pub async fn resolve_eip155(
     chain_id: ChainId,
     contract_type: EIP155ContractType,
@@ -208,7 +211,7 @@ mod tests {
             rpc: Arc::new(provider),
             opensea_api_key,
             ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
-            arweave_gateway: "https://arweave.net/".to_string()
+            arweave_gateway: "https://arweave.net/".to_string(),
         };
 
         let data = resolve_eip155(

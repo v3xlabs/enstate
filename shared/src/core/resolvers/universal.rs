@@ -11,6 +11,7 @@ use ethers_core::abi::{ParamType, Token};
 use ethers_core::types::H160;
 use hex_literal::hex;
 use lazy_static::lazy_static;
+use tracing::instrument;
 
 use crate::core::CCIPProvider;
 use crate::core::error::ProfileError;
@@ -29,6 +30,7 @@ pub struct UniversalResolverResult {
     pub(crate) data: Vec<u8>,
 }
 
+#[instrument]
 pub async fn resolve_universal(
     name: &str,
     data: &[ENSLookup],
