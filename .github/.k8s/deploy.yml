@@ -67,9 +67,13 @@ spec:
             - name: REDIS_URL
               value: redis://redis.enstate.svc.cluster.local:6379
             - name: UNIVERSAL_RESOLVER
-              value: 0x8cab227b1162f03b8338331adaad7aadc83b895e
+              value: "0x8cab227b1162f03b8338331adaad7aadc83b895e"
             - name: IPFS_GATEWAY
               value: https://cloudflare-ipfs.com/ipfs/
+            - name: OTLP_ENDPOINT
+              value: http://tempo-enstate-tempo-distributor:4317
+            - name: OTLP_LABEL
+              value: enstate
           resources:
             requests:
               cpu: 100m

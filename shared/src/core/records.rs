@@ -21,6 +21,7 @@ pub struct ResolvedCalldata {
 
 impl ENSService {
     // TODO: per-record caching
+    #[instrument]
     pub async fn resolve_records(
         &self,
         lookup: LookupInfo,
@@ -123,6 +124,7 @@ impl ENSService {
     }
 
     // utility function
+    #[instrument]
     pub async fn resolve_record_simple(
         &self,
         lookup: LookupInfo,

@@ -23,6 +23,7 @@ pub enum AddressResolveError {
 }
 
 impl ENSService {
+    #[instrument]
     pub async fn primary_from_address(
         &self,
         address: &Address,

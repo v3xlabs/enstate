@@ -52,6 +52,7 @@ pub trait MulticoinDecoder {
 }
 
 impl CoinType {
+    #[instrument]
     pub fn decode(&self, data: &[u8]) -> Result<String, MulticoinDecoderError> {
         let decoder: Box<dyn MulticoinDecoder> = match self {
             Self::Slip44(slip44) => match slip44 {

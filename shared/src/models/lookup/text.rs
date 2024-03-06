@@ -19,6 +19,7 @@ pub fn calldata(namehash: &H256, record: &str) -> Vec<u8> {
     [&function_selector() as &[u8], &data].concat()
 }
 
+#[instrument]
 pub async fn decode(data: &[u8]) -> Result<String, ENSLookupError> {
     let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::String])?;
 

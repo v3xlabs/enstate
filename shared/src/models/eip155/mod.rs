@@ -54,6 +54,7 @@ impl AsRef<str> for EIP155ContractType {
     }
 }
 
+#[instrument(skip(non_debug))]
 pub async fn resolve_eip155(
     chain_id: ChainId,
     contract_type: EIP155ContractType,
