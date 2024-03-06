@@ -3,7 +3,6 @@ use ethers_core::{
     types::H256,
 };
 use hex_literal::hex;
-use tracing::instrument;
 
 use crate::models::multicoin::cointype::coins::CoinType;
 use crate::models::multicoin::cointype::evm::ChainId;
@@ -24,7 +23,6 @@ pub fn calldata(namehash: &H256, coin_type: &CoinType) -> Vec<u8> {
     [&function_selector() as &[u8], &data].concat()
 }
 
-#[instrument]
 pub async fn decode(data: &[u8], coin_type: &CoinType) -> Result<String, ENSLookupError> {
     // hell
     let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::Bytes]).or_else(|err| {
