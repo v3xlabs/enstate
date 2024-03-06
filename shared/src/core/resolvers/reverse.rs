@@ -1,17 +1,18 @@
 use ethers::middleware::Middleware;
-use ethers::prelude::{Address, H256, ProviderError};
+use ethers::prelude::{Address, ProviderError, H256};
 use ethers::providers::{namehash, Provider};
 use ethers_contract::providers::Http;
 use ethers_core::abi;
 use ethers_core::abi::{AbiEncode, ParamType, Token};
-use ethers_core::types::Bytes;
 use ethers_core::types::transaction::eip2718::TypedTransaction;
+use ethers_core::types::Bytes;
 use hex_literal::hex;
 use lazy_static::lazy_static;
 use thiserror::Error;
+use tracing::instrument;
 
-use crate::core::CCIPProvider;
 use crate::core::resolvers::universal::resolve_universal;
+use crate::core::CCIPProvider;
 use crate::models::lookup::{addr, ENSLookup};
 
 #[derive(Error, Debug)]
@@ -147,8 +148,8 @@ mod tests {
                     .parse()
                     .unwrap(),
             )
-                .await
-                .ok(),
+            .await
+            .ok(),
             Some("nick.eth".to_string())
         );
 
@@ -162,8 +163,8 @@ mod tests {
                     .parse()
                     .unwrap(),
             )
-                .await
-                .ok(),
+            .await
+            .ok(),
             Some("antony.sh".to_string())
         );
     }

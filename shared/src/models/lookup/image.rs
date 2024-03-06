@@ -7,6 +7,7 @@ use hex_literal::hex;
 use lazy_static::lazy_static;
 use thiserror::Error;
 use tracing::info;
+use tracing::instrument;
 
 use crate::models::eip155::{EIP155ContractType, resolve_eip155};
 use crate::models::multicoin::cointype::evm::ChainId;
@@ -18,8 +19,7 @@ lazy_static! {
         regex::Regex::new(r"^ipfs://(ip[fn]s/)?([0-9a-zA-Z]+(/.*)?)")
             .expect("should be a valid regex");
     static ref ARWEAVE_REGEX: regex::Regex =
-        regex::Regex::new(r"^ar://(.+)")
-            .expect("should be a valid regex");
+        regex::Regex::new(r"^ar://(.+)").expect("should be a valid regex");
     static ref EIP155_REGEX: regex::Regex =
         regex::Regex::new(r"eip155:([0-9]+)/(erc1155|erc721):0x([0-9a-fA-F]{40})/([0-9]+)")
             .expect("should be a valid regex");
@@ -49,7 +49,7 @@ pub fn calldata(namehash: &H256, record: &str) -> Vec<u8> {
     [&function_selector() as &[u8], &data].concat()
 }
 
-#[instrument]
+#[instrument(skip_all)]
 pub async fn decode(data: &[u8], state: &LookupState) -> Result<String, ENSLookupError> {
     let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::String])?;
 

@@ -3,6 +3,7 @@ use ethers_core::{
     types::H256,
 };
 use hex_literal::hex;
+use tracing::instrument;
 
 use super::{abi_decode_universal_ccip, ENSLookupError};
 

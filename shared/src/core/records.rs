@@ -4,6 +4,7 @@ use std::sync::Arc;
 use ethers::middleware::MiddlewareBuilder;
 use ethers::prelude::Address;
 use ethers_ccip_read::CCIPReadMiddleware;
+use tracing::instrument;
 
 use crate::core::error::ProfileError;
 use crate::core::lookup_data::LookupInfo;
@@ -21,7 +22,7 @@ pub struct ResolvedCalldata {
 
 impl ENSService {
     // TODO: per-record caching
-    #[instrument]
+    #[instrument(skip_all)]
     pub async fn resolve_records(
         &self,
         lookup: LookupInfo,
@@ -124,7 +125,7 @@ impl ENSService {
     }
 
     // utility function
-    #[instrument]
+    #[instrument(skip_all)]
     pub async fn resolve_record_simple(
         &self,
         lookup: LookupInfo,

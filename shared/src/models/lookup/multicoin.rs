@@ -3,6 +3,7 @@ use ethers_core::{
     types::H256,
 };
 use hex_literal::hex;
+use tracing::instrument;
 
 use crate::models::multicoin::cointype::coins::CoinType;
 use crate::models::multicoin::cointype::evm::ChainId;

@@ -1,4 +1,5 @@
 use thiserror::Error;
+use tracing::instrument;
 
 use crate::models::multicoin::decoding::binance::BinanceDecoder;
 use crate::models::multicoin::decoding::bitcoin_cash::BitcoinCashDecoder;
