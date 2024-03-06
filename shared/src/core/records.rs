@@ -6,9 +6,9 @@ use ethers::prelude::Address;
 use ethers_ccip_read::CCIPReadMiddleware;
 use tracing::instrument;
 
+use crate::core::ENSService;
 use crate::core::error::ProfileError;
 use crate::core::lookup_data::LookupInfo;
-use crate::core::ENSService;
 use crate::models::lookup::{ENSLookup, ENSLookupError, LookupState};
 
 use super::resolvers::universal::resolve_universal;
@@ -125,7 +125,7 @@ impl ENSService {
     }
 
     // utility function
-    #[instrument(skip_all)]
+    #[instrument(skip(self))]
     pub async fn resolve_record_simple(
         &self,
         lookup: LookupInfo,

@@ -24,7 +24,7 @@ pub enum AddressResolveError {
 }
 
 impl ENSService {
-    #[instrument(skip_all)]
+    #[instrument(skip(self))]
     pub async fn primary_from_address(
         &self,
         address: &Address,

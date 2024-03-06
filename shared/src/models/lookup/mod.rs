@@ -6,6 +6,7 @@ use ethers_core::abi::Token;
 use ethers_core::types::H256;
 use lazy_static::lazy_static;
 use thiserror::Error;
+use tracing::instrument;
 
 use crate::core::CCIPProvider;
 use crate::models::eip155::EIP155Error;
@@ -72,6 +73,7 @@ impl ENSLookup {
         }
     }
 
+    #[instrument]
     pub async fn decode(
         &self,
         data: &[u8],
@@ -99,6 +101,7 @@ impl ENSLookup {
     }
 }
 
+#[derive(Debug)]
 pub struct LookupState {
     pub rpc: Arc<CCIPProvider>,
     pub opensea_api_key: String,

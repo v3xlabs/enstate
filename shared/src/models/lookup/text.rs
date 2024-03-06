@@ -3,7 +3,6 @@ use ethers_core::{
     types::H256,
 };
 use hex_literal::hex;
-use tracing::instrument;
 
 use super::{abi_decode_universal_ccip, ENSLookupError};
 
@@ -20,7 +19,6 @@ pub fn calldata(namehash: &H256, record: &str) -> Vec<u8> {
     [&function_selector() as &[u8], &data].concat()
 }
 
-#[instrument]
 pub async fn decode(data: &[u8]) -> Result<String, ENSLookupError> {
     let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::String])?;
 

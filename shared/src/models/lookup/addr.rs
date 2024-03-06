@@ -3,7 +3,6 @@ use ethers_core::{
     types::H256,
 };
 use hex_literal::hex;
-use tracing::instrument;
 
 use super::ENSLookupError;
 
@@ -17,7 +16,6 @@ pub fn calldata(namehash: &H256) -> Vec<u8> {
     [&function_selector() as &[u8], &data].concat()
 }
 
-#[instrument]
 pub async fn decode(data: &[u8]) -> Result<String, ENSLookupError> {
     let decoded_abi = ethers_core::abi::decode(&[ParamType::Address], data)
         .map_err(|_| ENSLookupError::AbiDecodeError)?;

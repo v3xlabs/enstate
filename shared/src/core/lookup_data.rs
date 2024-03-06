@@ -1,6 +1,7 @@
 use ethers::prelude::Address;
 use thiserror::Error;
 
+#[derive(Debug)]
 pub enum LookupInfo {
     Name(String),
     Address(Address),

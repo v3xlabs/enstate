@@ -7,7 +7,6 @@ use hex_literal::hex;
 use lazy_static::lazy_static;
 use thiserror::Error;
 use tracing::info;
-use tracing::instrument;
 
 use crate::models::eip155::{EIP155ContractType, resolve_eip155};
 use crate::models::multicoin::cointype::evm::ChainId;
@@ -49,7 +48,6 @@ pub fn calldata(namehash: &H256, record: &str) -> Vec<u8> {
     [&function_selector() as &[u8], &data].concat()
 }
 
-#[instrument(skip_all)]
 pub async fn decode(data: &[u8], state: &LookupState) -> Result<String, ENSLookupError> {
     let decoded_abi = abi_decode_universal_ccip(data, &[ParamType::String])?;
 

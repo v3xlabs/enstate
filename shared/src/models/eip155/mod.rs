@@ -35,6 +35,7 @@ pub enum EIP155Error {
     Other,
 }
 
+#[derive(Debug)]
 pub enum EIP155ContractType {
     ERC721,
     ERC1155,
@@ -55,7 +56,7 @@ impl AsRef<str> for EIP155ContractType {
     }
 }
 
-#[instrument(skip_all)]
+#[instrument]
 pub async fn resolve_eip155(
     chain_id: ChainId,
     contract_type: EIP155ContractType,

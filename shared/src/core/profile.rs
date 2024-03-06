@@ -13,7 +13,7 @@ use crate::models::lookup::ENSLookup;
 use crate::utils::eip55::EIP55Address;
 
 impl ENSService {
-    #[instrument(skip_all)]
+    #[instrument(skip(self))]
     pub async fn resolve_profile(
         &self,
         lookup: LookupInfo,
