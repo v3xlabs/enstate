@@ -6,8 +6,7 @@ use dotenvy::dotenv;
 use futures::FutureExt;
 use tokio::signal::unix::{signal, SignalKind};
 use tokio_util::sync::CancellationToken;
-use tracing::{error, info, Level};
-use tracing_subscriber::{EnvFilter, FmtSubscriber};
+use tracing::{error, info};
 
 use state::AppState;
 
