@@ -92,6 +92,12 @@ pub async fn get_bulk(
     Ok(Json(joined))
 }
 
+/// /sse/n
+/// 
+/// Here is an example of a valid request that looks up multiple names.
+/// ```url
+/// /sse/n?names[]=luc.eth&names[]=nick.eth&names[]=helgesson.eth&names[]=irc.eth&names[]=khori.eth&names[]=v3x.eth
+/// ```
 #[utoipa::path(
     get,
     tag = "Stream Profiles",
