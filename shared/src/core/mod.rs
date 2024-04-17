@@ -58,4 +58,5 @@ pub struct ENSService {
     pub profile_records: Arc<[String]>,
     pub profile_chains: Arc<[CoinType]>,
     pub universal_resolver: H160,
+    pub max_bulk_size: usize,
 }

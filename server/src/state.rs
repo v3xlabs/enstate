@@ -74,6 +74,8 @@ impl AppState {
             .parse::<H160>()
             .expect("UNIVERSAL_RESOLVER should be a valid address");
 
+        let max_bulk_size = env::var("MAX_BULK_SIZE").unwrap_or_else(|_| "10".to_string()).parse().unwrap();
+
         Self {
             service: ENSService {
                 cache,
@@ -81,6 +83,7 @@ impl AppState {
                 opensea_api_key,
                 ipfs_gateway,
                 arweave_gateway,
+                max_bulk_size,
                 profile_records: Arc::from(profile_records),
                 profile_chains: Arc::from(multicoin_chains),
                 universal_resolver,

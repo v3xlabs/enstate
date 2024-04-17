@@ -74,7 +74,7 @@ pub async fn get_bulk(
     Qs(query): Qs<NameGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<ListResponse<BulkResponse<Profile>>>, RouteError> {
-    let names = validate_bulk_input(&query.names, 10)?;
+    let names = validate_bulk_input(&query.names, state.service.max_bulk_size)?;
 
     let profiles = names
         .into_iter()
@@ -94,7 +94,7 @@ pub async fn get_bulk_sse(
     Qs(query): Qs<NameGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> impl IntoResponse {
-    let names = validate_bulk_input(&query.names, 10).unwrap();
+    let names = validate_bulk_input(&query.names, state.service.max_bulk_size).unwrap();
 
     let (event_tx, event_rx) = tokio::sync::mpsc::unbounded_channel::<Result<Event, Infallible>>();
 
