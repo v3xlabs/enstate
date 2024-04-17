@@ -18,6 +18,12 @@ use crate::models::bulk::{BulkResponse, ListResponse};
 use crate::models::sse::SSEResponse;
 use crate::routes::{profile_http_error_mapper, validate_bulk_input, FreshQuery, Qs, RouteError};
 
+/// /bulk/n
+/// 
+/// Here is an example of a valid request that looks up a name:
+/// ```url
+/// /n/luc.eth
+/// ```
 #[utoipa::path(
     get,
     tag = "Single Profile",
@@ -60,6 +66,12 @@ pub struct NameGetBulkQuery {
     fresh: FreshQuery,
 }
 
+/// /bulk/n
+/// 
+/// Here is an example of a valid request that looks up multiple names:
+/// ```url
+/// /bulk/n?names[]=luc.eth&names[]=nick.eth&names[]=helgesson.eth&names[]=irc.eth&names[]=khori.eth&names[]=v3x.eth
+/// ```
 #[utoipa::path(
     get,
     tag = "Bulk Profiles",
@@ -94,7 +106,7 @@ pub async fn get_bulk(
 
 /// /sse/n
 /// 
-/// Here is an example of a valid request that looks up multiple names.
+/// Here is an example of a valid request that looks up multiple names:
 /// ```url
 /// /sse/n?names[]=luc.eth&names[]=nick.eth&names[]=helgesson.eth&names[]=irc.eth&names[]=khori.eth&names[]=v3x.eth
 /// ```

@@ -23,6 +23,12 @@ use crate::routes::{profile_http_error_mapper, validate_bulk_input, FreshQuery, 
 /// /u/{name_or_address}
 /// 
 /// The Universal Endpoint supports looking up both names and addresses.
+///
+/// Here is an example of a valid request that looks up an address or name:
+/// ```url
+/// /u/luc.eth
+/// /u/0x225f137127d9067788314bc7fcc1f36746a3c3B5
+/// ```
 /// 
 /// You can also use the [useProfile](https://github.com/v3xlabs/use-enstate/blob/master/src/hooks/useProfile.ts) hook from [use-enstate](https://github.com/v3xlabs/use-enstate).
 #[utoipa::path(
@@ -72,6 +78,11 @@ pub struct UniversalGetBulkQuery {
 /// 
 /// The Universal Endpoint supports looking up both names and addresses.
 /// 
+/// Here is an example of a valid request that looks up multiple names:
+/// ```url
+/// /bulk/u?queries[]=luc.eth&queries[]=nick.eth&queries[]=helgesson.eth&queries[]=irc.eth&queries[]=khori.eth&queries[]=v3x.eth
+/// ```
+/// 
 /// You can also use the [useBulkProfile](https://github.com/v3xlabs/use-enstate/blob/master/src/hooks/useBulkProfile.ts) hook from [use-enstate](https://github.com/v3xlabs/use-enstate).
 #[utoipa::path(
     get,
@@ -108,7 +119,7 @@ pub async fn get_bulk(
 /// 
 /// The Universal Endpoint supports looking up both names and addresses.
 /// 
-/// Here is an example of a valid request that looks up multiple names.
+/// Here is an example of a valid request that looks up multiple names:
 /// ```url
 /// /sse/u?queries[]=luc.eth&queries[]=nick.eth&queries[]=helgesson.eth&queries[]=irc.eth&queries[]=khori.eth&queries[]=v3x.eth
 /// ```

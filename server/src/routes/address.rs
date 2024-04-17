@@ -23,6 +23,12 @@ use crate::routes::{
     RouteError,
 };
 
+/// /a/{address}
+/// 
+/// Here is an example of a valid request that looks up an address:
+/// ```url
+/// /a/0x225f137127d9067788314bc7fcc1f36746a3c3B5
+/// ```
 #[utoipa::path(
     get,
     tag = "Single Profile",
@@ -67,6 +73,12 @@ pub struct AddressGetBulkQuery {
     fresh: FreshQuery,
 }
 
+/// /bulk/a
+/// 
+/// Here is an example of a valid request that looks up multiple addresses:
+/// ```url
+/// /bulk/a?addresses[]=0x225f137127d9067788314bc7fcc1f36746a3c3B5&addresses[]=0xd577D1322cB22eB6EAC1a008F62b18807921EFBc&addresses[]=0x8F8f07b6D61806Ec38febd15B07528dCF2903Ae7&addresses[]=0x8e8Db5CcEF88cca9d624701Db544989C996E3216&addresses[]=0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5&addresses[]=0xF1F78f308F08fDCAC933124ee8B52A376ff542B4
+/// ```
 #[utoipa::path(
     get,
     tag = "Bulk Profiles",
@@ -110,7 +122,7 @@ pub async fn get_bulk(
 
 /// /sse/a
 /// 
-/// Here is an example of a valid request that looks up multiple addresses.
+/// Here is an example of a valid request that looks up multiple addresses:
 /// ```url
 /// /sse/a?addresses[]=0x225f137127d9067788314bc7fcc1f36746a3c3B5&addresses[]=0xd577D1322cB22eB6EAC1a008F62b18807921EFBc&addresses[]=0x8F8f07b6D61806Ec38febd15B07528dCF2903Ae7&addresses[]=0x8e8Db5CcEF88cca9d624701Db544989C996E3216&addresses[]=0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5&addresses[]=0xF1F78f308F08fDCAC933124ee8B52A376ff542B4
 /// ```
