@@ -79,6 +79,7 @@ async fn scalar_handler() -> Html<&'static str> {
     let contents = include_str!("./docs/html/index.html");
     axum::response::Html(contents)
 }
+
 async fn scalar_favicon_handler() -> impl axum::response::IntoResponse {
     let contents = include_bytes!("./docs/html/favicon.png");
     contents
