@@ -10,19 +10,30 @@ use enstate_shared::models::lookup::ENSLookup;
 
 use crate::routes::{FreshQuery, http_simple_status_error, profile_http_error_mapper, RouteError};
 
-// #[utoipa::path(
-//     get,
-//     path = "/i/{name_or_address}",
-//     responses(
-//         TODO: figure out body
-//         (status = 200, description = "Successfully found name or address.", body = ENSProfile),
-//         (status = NOT_FOUND, description = "No name or address could be found."),
-//         (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
-//     ),
-//     params(
-//         ("name_or_address" = String, Path, description = "Name or address to lookup the image for."),
-//     )
-// )]
+/// Avatar Endpoint
+/// 
+/// This is the endpoint for getting an avatar image.
+/// It performs some pre-compute on the image to ensure it is `<img />` tag friendly.
+/// 
+/// To use in your app, you can use the following HTML:
+/// ```html
+/// <img src="https://enstate.rs/i/luc.eth" alt="luc.eth" />
+/// ```
+/// 
+/// Note: you should probably still have a fallback image in case the image is not found.
+#[utoipa::path(
+    head,
+    tag = "Avatars & Banners",
+    path = "/i/{name_or_address}",
+    responses(
+        (status = 303, description = "Redirects to the avatar image."),
+        (status = NOT_FOUND, description = "No name or address could be found."),
+        (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
+    ),
+    params(
+        ("name_or_address" = String, Path, description = "Name or address to lookup the image for."),
+    )
+)]
 pub async fn get(
     Path(name_or_address): Path<String>,
     Query(query): Query<FreshQuery>,

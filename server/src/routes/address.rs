@@ -25,6 +25,7 @@ use crate::routes::{
 
 #[utoipa::path(
     get,
+    tag = "Single Profile",
     path = "/a/{address}",
     responses(
         (status = 200, description = "Successfully found address.", body = ENSProfile),
@@ -68,6 +69,7 @@ pub struct AddressGetBulkQuery {
 
 #[utoipa::path(
     get,
+    tag = "Bulk Profiles",
     path = "/bulk/a",
     responses(
         (status = 200, description = "Successfully found address.", body = BulkResponse<ENSProfile>),
@@ -106,6 +108,20 @@ pub async fn get_bulk(
     Ok(Json(joined))
 }
 
+#[utoipa::path(
+    get,
+    tag = "Stream Profiles",
+    path = "/sse/a",
+    responses(
+        (status = 200, description = "Successfully found address.", body = BulkResponse<ENSProfile>),
+        (status = BAD_REQUEST, description = "Invalid address.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "No name was associated with this address.", body = ErrorResponse),
+        (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
+    ),
+    params(
+        ("addresses[]" = Vec<String>, Query, description = "Addresses to lookup name data for"),
+    )
+)]
 pub async fn get_bulk_sse(
     Qs(query): Qs<AddressGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,

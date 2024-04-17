@@ -43,13 +43,17 @@ impl App {
 }
 
 pub fn setup(state: AppState) -> App {
+    let docs = Router::new()
+        .route("/openapi.json", get(crate::docs::openapi))
+        .route("/", get(scalar_handler))
+        .route("/favicon.png", get(scalar_favicon_handler));
+
     let router = Router::new()
         .route(
             "/",
             get(|| async { Redirect::temporary("/docs") }),
         )
-        .route("/docs", get(scalar_handler))
-        .route("/docs/openapi.json", get(crate::docs::openapi))
+        .nest("/docs", docs)
         .route("/this", get(routes::root::get))
         .route("/a/:address", get(routes::address::get))
         .route("/n/:name", get(routes::name::get))
@@ -72,6 +76,10 @@ pub fn setup(state: AppState) -> App {
 
 // Loads from docs/index.html with headers html
 async fn scalar_handler() -> Html<&'static str> {
-    let contents = include_str!("./docs/index.html");
+    let contents = include_str!("./docs/html/index.html");
     axum::response::Html(contents)
+}
+async fn scalar_favicon_handler() -> impl axum::response::IntoResponse {
+    let contents = include_bytes!("./docs/html/favicon.png");
+    contents
 }
