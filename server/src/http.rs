@@ -1,4 +1,4 @@
-use axum::response::Html;
+use axum::response::{Html, Redirect};
 use std::{net::SocketAddr, sync::Arc};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
@@ -46,9 +46,12 @@ impl App {
 
 pub fn setup(state: AppState) -> App {
     let router = Router::new()
-        .route("/", get(scalar_handler))
+        .route(
+            "/",
+            get(|| async { Redirect::temporary("/docs") }),
+        )
+        .route("/docs", get(scalar_handler))
         .route("/docs/openapi.json", get(crate::docs::openapi))
-        // .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", crate::docs::ApiDoc::openapi()))
         .route("/this", get(routes::root::get))
         .route("/a/:address", get(routes::address::get))
         .route("/n/:name", get(routes::name::get))
