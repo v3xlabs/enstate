@@ -11,7 +11,8 @@ env:
 jobs:
   test:
     name: Test ENState 🚀
-    runs-on: arc-runner-set
+    # runs-on: arc-runner-set
+    runs-on: ubuntu-latest
     env:
       SCCACHE_REDIS: "redis://redis.redis.svc.cluster.local:6379"
       RUSTC_WRAPPER: "sccache"
