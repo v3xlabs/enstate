@@ -5,6 +5,7 @@ use ethers::prelude::Http;
 use ethers::providers::Provider;
 use ethers_ccip_read::CCIPReadMiddleware;
 use ethers_core::types::H160;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::models::multicoin::cointype::coins::CoinType;
@@ -20,7 +21,7 @@ pub mod resolvers;
 
 pub type CCIPProvider = CCIPReadMiddleware<Arc<Provider<Http>>>;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Profile {
     // Name
     pub name: String,

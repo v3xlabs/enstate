@@ -1,8 +1,9 @@
 use std::collections::BTreeMap;
 
 use enstate_shared::core::Profile;
+use schemars::JsonSchema;
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, JsonSchema)]
 pub struct ENSProfile {
     // Name
     pub name: String,

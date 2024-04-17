@@ -1,6 +1,7 @@
 use lazy_static::lazy_static;
+use schemars::JsonSchema;
 
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(Debug, Clone, serde::Serialize, JsonSchema)]
 pub struct AppMeta {
     pub rev: String,
     pub name: String,

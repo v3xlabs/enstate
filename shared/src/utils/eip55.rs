@@ -2,6 +2,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 
 use ethers_core::types::Address;
+use schemars::JsonSchema;
 use serde_with::{DeserializeFromStr, SerializeDisplay};
 
 #[derive(Debug, Copy, Clone)]
@@ -21,6 +22,16 @@ impl From<RSKIPChain> for u64 {
 
 #[derive(SerializeDisplay, DeserializeFromStr, Clone, PartialEq)]
 pub struct EIP55Address(pub Address);
+
+impl JsonSchema for EIP55Address {
+    fn schema_name() -> String {
+        "Address".to_string()
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        <String>::json_schema(gen)
+    }
+}
 
 impl Display for EIP55Address {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {

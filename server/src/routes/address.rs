@@ -2,6 +2,7 @@ use std::convert::Infallible;
 use std::sync::Arc;
 use std::time::Duration;
 
+use aide::axum::IntoApiResponse;
 use axum::response::sse::Event;
 use axum::response::{IntoResponse, Sse};
 use axum::{
@@ -40,7 +41,7 @@ pub async fn get(
     Path(address): Path<String>,
     Query(query): Query<FreshQuery>,
     State(state): State<Arc<crate::AppState>>,
-) -> Result<Json<Profile>, RouteError> {
+) -> impl IntoApiResponse {
     get_bulk(
         Qs(AddressGetBulkQuery {
             fresh: query,
