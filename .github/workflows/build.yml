@@ -63,9 +63,9 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-        with:
-          driver: kubernetes
-          driver-opts: namespace=buildkit
+        # with:
+          # driver: kubernetes
+          # driver-opts: namespace=buildkit
 
       - name: Build and push
         id: docker_build
