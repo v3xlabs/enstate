@@ -74,7 +74,9 @@ impl AppState {
             .parse::<H160>()
             .expect("UNIVERSAL_RESOLVER should be a valid address");
 
-        let max_bulk_size = env::var("MAX_BULK_SIZE").unwrap_or_else(|_| "10".to_string()).parse().unwrap();
+        let max_bulk_size = env::var("MAX_BULK_SIZE").unwrap_or_else(|_| "10".to_string()).parse().ok();
+
+        let cache_ttl = env::var("PROFILE_CACHE_TTL").unwrap_or_else(|_| "600".to_string()).parse().ok();
 
         Self {
             service: ENSService {
@@ -84,6 +86,7 @@ impl AppState {
                 ipfs_gateway,
                 arweave_gateway,
                 max_bulk_size,
+                cache_ttl,
                 profile_records: Arc::from(profile_records),
                 profile_chains: Arc::from(multicoin_chains),
                 universal_resolver,

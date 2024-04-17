@@ -6,9 +6,9 @@ use ethers_ccip_read::CCIPReadMiddleware;
 use tracing::{info, instrument};
 
 use crate::cache::CacheError;
-use crate::core::{ENSService, Profile};
 use crate::core::error::ProfileError;
 use crate::core::lookup_data::LookupInfo;
+use crate::core::{ENSService, Profile};
 use crate::models::lookup::ENSLookup;
 use crate::utils::eip55::EIP55Address;
 
@@ -52,6 +52,7 @@ impl ENSService {
                 if let Ok(entry) = entry_result {
                     return Ok(entry);
                 }
+                // TODO: Else, warn about unparsable data in cache
             }
         }
 
@@ -150,7 +151,7 @@ impl ENSService {
             serde_json::to_string(&value).map_err(|err| ProfileError::Other(err.to_string()))?;
 
         self.cache
-            .set(&cache_key, &response, 600)
+            .set(&cache_key, &response, self.cache_ttl.unwrap_or(600))
             .await
             .map_err(|CacheError::Other(err)| {
                 ProfileError::Other(format!("cache set failed: {}", err))
