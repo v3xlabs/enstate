@@ -46,7 +46,8 @@ pub fn setup(state: AppState) -> App {
     let docs = Router::new()
         .route("/openapi.json", get(crate::docs::openapi))
         .route("/", get(scalar_handler))
-        .route("/favicon.png", get(scalar_favicon_handler));
+        .route("/favicon.png", get(scalar_favicon_handler))
+        .route("/opengraph.png", get(scalar_opengraph_handler));
 
     let router = Router::new()
         .route(
@@ -82,5 +83,10 @@ async fn scalar_handler() -> Html<&'static str> {
 
 async fn scalar_favicon_handler() -> impl axum::response::IntoResponse {
     let contents = include_bytes!("./docs/html/favicon.png");
+    contents
+}
+
+async fn scalar_opengraph_handler() -> impl axum::response::IntoResponse {
+    let contents = include_bytes!("./docs/html/opengraph.png");
     contents
 }
