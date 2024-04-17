@@ -23,19 +23,19 @@ use crate::routes::{
     RouteError,
 };
 
-// #[utoipa::path(
-//     get,
-//     path = "/a/{address}",
-//     responses(
-//         (status = 200, description = "Successfully found address.", body = ENSProfile),
-//         (status = BAD_REQUEST, description = "Invalid address.", body = ErrorResponse),
-//         (status = NOT_FOUND, description = "No name was associated with this address.", body = ErrorResponse),
-//         (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
-//     ),
-//     params(
-//         ("address" = String, Path, description = "Address to lookup name data for"),
-//     )
-// )]
+#[utoipa::path(
+    get,
+    path = "/a/{address}",
+    responses(
+        (status = 200, description = "Successfully found address.", body = ENSProfile),
+        (status = BAD_REQUEST, description = "Invalid address.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "No name was associated with this address.", body = ErrorResponse),
+        (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
+    ),
+    params(
+        ("address" = String, Path, description = "Address to lookup name data for"),
+    )
+)]
 pub async fn get(
     Path(address): Path<String>,
     Query(query): Query<FreshQuery>,

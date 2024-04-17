@@ -19,18 +19,18 @@ use crate::models::bulk::{BulkResponse, ListResponse};
 use crate::models::sse::SSEResponse;
 use crate::routes::{profile_http_error_mapper, validate_bulk_input, FreshQuery, Qs, RouteError};
 
-// #[utoipa::path(
-//     get,
-//     path = "/u/{name_or_address}",
-//     responses(
-//         (status = 200, description = "Successfully found name or address.", body = ENSProfile),
-//         (status = NOT_FOUND, description = "No name or address could be found.", body = ErrorResponse),
-//         (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
-//     ),
-//     params(
-//         ("name_or_address" = String, Path, description = "Name or address to lookup the name data for."),
-//     )
-// )]
+#[utoipa::path(
+    get,
+    path = "/u/{name_or_address}",
+    responses(
+        (status = 200, description = "Successfully found name or address.", body = ENSProfile),
+        (status = NOT_FOUND, description = "No name or address could be found.", body = ErrorResponse),
+        (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
+    ),
+    params(
+        ("name_or_address" = String, Path, description = "Name or address to lookup the name data for."),
+    )
+)]
 pub async fn get(
     Path(name_or_address): Path<String>,
     Query(query): Query<FreshQuery>,
