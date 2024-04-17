@@ -61,7 +61,7 @@ pub struct NameGetBulkQuery {
 
 #[utoipa::path(
     get,
-    path = "/bulk/n/",
+    path = "/bulk/n",
     responses(
         (status = 200, description = "Successfully found name.", body = ListButWithLength<BulkResponse<Profile>>),
         (status = NOT_FOUND, description = "No name could be found.", body = ErrorResponse),

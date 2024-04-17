@@ -10,7 +10,10 @@ use utoipa::OpenApi;
         title = "enstate.rs",
         description = "A hosted ENS API allowing for easy access to ENS data.",
     ),
-    paths(crate::routes::address::get, crate::routes::name::get, crate::routes::universal::get),
+    paths(
+        crate::routes::address::get, crate::routes::name::get, crate::routes::universal::get,
+        crate::routes::address::get_bulk, crate::routes::name::get_bulk, crate::routes::universal::get_bulk
+    ),
     components(schemas(ENSProfile, ListResponse<BulkResponse<ENSProfile>>, ErrorResponse))
 )]
 pub struct ApiDoc;

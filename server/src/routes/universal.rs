@@ -61,18 +61,18 @@ pub struct UniversalGetBulkQuery {
     fresh: FreshQuery,
 }
 
-// #[utoipa::path(
-//     get,
-//     path = "/bulk/u/",
-//     responses(
-//         (status = 200, description = "Successfully found name or address.", body = BulkResponse<ENSProfile>),
-//         (status = NOT_FOUND, description = "No name or address could be found.", body = ErrorResponse),
-//         (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
-//     ),
-//     params(
-//         ("name_or_address" = String, Path, description = "Name or address to lookup the name data for."),
-//     )
-// )]
+#[utoipa::path(
+    get,
+    path = "/bulk/u",
+    responses(
+        (status = 200, description = "Successfully found name or address.", body = BulkResponse<ENSProfile>),
+        (status = NOT_FOUND, description = "No name or address could be found.", body = ErrorResponse),
+        (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
+    ),
+    params(
+        ("name_or_address" = String, Path, description = "Name or address to lookup the name data for."),
+    )
+)]
 pub async fn get_bulk(
     Qs(query): Qs<UniversalGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
