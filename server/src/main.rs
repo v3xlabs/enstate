@@ -13,6 +13,7 @@ use state::AppState;
 mod abi;
 mod cache;
 mod database;
+mod docs;
 mod http;
 mod models;
 mod provider;

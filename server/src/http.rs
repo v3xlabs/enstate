@@ -1,28 +1,17 @@
+use axum::response::Html;
 use std::{net::SocketAddr, sync::Arc};
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
-use axum::body::HttpBody;
-use axum::routing::MethodRouter;
 use axum::{routing::get, Router};
 use tokio::net::TcpListener;
 use tokio_util::sync::CancellationToken;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing::info;
-// use utoipa::OpenApi;
-// use utoipa_swagger_ui::SwaggerUi;
 
-use crate::models::bulk::{BulkResponse, ListResponse};
-use crate::models::error::ErrorResponse;
-use crate::models::profile::ENSProfile;
 use crate::routes;
 use crate::state::AppState;
-
-// #[derive(OpenApi)]
-// #[openapi(
-//     paths(routes::address::get, routes::name::get, routes::universal::get),
-//     components(schemas(ENSProfile, ListResponse<BulkResponse<ENSProfile>>, ErrorResponse))
-// )]
-// pub struct ApiDoc;
 
 pub struct App {
     router: Router,
@@ -57,8 +46,10 @@ impl App {
 
 pub fn setup(state: AppState) -> App {
     let router = Router::new()
-        // .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", ApiDoc::openapi()))
-        .route("/", get(routes::root::get))
+        .route("/", get(scalar_handler))
+        .route("/docs/openapi.json", get(crate::docs::openapi))
+        // .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", crate::docs::ApiDoc::openapi()))
+        .route("/this", get(routes::root::get))
         .route("/a/:address", get(routes::address::get))
         .route("/n/:name", get(routes::name::get))
         .route("/u/:name_or_address", get(routes::universal::get))
@@ -76,4 +67,10 @@ pub fn setup(state: AppState) -> App {
         .with_state(Arc::new(state));
 
     App { router }
+}
+
+// Loads from docs/index.html with headers html
+async fn scalar_handler() -> Html<&'static str> {
+    let contents = include_str!("./docs/index.html");
+    axum::response::Html(contents)
 }

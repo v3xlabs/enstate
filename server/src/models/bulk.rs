@@ -1,4 +1,5 @@
 use enstate_shared::core::{error::ProfileError, Profile};
+use utoipa::ToSchema;
 // use utoipa::ToSchema;
 
 use crate::models::error::ErrorResponse;
@@ -31,7 +32,7 @@ impl<T> From<Result<T, ErrorResponse>> for BulkResponse<T> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, ToSchema)]
 pub struct ListResponse<T> {
     pub(crate) response_length: usize,
     pub(crate) response: Vec<T>,

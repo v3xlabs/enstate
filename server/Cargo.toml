@@ -58,4 +58,5 @@ opentelemetry = "0.22.0"
 opentelemetry_sdk = { version = "0.22.1", features = ["rt-tokio"] }
 opentelemetry-otlp = "0.15.0"
 tracing-opentelemetry = "0.23.0"
-aide = { version = "0.13.4", features = ["axum", "scalar"] }
+utoipa = "4.2.0"
+utoipa-swagger-ui = { version = "6.0.0", features = ["axum"] }
