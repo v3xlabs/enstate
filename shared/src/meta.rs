@@ -1,10 +1,15 @@
 use lazy_static::lazy_static;
+use utoipa::ToSchema;
 
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(Debug, Clone, serde::Serialize, ToSchema)]
 pub struct AppMeta {
+    #[schema(example = "fcf86f91")]
     pub rev: String,
+    #[schema(example = "enstate")]
     pub name: String,
+    #[schema(example = "git:fcf86f91")]
     pub version: String,
+    #[schema(example = "2024-04-17 16:27:49.963738487 UTC")]
     pub compile_time: String,
 }
 

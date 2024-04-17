@@ -22,6 +22,7 @@ use crate::routes::{profile_http_error_mapper, validate_bulk_input, FreshQuery, 
 
 #[utoipa::path(
     get,
+    tag = "Single Profile",
     path = "/u/{name_or_address}",
     responses(
         (status = 200, description = "Successfully found name or address.", body = ENSProfile),
@@ -64,6 +65,7 @@ pub struct UniversalGetBulkQuery {
 
 #[utoipa::path(
     get,
+    tag = "Bulk Profiles",
     path = "/bulk/u",
     responses(
         (status = 200, description = "Successfully found name or address.", body = BulkResponse<ENSProfile>),
@@ -92,6 +94,19 @@ pub async fn get_bulk(
     Ok(Json(joined))
 }
 
+#[utoipa::path(
+    get,
+    tag = "Stream Profiles",
+    path = "/sse/u",
+    responses(
+        (status = 200, description = "Successfully found name or address.", body = BulkResponse<ENSProfile>),
+        (status = NOT_FOUND, description = "No name or address could be found.", body = ErrorResponse),
+        (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
+    ),
+    params(
+        ("queries[]" = Vec<String>, Query, description = "Names to lookup name data for"),
+    )
+)]
 pub async fn get_bulk_sse(
     Qs(query): Qs<UniversalGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,

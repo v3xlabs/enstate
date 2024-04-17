@@ -1221,6 +1221,7 @@ dependencies = [
  "thiserror",
  "tracing",
  "url",
+ "utoipa",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",

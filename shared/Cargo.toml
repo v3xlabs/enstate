@@ -45,6 +45,7 @@ getrandom = { version = "0.2", features = ["js"] }
 wasm-bindgen-futures = "0.4.36"
 wasm-bindgen = { version = "0.2.86", features = ["serde-serialize"] }
 web-sys = { version = "0.3.63", features = ["console"] }
+utoipa = "4.2.0"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
