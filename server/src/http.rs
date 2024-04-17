@@ -1,27 +1,17 @@
+use axum::response::{Html, Redirect};
 use std::{net::SocketAddr, sync::Arc};
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
-use axum::body::HttpBody;
-use axum::routing::MethodRouter;
 use axum::{routing::get, Router};
+use tokio::net::TcpListener;
 use tokio_util::sync::CancellationToken;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing::info;
-use utoipa::OpenApi;
-use utoipa_swagger_ui::SwaggerUi;
 
-use crate::models::bulk::{BulkResponse, ListResponse};
-use crate::models::error::ErrorResponse;
-use crate::models::profile::ENSProfile;
 use crate::routes;
 use crate::state::AppState;
-
-#[derive(OpenApi)]
-#[openapi(
-    paths(routes::address::get, routes::name::get, routes::universal::get),
-    components(schemas(ENSProfile, ListResponse<BulkResponse<ENSProfile>>, ErrorResponse))
-)]
-pub struct ApiDoc;
 
 pub struct App {
     router: Router,
@@ -35,11 +25,14 @@ impl App {
     ) -> Result<(), anyhow::Error> {
         let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
-        let server = axum::Server::try_bind(&addr)?
-            .serve(self.router.into_make_service())
-            .with_graceful_shutdown(async {
-                shutdown_signal.cancelled().await;
-            });
+        let listener = TcpListener::bind(&addr).await?;
+
+        async fn await_shutdown(shutdown_signal: CancellationToken) {
+            shutdown_signal.cancelled().await;
+        }
+
+        let server = axum::serve(listener, self.router.into_make_service())
+            .with_graceful_shutdown(await_shutdown(shutdown_signal));
 
         info!("Listening HTTP on {}", addr);
 
@@ -53,19 +46,24 @@ impl App {
 
 pub fn setup(state: AppState) -> App {
     let router = Router::new()
-        .merge(SwaggerUi::new("/docs").url("/docs/openapi.json", ApiDoc::openapi()))
-        .route("/", get(routes::root::get))
-        .directory_route("/a/:address", get(routes::address::get))
-        .directory_route("/n/:name", get(routes::name::get))
-        .directory_route("/u/:name_or_address", get(routes::universal::get))
-        .directory_route("/i/:name_or_address", get(routes::image::get))
-        .directory_route("/h/:name_or_address", get(routes::header::get))
-        .directory_route("/bulk/a", get(routes::address::get_bulk))
-        .directory_route("/bulk/n", get(routes::name::get_bulk))
-        .directory_route("/bulk/u", get(routes::universal::get_bulk))
-        .directory_route("/sse/a", get(routes::address::get_bulk_sse))
-        .directory_route("/sse/n", get(routes::name::get_bulk_sse))
-        .directory_route("/sse/u", get(routes::universal::get_bulk_sse))
+        .route(
+            "/",
+            get(|| async { Redirect::temporary("/docs") }),
+        )
+        .route("/docs", get(scalar_handler))
+        .route("/docs/openapi.json", get(crate::docs::openapi))
+        .route("/this", get(routes::root::get))
+        .route("/a/:address", get(routes::address::get))
+        .route("/n/:name", get(routes::name::get))
+        .route("/u/:name_or_address", get(routes::universal::get))
+        .route("/i/:name_or_address", get(routes::image::get))
+        .route("/h/:name_or_address", get(routes::header::get))
+        .route("/bulk/a", get(routes::address::get_bulk))
+        .route("/bulk/n", get(routes::name::get_bulk))
+        .route("/bulk/u", get(routes::universal::get_bulk))
+        .route("/sse/a", get(routes::address::get_bulk_sse))
+        .route("/sse/n", get(routes::name::get_bulk_sse))
+        .route("/sse/u", get(routes::universal::get_bulk_sse))
         .fallback(routes::four_oh_four::handler)
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())
@@ -74,21 +72,8 @@ pub fn setup(state: AppState) -> App {
     App { router }
 }
 
-trait RouterExt<S, B>
-where
-    B: HttpBody + Send + 'static,
-    S: Clone + Send + Sync + 'static,
-{
-    fn directory_route(self, path: &str, method_router: MethodRouter<S, B>) -> Self;
-}
-
-impl<S, B> RouterExt<S, B> for Router<S, B>
-where
-    B: HttpBody + Send + 'static,
-    S: Clone + Send + Sync + 'static,
-{
-    fn directory_route(self, path: &str, method_router: MethodRouter<S, B>) -> Self {
-        self.route(path, method_router.clone())
-            .route(&format!("{path}/"), method_router)
-    }
+// Loads from docs/index.html with headers html
+async fn scalar_handler() -> Html<&'static str> {
+    let contents = include_str!("./docs/index.html");
+    axum::response::Html(contents)
 }

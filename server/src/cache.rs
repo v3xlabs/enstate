@@ -35,9 +35,7 @@ impl CacheLayer for Redis {
             .set_ex(
                 key,
                 value,
-                expires
-                    .try_into()
-                    .map_err(|x: TryFromIntError| CacheError::Other(x.to_string()))?,
+                expires.into(),
             )
             .await;
 
