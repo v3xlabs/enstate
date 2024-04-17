@@ -10,7 +10,7 @@ use utoipa::OpenApi;
 #[openapi(
     info(
         title = "enstate.rs",
-        description = "A hosted ENS API allowing for easy access to ENS data.",
+        description = "A hosted ENS API allowing for easy access to ENS data.\n\nYou can checkout the source code, contribute, or host a version for yourself at [v3xlabs/enstate](https://github.com/v3xlabs/enstate).",
     ),
     paths(
         crate::routes::address::get, crate::routes::name::get, crate::routes::universal::get,
