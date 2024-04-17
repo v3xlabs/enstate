@@ -20,6 +20,11 @@ use crate::models::bulk::{BulkResponse, ListResponse};
 use crate::models::sse::SSEResponse;
 use crate::routes::{profile_http_error_mapper, validate_bulk_input, FreshQuery, Qs, RouteError};
 
+/// /u/{name_or_address}
+/// 
+/// The Universal Endpoint supports looking up both names and addresses.
+/// 
+/// You can also use the [useProfile](https://github.com/v3xlabs/use-enstate/blob/master/src/hooks/useProfile.ts) hook from [use-enstate](https://github.com/v3xlabs/use-enstate).
 #[utoipa::path(
     get,
     tag = "Single Profile",
@@ -63,6 +68,11 @@ pub struct UniversalGetBulkQuery {
     fresh: FreshQuery,
 }
 
+/// /bulk/u
+/// 
+/// The Universal Endpoint supports looking up both names and addresses.
+/// 
+/// You can also use the [useBulkProfile](https://github.com/v3xlabs/use-enstate/blob/master/src/hooks/useBulkProfile.ts) hook from [use-enstate](https://github.com/v3xlabs/use-enstate).
 #[utoipa::path(
     get,
     tag = "Bulk Profiles",
@@ -94,6 +104,16 @@ pub async fn get_bulk(
     Ok(Json(joined))
 }
 
+/// /sse/u
+/// 
+/// The Universal Endpoint supports looking up both names and addresses.
+/// 
+/// Here is an example of a valid request that looks up multiple names.
+/// ```url
+/// /sse/u?queries[]=luc.eth&queries[]=nick.eth&queries[]=helgesson.eth&queries[]=irc.eth&queries[]=khori.eth&queries[]=v3x.eth
+/// ```
+/// 
+/// You can also use the [useSSEProfiles](https://github.com/v3xlabs/use-enstate/blob/master/src/hooks/useSSEProfiles.ts) hook from [use-enstate](https://github.com/v3xlabs/use-enstate).
 #[utoipa::path(
     get,
     tag = "Stream Profiles",
