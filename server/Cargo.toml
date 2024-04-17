@@ -8,6 +8,7 @@ description = "enstate"
 repository = "https://github.com/v3xlabs/enstate"
 authors = [
     "Luc van Kampen <luc@v3x.email>",
+    "Jakob Helgesson <jakob@helgesson.dev>",
     "Antonio Fran Trstenjak <antony@antony.red>",
     "Miguel Piedrafita <sup@miguel.build>",
 ]
@@ -15,45 +16,56 @@ authors = [
 [dependencies]
 enstate_shared = { path = "../shared" }
 
-ethers = "2"
+# Server
+dotenvy = "0.15.7"
 axum = "0.7.5"
 anyhow = "1.0.71"
-tracing = "0.1.27"
-tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
-dotenvy = "0.15.7"
-serde_json = "1.0.96"
-serde = { version = "1.0", features = ["derive"] }
+thiserror = "1.0.48"
+futures = "0.3.29"
 tokio = { version = "1.28.0", features = ["full", "tracing"] }
 tokio-util = "0.7.10"
-futures = "0.3.29"
-redis = { version = "0.25.3", features = ["connection-manager", "tokio-comp"] }
+tokio-stream = "0.1.14"
 tower-http = { version = "0.5.2", features = ["cors", "tracing", "trace"] }
 rand = "0.8.5"
 chrono = "0.4.31"
-ethers-contract = "2.0.9"
-ethers-core = "2.0.9"
-hex = "0.4.3"
-thiserror = "1.0.48"
 regex = "1.9.5"
-rustls = "0.23"
-bs58 = "0.5.0"
-sha2 = "0.10.7"
-digest = "0.10.7"
 hex-literal = "0.4.1"
 axum-macros = "0.4.1"
 lazy_static = "1.4.0"
-base32 = "0.4.0"
-crc16 = "0.4.0"
-blake2 = "0.10.6"
 rustc-hex = "2.0.1"
+
+# Serde
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.96"
 serde_with = "3.3.0"
-bech32 = "0.10.0-alpha"
-crc32fast = "1.3.2"
-ciborium = "0.2.1"
 serde_qs = "0.13.0"
-tokio-stream = "0.1.14"
+
+# Logging & Tracing
+tracing = "0.1.27"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 opentelemetry = "0.22.0"
 opentelemetry_sdk = { version = "0.22.1", features = ["rt-tokio"] }
 opentelemetry-otlp = "0.15.0"
 tracing-opentelemetry = "0.23.0"
+
+# Ethereum
+ethers = "2"
+ethers-contract = "2.0.9"
+ethers-core = "2.0.9"
+
+# Hashing
+bs58 = "0.5.0"
+sha2 = "0.10.7"
+base32 = "0.4.0"
+crc16 = "0.4.0"
+blake2 = "0.10.6"
+bech32 = "0.10.0-alpha"
+crc32fast = "1.3.2"
+
+# Other
+hex = "0.4.3"
+redis = { version = "0.25.3", features = ["connection-manager", "tokio-comp"] }
+rustls = "0.23"
+digest = "0.10.7"
+ciborium = "0.2.1"
 utoipa = "4.2.0"

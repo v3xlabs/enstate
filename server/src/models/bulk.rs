@@ -1,6 +1,5 @@
 use enstate_shared::core::{error::ProfileError, Profile};
 use utoipa::ToSchema;
-// use utoipa::ToSchema;
 
 use crate::models::error::ErrorResponse;
 use crate::routes::profile_http_error_mapper;
