@@ -14,6 +14,7 @@ use enstate_shared::core::{ENSService, Profile};
 use futures::future::join_all;
 use serde::Deserialize;
 use tokio_stream::wrappers::UnboundedReceiverStream;
+use utoipa::IntoParams;
 
 use crate::models::bulk::{BulkResponse, ListResponse};
 use crate::models::sse::SSEResponse;
@@ -51,7 +52,7 @@ pub async fn get(
     })?
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, IntoParams)]
 pub struct UniversalGetBulkQuery {
     // TODO (@antony1060): remove when proper serde error handling
     #[serde(default)]
@@ -70,7 +71,7 @@ pub struct UniversalGetBulkQuery {
         (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
     ),
     params(
-        ("name_or_address" = String, Path, description = "Name or address to lookup the name data for."),
+        ("queries[]" = Vec<String>, Query, description = "Names to lookup name data for"),
     )
 )]
 pub async fn get_bulk(

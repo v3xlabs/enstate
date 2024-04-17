@@ -76,7 +76,7 @@ pub struct AddressGetBulkQuery {
         (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
     ),
     params(
-        ("addresses" = Vec<String>, Path, description = "Addresses to lookup name data for"),
+        ("addresses[]" = Vec<String>, Query, description = "Addresses to lookup name data for"),
     )
 )]
 pub async fn get_bulk(
