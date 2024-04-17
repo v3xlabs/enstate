@@ -1,7 +1,5 @@
 use axum::response::{Html, Redirect};
 use std::{net::SocketAddr, sync::Arc};
-use utoipa::OpenApi;
-use utoipa_swagger_ui::SwaggerUi;
 
 use axum::{routing::get, Router};
 use tokio::net::TcpListener;
