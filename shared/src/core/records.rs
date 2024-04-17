@@ -6,9 +6,9 @@ use ethers::prelude::Address;
 use ethers_ccip_read::CCIPReadMiddleware;
 use tracing::instrument;
 
-use crate::core::ENSService;
 use crate::core::error::ProfileError;
 use crate::core::lookup_data::LookupInfo;
+use crate::core::ENSService;
 use crate::models::lookup::{ENSLookup, ENSLookupError, LookupState};
 
 use super::resolvers::universal::resolve_universal;
@@ -115,7 +115,7 @@ impl ENSService {
         //     .map_err(|err| ProfileResolveError::Other(err.to_string()))?;
         //
         // self.cache
-        //     .set(&cache_key, &response, 600)
+        //     .set(&cache_key, &response, self.cache_ttl.unwrap_or(600))
         //     .await
         //     .map_err(|CacheError::Other(err)| {
         //         ProfileResolveError::Other(format!("cache set failed: {}", err))

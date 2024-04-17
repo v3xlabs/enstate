@@ -83,7 +83,8 @@ pub async fn get_bulk(
     Qs(query): Qs<AddressGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<ListResponse<BulkResponse<Profile>>>, RouteError> {
-    let addresses = validate_bulk_input(&query.addresses, state.service.max_bulk_size)?;
+    let addresses =
+        validate_bulk_input(&query.addresses, state.service.max_bulk_size.unwrap_or(10))?;
 
     let addresses = addresses
         .iter()
@@ -109,7 +110,8 @@ pub async fn get_bulk_sse(
     Qs(query): Qs<AddressGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> impl IntoResponse {
-    let addresses = validate_bulk_input(&query.addresses, state.service.max_bulk_size).unwrap();
+    let addresses =
+        validate_bulk_input(&query.addresses, state.service.max_bulk_size.unwrap_or(10)).unwrap();
 
     let (event_tx, event_rx) = tokio::sync::mpsc::unbounded_channel::<Result<Event, Infallible>>();
 

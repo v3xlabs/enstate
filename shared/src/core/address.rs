@@ -5,8 +5,8 @@ use ethers_core::types::Address;
 use thiserror::Error;
 use tracing::instrument;
 
-use crate::core::ENSService;
 use crate::core::resolvers::reverse::{resolve_reverse, ReverseResolveError};
+use crate::core::ENSService;
 
 #[derive(Error, Debug)]
 pub enum AddressResolveError {
@@ -59,7 +59,7 @@ impl ENSService {
 
             // Cache the value, and expire it after 10 minutes
             self.cache
-                .set(&cache_key, &result, 600)
+                .set(&cache_key, &result, self.cache_ttl.unwrap_or(600))
                 .await
                 .map_err(|_| AddressResolveError::CacheFail("set"))?;
 
