@@ -18,17 +18,17 @@ use crate::models::bulk::{BulkResponse, ListResponse};
 use crate::models::sse::SSEResponse;
 use crate::routes::{profile_http_error_mapper, validate_bulk_input, FreshQuery, Qs, RouteError};
 
-#[utoipa::path(
-    get,
-    path = "/n/{name}",
-    responses(
-        (status = 200, description = "Successfully found name.", body = ENSProfile),
-        (status = NOT_FOUND, description = "No name could be found.", body = ErrorResponse),
-    ),
-    params(
-        ("name" = String, Path, description = "Name to lookup the name data for."),
-    )
-)]
+// #[utoipa::path(
+//     get,
+//     path = "/n/{name}",
+//     responses(
+//         (status = 200, description = "Successfully found name.", body = ENSProfile),
+//         (status = NOT_FOUND, description = "No name could be found.", body = ErrorResponse),
+//     ),
+//     params(
+//         ("name" = String, Path, description = "Name to lookup the name data for."),
+//     )
+// )]
 pub async fn get(
     Path(name): Path<String>,
     Query(query): Query<FreshQuery>,
@@ -59,17 +59,17 @@ pub struct NameGetBulkQuery {
     fresh: FreshQuery,
 }
 
-#[utoipa::path(
-    get,
-    path = "/bulk/n/",
-    responses(
-        (status = 200, description = "Successfully found name.", body = ListButWithLength<BulkResponse<Profile>>),
-        (status = NOT_FOUND, description = "No name could be found.", body = ErrorResponse),
-    ),
-    params(
-        ("name" = String, Path, description = "Name to lookup the name data for."),
-    )
-)]
+// #[utoipa::path(
+//     get,
+//     path = "/bulk/n/",
+//     responses(
+//         (status = 200, description = "Successfully found name.", body = ListButWithLength<BulkResponse<Profile>>),
+//         (status = NOT_FOUND, description = "No name could be found.", body = ErrorResponse),
+//     ),
+//     params(
+//         ("name" = String, Path, description = "Name to lookup the name data for."),
+//     )
+// )]
 pub async fn get_bulk(
     Qs(query): Qs<NameGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,

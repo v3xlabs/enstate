@@ -1,5 +1,5 @@
 use enstate_shared::core::{error::ProfileError, Profile};
-use utoipa::ToSchema;
+// use utoipa::ToSchema;
 
 use crate::models::error::ErrorResponse;
 use crate::routes::profile_http_error_mapper;
@@ -31,7 +31,7 @@ impl<T> From<Result<T, ErrorResponse>> for BulkResponse<T> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, ToSchema)]
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize)]
 pub struct ListResponse<T> {
     pub(crate) response_length: usize,
     pub(crate) response: Vec<T>,
