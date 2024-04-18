@@ -80,7 +80,7 @@ impl ENSLookup {
         }
     }
 
-    #[instrument]
+    #[instrument(skip(lookup_state))]
     pub async fn decode(
         &self,
         data: &[u8],

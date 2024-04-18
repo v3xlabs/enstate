@@ -44,7 +44,7 @@ const REVERSE_NAME_SUFFIX: &str = "addr.reverse";
 const RESOLVE_SELECTOR: [u8; 4] = hex!("0178b8bf");
 const NAME_SELECTOR: [u8; 4] = hex!("691f3431");
 
-#[instrument]
+#[instrument(skip(rpc))]
 async fn find_resolver(
     rpc: &Provider<Http>,
     namehash: &H256,
@@ -70,7 +70,7 @@ async fn find_resolver(
     Ok(address)
 }
 
-#[instrument]
+#[instrument(skip(rpc))]
 pub async fn resolve_reverse(
     rpc: &CCIPProvider,
     address: &Address,

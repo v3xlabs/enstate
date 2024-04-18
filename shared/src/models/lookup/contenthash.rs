@@ -36,6 +36,8 @@ pub async fn decode(data: &[u8]) -> Result<String, ENSLookupError> {
         return Err(ENSLookupError::ContentHashDecodeError);
     }
 
+    info!("contenthash: {:?}", contenthash);
+
     let proto_code = contenthash[0];
     let other = contenthash[1];
     let value = &contenthash[2..];
@@ -43,16 +45,42 @@ pub async fn decode(data: &[u8]) -> Result<String, ENSLookupError> {
     match proto_code {
         0xe3 => {
             // ipfs
-            let value = cid::Cid::try_from(value).map_err(|_| ENSLookupError::ContentHashDecodeError)?.to_string();
+            let value = cid::Cid::try_from(value)
+                .map_err(|_| ENSLookupError::ContentHashDecodeError)?
+                .to_string();
             Ok(format!("ipfs://{value}"))
-        },
+        }
         0xe4 => {
             // swarm
-            Err(ENSLookupError::Unsupported("Swarm contenthash is not supported".to_string()))
-        },
-        _ => {
-            Err(ENSLookupError::Unsupported("Contenthash of this protoCode is not supported".to_string()))
+            Err(ENSLookupError::Unsupported(
+                "Swarm contenthash is not supported".to_string(),
+            ))
         }
+        0xe5 => {
+            // ipns
+            // let value = cid::Cid::try_from(value)
+            //     .map_err(|_| ENSLookupError::ContentHashDecodeError)?
+            //     .into_v1()
+            //     .map_err(|_| ENSLookupError::ContentHashDecodeError)?
+            //     .to_string();
+            // // let value = String::from_utf8_lossy(
+            // //     cid::Cid::try_from(value)
+            // //         .map_err(|_| ENSLookupError::ContentHashDecodeError)?
+            // //         .hash()
+            // //         .digest()
+            // // )
+            // // .to_string();
+            // Ok(format!("ipns://{value}"))
+            Err(ENSLookupError::Unsupported("IPNS contenthash is not supported".to_string()))
+        }
+        // TODO: Add support for other contenthash types
+        // onion
+        // onion3
+        // skynet
+        // arweave
+        other => Err(ENSLookupError::Unsupported(
+            format!("Contenthash of this protoCode ({other}) is not supported").to_string(),
+        )),
     }
 }
 
@@ -79,7 +107,11 @@ mod tests {
     #[tokio::test]
     async fn test_decode() {
         assert_eq!(
-            super::decode(&hex!("e3010170122029f2d17be6139079dc48696d1f582a8530eb9805b561eda517e22a892c7e3f1f")).await.unwrap(),
+            super::decode(&hex!(
+                "e3010170122029f2d17be6139079dc48696d1f582a8530eb9805b561eda517e22a892c7e3f1f"
+            ))
+            .await
+            .unwrap(),
             "ipfs://QmRAQB6YaCyidP37UdDnjFY5vQuiBrcqdyoW1CuDgwxkD4".to_string()
         );
     }
