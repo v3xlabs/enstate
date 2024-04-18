@@ -1,8 +1,14 @@
+use std::str::FromStr;
+
+use base32::Alphabet;
+use cid::Cid;
 use ethers_core::{
     abi::{ParamType, Token},
     types::H256,
 };
 use hex_literal::hex;
+use tracing::info;
+use utoipa::openapi::info;
 
 use super::ENSLookupError;
 
@@ -24,13 +30,21 @@ pub async fn decode(data: &[u8]) -> Result<String, ENSLookupError> {
         return Err(ENSLookupError::AbiDecodeError);
     };
 
+    info!("contenthash: {:?}", contenthash);
+
+    if contenthash.len() < 3 {
+        return Err(ENSLookupError::ContentHashDecodeError);
+    }
+
     let proto_code = contenthash[0];
-    let value = &contenthash[1..];
+    let other = contenthash[1];
+    let value = &contenthash[2..];
 
     match proto_code {
         0xe3 => {
             // ipfs
-            Ok(format!("ipfs://{value:?}"))
+            let value = cid::Cid::try_from(value).map_err(|_| ENSLookupError::ContentHashDecodeError)?.to_string();
+            Ok(format!("ipfs://{value}"))
         },
         0xe4 => {
             // swarm

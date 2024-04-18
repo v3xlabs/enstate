@@ -39,6 +39,9 @@ pub enum ENSLookupError {
 
     #[error("CCIP resolution error ({}): {}", status, message)]
     CCIPError { status: u16, message: String },
+
+    #[error("ContentHashDecodeError")]
+    ContentHashDecodeError,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
