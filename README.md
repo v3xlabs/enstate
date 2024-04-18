@@ -10,9 +10,7 @@ For demonstration purposes (and one-off usage), a hosted instance is made availa
 
 ### 📌 Example
 
-> [name/luc.eth](https://worker.enstate.rs/n/luc.eth) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [name/rescueorg.eth](https://worker.enstate.rs/n/rescueorg.eth) &nbsp;&nbsp;&nbsp; [name/antony.sh](https://worker.enstate.rs/n/antony.sh)<br />
-> [image/vitalik.eth](https://worker.enstate.rs/i/vitalik.eth)&nbsp;&nbsp;&nbsp; [name/khori.eth](https://worker.enstate.rs/n/khori.eth) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [name/helgesson.eth](https://worker.enstate.rs/n/helgesson.eth)<br />
-> [bulk/address](https://enstate.rs/bulk/a?addresses[]=0x225f137127d9067788314bc7fcc1f36746a3c3B5&addresses[]=0xd577D1322cB22eB6EAC1a008F62b18807921EFBc&addresses[]=0x8F8f07b6D61806Ec38febd15B07528dCF2903Ae7&addresses[]=0x8e8Db5CcEF88cca9d624701Db544989C996E3216&addresses[]=0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5&addresses[]=0xF1F78f308F08fDCAC933124ee8B52A376ff542B4) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [sse/address](https://enstate.rs/sse/a?addresses[]=0x225f137127d9067788314bc7fcc1f36746a3c3B5&addresses[]=0xd577D1322cB22eB6EAC1a008F62b18807921EFBc&addresses[]=0x8F8f07b6D61806Ec38febd15B07528dCF2903Ae7&addresses[]=0x8e8Db5CcEF88cca9d624701Db544989C996E3216&addresses[]=0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5&addresses[]=0xF1F78f308F08fDCAC933124ee8B52A376ff542B4) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [header/luc.eth](https://enstate.rs/h/luc.eth)
+> [name/luc.eth](https://worker.enstate.rs/n/luc.eth) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [name/rescueorg.eth](https://worker.enstate.rs/n/rescueorg.eth) &nbsp;&nbsp;&nbsp; [name/antony.sh](https://worker.enstate.rs/n/antony.sh)<br /> > [image/vitalik.eth](https://worker.enstate.rs/i/vitalik.eth)&nbsp;&nbsp;&nbsp; [name/khori.eth](https://worker.enstate.rs/n/khori.eth) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [name/helgesson.eth](https://worker.enstate.rs/n/helgesson.eth)<br /> > [bulk/address](https://enstate.rs/bulk/a?addresses[]=0x225f137127d9067788314bc7fcc1f36746a3c3B5&addresses[]=0xd577D1322cB22eB6EAC1a008F62b18807921EFBc&addresses[]=0x8F8f07b6D61806Ec38febd15B07528dCF2903Ae7&addresses[]=0x8e8Db5CcEF88cca9d624701Db544989C996E3216&addresses[]=0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5&addresses[]=0xF1F78f308F08fDCAC933124ee8B52A376ff542B4) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [sse/address](https://enstate.rs/sse/a?addresses[]=0x225f137127d9067788314bc7fcc1f36746a3c3B5&addresses[]=0xd577D1322cB22eB6EAC1a008F62b18807921EFBc&addresses[]=0x8F8f07b6D61806Ec38febd15B07528dCF2903Ae7&addresses[]=0x8e8Db5CcEF88cca9d624701Db544989C996E3216&addresses[]=0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5&addresses[]=0xF1F78f308F08fDCAC933124ee8B52A376ff542B4) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [header/luc.eth](https://enstate.rs/h/luc.eth)
 
 ## 🚀 Getting Started
 
@@ -160,3 +158,33 @@ Scoping down the size of this list can drastically improve the performance of yo
 By default we query profiles for an vast array of chains.
 You can customize the chains you want to query by adjusting the `MULTICOIN_CHAINS` environment variable.
 Forcing it to only chains of interest can drastically improve the performance of your requests.
+
+| Chain ID | Chain Name        |
+| -------- | ----------------- |
+|          | Tezos             |
+|          | Hedera            |
+|          | Monero            |
+|          | Ripple            |
+|          | Solana            |
+|          | Cardano           |
+|          | Stellar           |
+|          | Bitcoin           |
+|          | Binance           |
+|          | Litecoin          |
+|          | Dogecoin          |
+|          | Ethereum          |
+|          | Monacoin          |
+|          | Polkadot          |
+|          | Rootstock         |
+|          | BitcoinCash       |
+|          | EthereumClassic   |
+|          | Ethereum          |
+|          | Polygon           |
+|          | Optimism          |
+|          | Arbitrum          |
+|          | Gnosis            |
+|          | BinanceSmartChain |
+|          | Avalanche         |
+|          | Fantom            |
+|          | Celo              |
+|          | Moonbeam          |
