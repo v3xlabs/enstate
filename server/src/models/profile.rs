@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 use enstate_shared::core::Profile;
 use utoipa::ToSchema;
 
+pub struct CommonRecords(pub BTreeMap<String, String>);
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, ToSchema)]
 pub struct ENSProfile {
     // Name
@@ -17,7 +18,11 @@ pub struct ENSProfile {
     // Preferred Capitalization of Name
     #[schema(example = "LuC.eTh")]
     pub display: String,
+    // Content Hash
+    #[schema(example = "ipfs://bafybeidnycldkehcy6xixzqg72vad6pitav4lk5np3ev6tr6titlkvfpvi")]
+    pub contenthash: Option<String>,
     // Records
+    #[schema(example = "{\"world\":\"hello\"}")]
     pub records: BTreeMap<String, String>,
     // Addresses on different chains
     pub chains: BTreeMap<String, String>,
@@ -38,6 +43,7 @@ impl From<Profile> for ENSProfile {
             address: profile.address.map(|a| a.to_string()),
             avatar: profile.avatar,
             display: profile.display,
+            contenthash: profile.contenthash,
             records: profile.records,
             chains: profile.chains,
             fresh: profile.fresh,

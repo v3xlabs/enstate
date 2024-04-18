@@ -30,7 +30,7 @@ pub struct UniversalResolverResult {
     pub(crate) data: Vec<u8>,
 }
 
-#[instrument]
+#[instrument(skip(provider))]
 pub async fn resolve_universal(
     name: &str,
     data: &[ENSLookup],

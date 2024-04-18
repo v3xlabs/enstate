@@ -18,6 +18,7 @@ pub mod addr;
 pub mod image;
 pub mod multicoin;
 pub mod text;
+pub mod contenthash;
 
 #[derive(Error, Debug)]
 pub enum ENSLookupError {
@@ -38,6 +39,9 @@ pub enum ENSLookupError {
 
     #[error("CCIP resolution error ({}): {}", status, message)]
     CCIPError { status: u16, message: String },
+
+    #[error("ContentHashDecodeError")]
+    ContentHashDecodeError,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -48,6 +52,7 @@ pub enum ENSLookup {
     Image(String),
     StaticImage(&'static str),
     Multicoin(CoinType),
+    ContentHash,
 }
 
 impl ENSLookup {
@@ -59,6 +64,7 @@ impl ENSLookup {
             ENSLookup::Image(_) => image::function_selector(),
             ENSLookup::StaticImage(_) => image::function_selector(),
             ENSLookup::Multicoin(_) => multicoin::function_selector(),
+            ENSLookup::ContentHash => contenthash::function_selector(),
         }
     }
 
@@ -70,10 +76,11 @@ impl ENSLookup {
             ENSLookup::Image(record) => image::calldata(namehash, record),
             ENSLookup::StaticImage(record) => image::calldata(namehash, record),
             ENSLookup::Multicoin(coin_type) => multicoin::calldata(namehash, coin_type),
+            ENSLookup::ContentHash => contenthash::calldata(namehash),
         }
     }
 
-    #[instrument]
+    #[instrument(skip(lookup_state))]
     pub async fn decode(
         &self,
         data: &[u8],
@@ -86,6 +93,7 @@ impl ENSLookup {
             ENSLookup::Image(_) => image::decode(data, lookup_state).await,
             ENSLookup::StaticImage(_) => image::decode(data, lookup_state).await,
             ENSLookup::Multicoin(coin_type) => multicoin::decode(data, coin_type).await,
+            ENSLookup::ContentHash => contenthash::decode(data).await,
         }
     }
 
@@ -97,6 +105,7 @@ impl ENSLookup {
             ENSLookup::Image(record) => format!("image.{}", record),
             ENSLookup::StaticImage(record) => format!("image.{}", record),
             ENSLookup::Multicoin(coin_type) => format!("chains.{}", coin_type),
+            ENSLookup::ContentHash => "contenthash".to_string(),
         }
     }
 }

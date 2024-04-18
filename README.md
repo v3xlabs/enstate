@@ -108,3 +108,55 @@ cd worker && pnpm dev
 ```
 
 For more information on running the worker locally, please see [running Cloudflare Workers locally](#run-the-worker-locally).
+
+## Features
+
+Here is a short summary of the features provided by the Enstate API including limitations.
+
+### Avatar & Header Images
+
+An additional `avatar` field at the top level of the ENSProfile object is provided. This field is a URL to the avatar image, with optional gateway rewrites for IPFS and IPNS hashes.
+
+You can also directly access the avatar image of a user by using the `/i/{name}` and `/h/{name}` endpoints.
+
+### Contenthash
+
+Currently **limited implementation**. Only supports `ipfs`.
+TODO add support for `ipns`, `swarm`, `arweave`, `onion`, `onion3`, `skynet`
+
+### Common Records
+
+For each profile we look up the following records:
+You can customize the records you want to query by adjusting the `PROFILE_RECORDS` environment variable.
+Scoping down the size of this list can drastically improve the performance of your requests.
+
+| Record Type                   | Description             |
+| ----------------------------- | ----------------------- |
+| `description`                 | Description             |
+| `url`                         | URL to the profile      |
+| `name`                        | Name of the profile     |
+| `mail`                        | Email address           |
+| `email`                       | Email address           |
+| `avatar`                      | URL to the avatar       |
+| `header`                      | URL to the header image |
+| `display`                     | Display name            |
+| `location`                    | Location                |
+| `timezone`                    | Timezone                |
+| `language`                    | Language                |
+| `pronouns`                    | Pronouns                |
+| `com.github`                  | GitHub username         |
+| `org.matrix`                  | Matrix username         |
+| `com.twitter`                 | Twitter username        |
+| `com.discord`                 | Discord username        |
+| `social.bsky`                 | Bsky username           |
+| `io.keybase`                  | Keybase username        |
+| `org.telegram`                | Telegram username       |
+| `social.mastodon`             | Mastodon username       |
+| `network.dm3.profile`         | DM3 profile             |
+| `network.dm3.deliveryService` | DM3 delivery service    |
+
+### Multichain Support
+
+By default we query profiles for an vast array of chains.
+You can customize the chains you want to query by adjusting the `MULTICOIN_CHAINS` environment variable.
+Forcing it to only chains of interest can drastically improve the performance of your requests.
