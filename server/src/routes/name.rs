@@ -18,7 +18,7 @@ use crate::models::bulk::{BulkResponse, ListResponse};
 use crate::models::sse::SSEResponse;
 use crate::routes::{profile_http_error_mapper, validate_bulk_input, FreshQuery, Qs, RouteError};
 
-/// /bulk/n
+/// /n/{name}
 /// 
 /// Here is an example of a valid request that looks up a name:
 /// ```url
