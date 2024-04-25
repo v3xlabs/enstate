@@ -24,7 +24,7 @@ use crate::routes::{
 };
 
 /// /a/{address}
-/// 
+///
 /// Here is an example of a valid request that looks up an address:
 /// ```url
 /// /a/0x225f137127d9067788314bc7fcc1f36746a3c3B5
@@ -74,7 +74,7 @@ pub struct AddressGetBulkQuery {
 }
 
 /// /bulk/a
-/// 
+///
 /// Here is an example of a valid request that looks up multiple addresses:
 /// ```url
 /// /bulk/a?addresses[]=0x225f137127d9067788314bc7fcc1f36746a3c3B5&addresses[]=0xd577D1322cB22eB6EAC1a008F62b18807921EFBc&addresses[]=0x8F8f07b6D61806Ec38febd15B07528dCF2903Ae7&addresses[]=0x8e8Db5CcEF88cca9d624701Db544989C996E3216&addresses[]=0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5&addresses[]=0xF1F78f308F08fDCAC933124ee8B52A376ff542B4
@@ -121,7 +121,7 @@ pub async fn get_bulk(
 }
 
 /// /sse/a
-/// 
+///
 /// Here is an example of a valid request that looks up multiple addresses:
 /// ```url
 /// /sse/a?addresses[]=0x225f137127d9067788314bc7fcc1f36746a3c3B5&addresses[]=0xd577D1322cB22eB6EAC1a008F62b18807921EFBc&addresses[]=0x8F8f07b6D61806Ec38febd15B07528dCF2903Ae7&addresses[]=0x8e8Db5CcEF88cca9d624701Db544989C996E3216&addresses[]=0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5&addresses[]=0xF1F78f308F08fDCAC933124ee8B52A376ff542B4
@@ -153,6 +153,22 @@ pub async fn get_bulk_sse(
         let state_clone = state.clone();
         let event_tx_clone = event_tx.clone();
         tokio::spawn(async move {
+            let dne_cache_key = format!("dne:{}", address_input);
+            let cached_not_exists = state_clone.service.cache.get(&dne_cache_key).await;
+
+            if let Ok(_) = cached_not_exists {
+                let sse_response = SSEResponse {
+                    query: address_input,
+                    response: BulkResponse::Err(
+                        http_simple_status_error(StatusCode::NOT_FOUND).into(),
+                    ),
+                };
+
+                return event_tx_clone.send(Ok(Event::default()
+                    .json_data(sse_response)
+                    .expect("json_data should've succeeded")));
+            }
+
             let profile = 'a: {
                 let address = address_input.parse::<Address>();
 
@@ -166,6 +182,10 @@ pub async fn get_bulk_sse(
                     .await
                     .map_err(profile_http_error_mapper)
             };
+
+            if profile.is_err() {
+                state_clone.service.cache.set(&dne_cache_key, "404", state_clone.service.cache_ttl.unwrap_or(600)).await;
+            }
 
             let sse_response = SSEResponse {
                 query: address_input,
