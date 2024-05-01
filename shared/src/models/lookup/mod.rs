@@ -41,7 +41,7 @@ pub enum ENSLookupError {
     CCIPError { status: u16, message: String },
 
     #[error("ContentHashDecodeError")]
-    ContentHashDecodeError,
+    ContentHashDecodeError(#[from] contenthash::ContentHashDecodeError),
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]

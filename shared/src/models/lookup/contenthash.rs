@@ -1,14 +1,10 @@
-use std::str::FromStr;
-
-use base32::Alphabet;
-use cid::Cid;
 use ethers_core::{
     abi::{ParamType, Token},
     types::H256,
 };
 use hex_literal::hex;
+use thiserror::Error;
 use tracing::info;
-use utoipa::openapi::info;
 
 use super::ENSLookupError;
 
@@ -22,6 +18,16 @@ pub fn calldata(namehash: &H256) -> Vec<u8> {
     [&function_selector() as &[u8], &data].concat()
 }
 
+#[derive(Error, Debug)]
+pub enum ContentHashDecodeError {
+    #[error("Minimum Length Error")]
+    LengthError,
+    #[error("ProtoCode Mismatch")]
+    ProtoCodeError,
+    #[error("ContentHash Decode Error")]
+    DecodeError,
+}
+
 pub async fn decode(data: &[u8]) -> Result<String, ENSLookupError> {
     let decoded_abi = ethers_core::abi::decode(&[ParamType::Bytes], data)
         .map_err(|_| ENSLookupError::AbiDecodeError)?;
@@ -30,10 +36,14 @@ pub async fn decode(data: &[u8]) -> Result<String, ENSLookupError> {
         return Err(ENSLookupError::AbiDecodeError);
     };
 
+    if contenthash.is_empty() {
+        return Ok("".to_string());
+    }
+
     info!("contenthash: {:?}", contenthash);
 
     if contenthash.len() < 3 {
-        return Err(ENSLookupError::ContentHashDecodeError);
+        return Err(ContentHashDecodeError::LengthError.into());
     }
 
     info!("contenthash: {:?}", contenthash);
@@ -46,7 +56,7 @@ pub async fn decode(data: &[u8]) -> Result<String, ENSLookupError> {
         0xe3 => {
             // ipfs
             let value = cid::Cid::try_from(value)
-                .map_err(|_| ENSLookupError::ContentHashDecodeError)?
+                .map_err(|_| ContentHashDecodeError::DecodeError)?
                 .to_string();
             Ok(format!("ipfs://{value}"))
         }
