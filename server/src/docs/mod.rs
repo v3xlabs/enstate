@@ -1,6 +1,9 @@
 use crate::models::bulk::{BulkResponse, ListResponse};
 use crate::models::error::ErrorResponse;
 use crate::models::profile::ENSProfile;
+use crate::routes::address::AddressGetBulkQuery;
+use crate::routes::name::NameGetBulkQuery;
+use crate::routes::universal::UniversalGetBulkQuery;
 use enstate_shared::meta::AppMeta;
 use enstate_shared::utils::vec;
 use utoipa::openapi::{ExternalDocs, License, Tag};
@@ -16,11 +19,12 @@ use utoipa::OpenApi;
         crate::routes::address::get, crate::routes::name::get, crate::routes::universal::get,
         crate::routes::address::get_bulk, crate::routes::name::get_bulk, crate::routes::universal::get_bulk,
         crate::routes::address::get_bulk_sse, crate::routes::name::get_bulk_sse, crate::routes::universal::get_bulk_sse,
+        crate::routes::address::post_bulk_sse, crate::routes::name::post_bulk_sse, crate::routes::universal::post_bulk_sse,
         crate::routes::header::get,
         crate::routes::image::get,
         crate::routes::root::get,
     ),
-    components(schemas(ENSProfile, ListResponse<BulkResponse<ENSProfile>>, ErrorResponse, AppMeta))
+    components(schemas(ENSProfile, ListResponse<BulkResponse<ENSProfile>>, ErrorResponse, AppMeta, UniversalGetBulkQuery)),
 )]
 pub struct ApiDoc;
 

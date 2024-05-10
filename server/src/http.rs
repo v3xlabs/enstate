@@ -1,7 +1,7 @@
 use axum::response::{Html, Redirect};
 use std::{net::SocketAddr, sync::Arc};
 
-use axum::{routing::get, Router};
+use axum::{routing::get, routing::post, Router};
 use tokio::net::TcpListener;
 use tokio_util::sync::CancellationToken;
 use tower_http::cors::CorsLayer;
@@ -64,9 +64,9 @@ pub fn setup(state: AppState) -> App {
         .route("/bulk/a", get(routes::address::get_bulk))
         .route("/bulk/n", get(routes::name::get_bulk))
         .route("/bulk/u", get(routes::universal::get_bulk))
-        .route("/sse/a", get(routes::address::get_bulk_sse))
-        .route("/sse/n", get(routes::name::get_bulk_sse))
-        .route("/sse/u", get(routes::universal::get_bulk_sse))
+        .route("/sse/a", get(routes::address::get_bulk_sse).post(routes::address::post_bulk_sse))
+        .route("/sse/n", get(routes::name::get_bulk_sse).post(routes::name::post_bulk_sse))
+        .route("/sse/u", get(routes::universal::get_bulk_sse).post(routes::universal::post_bulk_sse))
         .fallback(routes::four_oh_four::handler)
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())

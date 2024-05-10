@@ -201,3 +201,25 @@ pub async fn get_bulk_sse(
     Sse::new(UnboundedReceiverStream::new(event_rx))
         .keep_alive(axum::response::sse::KeepAlive::new().interval(Duration::from_secs(1)))
 }
+
+/// /sse/a
+/// 
+/// Same as the GET version, but using POST with a JSON body instead of query parameters allowing for larger requests.
+#[utoipa::path(
+    post,
+    tag = "Stream Profiles",
+    path = "/sse/a",
+    responses(
+        (status = 200, description = "Successfully found address.", body = BulkResponse<ENSProfile>),
+        (status = BAD_REQUEST, description = "Invalid address.", body = ErrorResponse),
+        (status = NOT_FOUND, description = "No name was associated with this address.", body = ErrorResponse),
+        (status = UNPROCESSABLE_ENTITY, description = "Reverse record not owned by this address.", body = ErrorResponse),
+    ),
+    request_body = AddressGetBulkQuery,
+)]
+pub async fn post_bulk_sse(
+    State(state): State<Arc<crate::AppState>>,
+    Json(query): Json<AddressGetBulkQuery>,
+) -> impl IntoResponse {
+    get_bulk_sse(Qs(query), State(state)).await
+}

@@ -155,3 +155,23 @@ pub async fn get_bulk_sse(
     Sse::new(UnboundedReceiverStream::new(event_rx))
         .keep_alive(axum::response::sse::KeepAlive::new().interval(Duration::from_secs(1)))
 }
+
+/// /sse/n
+/// 
+/// Same as the GET version, but using POST with a JSON body instead of query parameters allowing for larger requests.
+#[utoipa::path(
+    post,
+    tag = "Stream Profiles",
+    path = "/sse/n",
+    responses(
+        (status = 200, description = "Successfully found name.", body = ListButWithLength<BulkResponse<Profile>>),
+        (status = NOT_FOUND, description = "No name could be found.", body = ErrorResponse),
+    ),
+    request_body = NameGetBulkQuery,
+)]
+pub async fn post_bulk_sse(
+    State(state): State<Arc<crate::AppState>>,
+    Json(query): Json<NameGetBulkQuery>,
+) -> impl IntoResponse {
+    get_bulk_sse(Qs(query), State(state)).await
+}
