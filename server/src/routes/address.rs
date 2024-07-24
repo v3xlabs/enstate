@@ -57,7 +57,7 @@ pub async fn get(
     )
     .await
     .map(|mut res| {
-        Result::<_, _>::from(res.0.response.remove(0))
+        Result::from(res.0.response.remove(0))
             .map(Json)
             .map_err(RouteError::from)
     })?
@@ -98,7 +98,7 @@ pub async fn get_bulk(
     State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<ListResponse<BulkResponse<Profile>>>, RouteError> {
     let addresses =
-        validate_bulk_input(&query.addresses, state.service.max_bulk_size.unwrap_or(10))?;
+        validate_bulk_input(&query.addresses, state.service.max_bulk_size)?;
 
     let addresses = addresses
         .iter()
@@ -145,7 +145,7 @@ pub async fn get_bulk_sse(
     State(state): State<Arc<crate::AppState>>,
 ) -> impl IntoResponse {
     let addresses =
-        validate_bulk_input(&query.addresses, state.service.max_bulk_size.unwrap_or(10)).unwrap();
+        validate_bulk_input(&query.addresses, state.service.max_bulk_size).unwrap();
 
     let (event_tx, event_rx) = tokio::sync::mpsc::unbounded_channel::<Result<Event, Infallible>>();
 

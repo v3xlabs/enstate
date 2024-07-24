@@ -3,7 +3,6 @@ use std::collections::BTreeMap;
 use enstate_shared::core::Profile;
 use utoipa::ToSchema;
 
-pub struct CommonRecords(pub BTreeMap<String, String>);
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, ToSchema)]
 pub struct ENSProfile {
     // Name
