@@ -25,13 +25,13 @@ export const dataset_name_single: Dataset<{ address: string } | { status: number
     },
     {
         label: 'DNSRegistry',
-        arg: 'antony.sh',
-        expected: { address: '0x2B5c7025998f88550Ef2fEce8bf87935f542C190' },
+        arg: 'luc.cash',
+        expected: { address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
     },
     {
         label: 'DNSRegistry (offchain DNSSEC)',
-        arg: 'antony.cash',
-        expected: { address: '0x2B5c7025998f88550Ef2fEce8bf87935f542C190' },
+        arg: 'luc.cash',
+        expected: { address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
     },
     {
         label: 'DNSRegistry (not found)',
@@ -77,11 +77,6 @@ export const dataset_address_single: Dataset<{ name: string } | { status: number
     //     arg: '0x225f137127d9067788314bc7fcc1f36746a3c3B5',
     //     expected: { name: 'luc.computer' },
     // },
-    {
-        label: 'DNSRegistry',
-        arg: '0x2B5c7025998f88550Ef2fEce8bf87935f542C190',
-        expected: { name: 'antony.sh' },
-    },
     // TODO: find 2 ccip primary name addresses
     // {
     //     label: 'CCIP Offchain RS',
@@ -125,13 +120,8 @@ export const dataset_universal_single: Dataset<
     },
     {
         label: 'DNSRegistry (offchain DNSSEC)',
-        arg: 'antony.cash',
-        expected: { address: '0x2B5c7025998f88550Ef2fEce8bf87935f542C190' },
-    },
-    {
-        label: 'DNSRegistry',
-        arg: '0x2B5c7025998f88550Ef2fEce8bf87935f542C190',
-        expected: { name: 'antony.sh' },
+        arg: 'luc.cash',
+        expected: { address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
     },
     {
         label: 'DNSRegistry (not found)',

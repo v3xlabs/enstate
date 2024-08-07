@@ -27,7 +27,8 @@ impl Metrics {
         let name_lookup_latency_opts = prometheus::HistogramOpts::new(
             "name_lookup_latency",
             "Latency of the name lookup endpoint",
-        );
+        )
+        .buckets(vec![0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5]);
         let name_lookup_latency = Histogram::with_opts(name_lookup_latency_opts).unwrap();
         registry
             .register(Box::new(name_lookup_latency.clone()))
