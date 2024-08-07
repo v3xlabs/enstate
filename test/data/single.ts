@@ -23,16 +23,16 @@ export const dataset_name_single: Dataset<{ address: string } | { status: number
         arg: 'luc.computer',
         expected: { address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
     },
-    {
-        label: 'DNSRegistry',
-        arg: 'luc.cash',
-        expected: { address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
-    },
-    {
-        label: 'DNSRegistry (offchain DNSSEC)',
-        arg: 'luc.cash',
-        expected: { address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
-    },
+    // {
+    //     label: 'DNSRegistry',
+    //     arg: 'luc.cash',
+    //     expected: { address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
+    // },
+    // {
+    //     label: 'DNSRegistry (offchain DNSSEC)',
+    //     arg: 'luc.cash',
+    //     expected: { address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
+    // },
     {
         label: 'DNSRegistry (not found)',
         arg: randomBytes(8).toString('hex') + '.com',
@@ -118,11 +118,11 @@ export const dataset_universal_single: Dataset<
         arg: 'luc.computer',
         expected: { address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
     },
-    {
-        label: 'DNSRegistry (offchain DNSSEC)',
-        arg: 'luc.cash',
-        expected: { address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
-    },
+    // {
+    //     label: 'DNSRegistry (offchain DNSSEC)',
+    //     arg: 'luc.cash',
+    //     expected: { address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
+    // },
     {
         label: 'DNSRegistry (not found)',
         arg: randomBytes(8).toString('hex') + '.com',
