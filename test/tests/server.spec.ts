@@ -15,19 +15,6 @@ const TEST_RELEASE = true;
 let server: Subprocess | undefined;
 
 beforeAll(async () => {
-    console.log('Building server...');
-
-    await new Promise<void>((resolve) => {
-        Bun.spawn(['cargo', 'build', TEST_RELEASE ? '--release' : ''], {
-            cwd: '../server',
-            onExit() {
-                resolve();
-            },
-        });
-    });
-
-    console.log('Build finished!');
-
     server = Bun.spawn([`../server/target/${TEST_RELEASE ? 'release' : 'debug'}/enstate`], {
         cwd: '../server',
     });

@@ -1,23 +1,14 @@
-name: PR Test
+name: PR Pre-Build
 on:
-  pull_request:
-    branches:
-      - master
   workflow_call:
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  prebuild:
-    name: Prebuild ENState 🧪
-    uses: ./.github/workflows/prebuild.yml
-    secrets: inherit
   test:
-    name: Test ENState 🚀
-    # runs-on: arc-runner-set
+    name: Pre-Build ENState 🔨
     runs-on: ubuntu-latest
-    needs: [prebuild]
     env:
       SCCACHE_GHA_ENABLED: "on"
       RUSTC_WRAPPER: "sccache"
@@ -27,6 +18,7 @@ jobs:
         suite: [server] #, worker]
         include:
           - suite: server
+            build: cargo build --release
             env_file: .env
           # - suite: worker
           #   build: bun install --global pnpm && pnpm install && pnpm build
@@ -50,31 +42,13 @@ jobs:
         with:
           version: "v0.7.4"
 
-      - run: bun install
-        working-directory: test
-
-      - name: Set-up environment (${{ matrix.env_file }})
-        shell: bash
-        env:
-          RPC_URL: ${{ secrets.RPC_URL }}
-          OPENSEA_API_KEY: ${{ secrets.OPENSEA_API_KEY }}
-        run: |
-          cat <<EOF > ${{ matrix.env_file }}
-          RPC_URL=$RPC_URL
-          OPENSEA_API_KEY=$OPENSEA_API_KEY
-          UNIVERSAL_RESOLVER=0x8cab227b1162f03b8338331adaad7aadc83b895e
-          EOF
+      - name: Build
+        run: ${{ matrix.build }}
         working-directory: ${{ matrix.suite }}
 
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v4
         with:
           name: enstate-server
           path: server/target/release/enstate
-      # - name: Build
-      #   run: ${{ matrix.build }}
-      #   working-directory: ${{ matrix.suite }}
-
-      - name: Test
-        run: bun test ${{ matrix.suite }} --timeout 10000 --rerun-each 2
-        working-directory: test
+          retention-days: 1

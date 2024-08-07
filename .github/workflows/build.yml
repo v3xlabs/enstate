@@ -38,8 +38,11 @@ jobs:
         with:
           version: "v0.7.4"
 
-      - run: cargo build --release
-        working-directory: server
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: enstate-server
+          path: server/target/release/enstate
 
       - name: Docker meta
         id: meta
