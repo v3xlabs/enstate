@@ -15,7 +15,7 @@ const TEST_RELEASE = true;
 let server: Subprocess | undefined;
 
 beforeAll(async () => {
-    server = Bun.spawn([`server/target/${TEST_RELEASE ? 'release' : 'debug'}/enstate`], {
+    server = Bun.spawn([`target/${TEST_RELEASE ? 'release' : 'debug'}/enstate`], {
         cwd: '../server',
     });
 
