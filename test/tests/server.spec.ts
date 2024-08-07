@@ -18,7 +18,7 @@ beforeAll(async () => {
     // Exclude PATH from environment variables
     const { PATH: _path, ...environment } = process.env;
 
-    server = Bun.spawn(['../server/target/release/enstate'], {
+    server = Bun.spawn(['bash', '-c', '../server/target/release/enstate'], {
         env: { ...environment, RUST_LOG: 'info' },
     });
 
