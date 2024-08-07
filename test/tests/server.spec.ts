@@ -1,5 +1,6 @@
 import { Subprocess } from 'bun';
 import { afterAll, beforeAll } from 'bun:test';
+import { resolve } from 'node:path';
 
 import { dataset_address_bulk, dataset_name_bulk, dataset_universal_bulk } from '../data';
 import {
@@ -14,20 +15,25 @@ const TEST_RELEASE = true;
 
 let server: Subprocess | undefined;
 
+const enstateBinaryPath = resolve('../server/target/release/enstate');
+
 beforeAll(async () => {
-    server = Bun.spawn(['../server/target/release/enstate'], {
-        cwd: '',
-        env: {...process.env, RUST_LOG: 'info'},
+    console.log(`Running server binary at ${enstateBinaryPath}`);
+
+    server = Bun.spawn([enstateBinaryPath], {
+        env: { ...process.env, RUST_LOG: 'info' },
     });
 
     const decoder = new TextDecoder();
 
     // @ts-ignore
-    server.stdout.pipeTo(new WritableStream({
-        write(chunk) {
-            console.log(decoder.decode(chunk));
-        }
-    }));
+    server.stdout.pipeTo(
+        new WritableStream({
+            write(chunk) {
+                console.log(decoder.decode(chunk));
+            },
+        })
+    );
 
     // console.log(server.stdout);
 
