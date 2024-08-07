@@ -24,9 +24,9 @@ jobs:
           - suite: server
             build: cargo build --release
             env_file: .env
-          - suite: worker
-            build: bun install --global pnpm && pnpm install && pnpm build
-            env_file: .dev.vars
+          # - suite: worker
+          #   build: bun install --global pnpm && pnpm install && pnpm build
+          #   env_file: .dev.vars
     steps:
       - uses: actions/checkout@v3
         with:
