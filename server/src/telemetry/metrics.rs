@@ -1,12 +1,14 @@
 use std::sync::Arc;
 
 use axum::{extract::State, response::IntoResponse};
-use prometheus::{Counter, Encoder, Registry, TextEncoder};
+use prometheus::{Counter, Encoder, Histogram, Registry, TextEncoder};
 
+#[derive(Clone)]
 pub struct Metrics {
     pub registry: Registry,
 
     pub name_lookup_total: Counter,
+    pub name_lookup_latency: Histogram,
 }
 
 impl Metrics {
@@ -22,9 +24,19 @@ impl Metrics {
             .register(Box::new(name_lookup_total.clone()))
             .unwrap();
 
+        let name_lookup_latency_opts = prometheus::HistogramOpts::new(
+            "name_lookup_latency",
+            "Latency of the name lookup endpoint",
+        );
+        let name_lookup_latency = Histogram::with_opts(name_lookup_latency_opts).unwrap();
+        registry
+            .register(Box::new(name_lookup_latency.clone()))
+            .unwrap();
+
         Self {
             registry,
             name_lookup_total,
+            name_lookup_latency,
         }
     }
 }
