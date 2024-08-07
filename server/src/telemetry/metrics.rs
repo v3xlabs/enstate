@@ -3,31 +3,33 @@ use std::sync::Arc;
 use axum::{extract::State, response::IntoResponse};
 use prometheus::{Counter, Encoder, Registry, TextEncoder};
 
-use crate::state::AppState;
-
 pub struct Metrics {
     pub registry: Registry,
 
-    pub requests_total: Counter,
+    pub name_lookup_total: Counter,
 }
 
 impl Metrics {
     pub fn new() -> Self {
         let registry = Registry::new();
 
-        let requests_total_opts =
-            prometheus::Opts::new("requests_total", "Total number of HTTP requests");
-        let requests_total = Counter::with_opts(requests_total_opts).unwrap();
-        registry.register(Box::new(requests_total.clone())).unwrap();
+        let name_lookup_total_opts = prometheus::Opts::new(
+            "name_lookup_total",
+            "Total number of HTTP requests to the name lookup endpoint",
+        );
+        let name_lookup_total = Counter::with_opts(name_lookup_total_opts).unwrap();
+        registry
+            .register(Box::new(name_lookup_total.clone()))
+            .unwrap();
 
         Self {
             registry,
-            requests_total,
+            name_lookup_total,
         }
     }
 }
 
-pub async fn handle(State(state): State<Arc<crate::AppState>>,) -> impl IntoResponse {
+pub async fn handle(State(state): State<Arc<crate::AppState>>) -> impl IntoResponse {
     let encoder = TextEncoder::new();
     let metric_families = state.metrics.registry.gather();
     let mut buffer = Vec::new();
