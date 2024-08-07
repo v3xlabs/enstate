@@ -71,6 +71,11 @@ jobs:
         with:
           name: enstate-server
           path: server/target/release/enstate
+
+      - name: Build
+        run: chmod +x ./target/release/enstate
+        working-directory: ${{ matrix.suite }}
+
       # - name: Build
       #   run: ${{ matrix.build }}
       #   working-directory: ${{ matrix.suite }}
