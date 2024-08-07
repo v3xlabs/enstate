@@ -60,7 +60,7 @@ async fn main() {
         _ = sigint_signal.recv() => {
             info!("SIGINT received, shutting down");
         },
-        _ = server => {
+        () = server => {
             info!("HTTP server exit");
         }
     }

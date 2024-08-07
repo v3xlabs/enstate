@@ -1,7 +1,7 @@
 use axum::response::{Html, Redirect};
 use std::{net::SocketAddr, sync::Arc};
 
-use axum::{routing::get, routing::post, Router};
+use axum::{routing::get, Router};
 use tokio::net::TcpListener;
 use tokio_util::sync::CancellationToken;
 use tower_http::cors::CorsLayer;
@@ -10,6 +10,7 @@ use tracing::info;
 
 use crate::routes;
 use crate::state::AppState;
+use crate::telemetry::metrics::{self};
 
 pub struct App {
     router: Router,
@@ -50,10 +51,7 @@ pub fn setup(state: AppState) -> App {
         .route("/opengraph.png", get(scalar_opengraph_handler));
 
     let router = Router::new()
-        .route(
-            "/",
-            get(|| async { Redirect::temporary("/docs") }),
-        )
+        .route("/", get(|| async { Redirect::temporary("/docs") }))
         .nest("/docs", docs)
         .route("/this", get(routes::root::get))
         .route("/a/:address", get(routes::address::get))
@@ -64,9 +62,19 @@ pub fn setup(state: AppState) -> App {
         .route("/bulk/a", get(routes::address::get_bulk))
         .route("/bulk/n", get(routes::name::get_bulk))
         .route("/bulk/u", get(routes::universal::get_bulk))
-        .route("/sse/a", get(routes::address::get_bulk_sse).post(routes::address::post_bulk_sse))
-        .route("/sse/n", get(routes::name::get_bulk_sse).post(routes::name::post_bulk_sse))
-        .route("/sse/u", get(routes::universal::get_bulk_sse).post(routes::universal::post_bulk_sse))
+        .route(
+            "/sse/a",
+            get(routes::address::get_bulk_sse).post(routes::address::post_bulk_sse),
+        )
+        .route(
+            "/sse/n",
+            get(routes::name::get_bulk_sse).post(routes::name::post_bulk_sse),
+        )
+        .route(
+            "/sse/u",
+            get(routes::universal::get_bulk_sse).post(routes::universal::post_bulk_sse),
+        )
+        .route("/metrics", get(metrics::handle))
         .fallback(routes::four_oh_four::handler)
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http())

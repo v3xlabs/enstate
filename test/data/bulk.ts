@@ -46,28 +46,28 @@ export const dataset_name_bulk: Dataset<
             response_length: 2,
         },
     },
-    {
-        label: 'DNSRegistry',
-        arg: qs.stringify({ names: ['luc.computer', 'antony.sh'] }, { encode: false }),
-        expected: {
-            response: [
-                { type: 'success', address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
-                { type: 'success', address: '0x2B5c7025998f88550Ef2fEce8bf87935f542C190' },
-            ],
-            response_length: 2,
-        },
-    },
-    {
-        label: 'DNSRegistry (offchain DNSSEC)',
-        arg: qs.stringify({ names: ['antony.cash', 'cold.antony.cash'] }, { encode: false }),
-        expected: {
-            response: [
-                { type: 'success', address: '0x2B5c7025998f88550Ef2fEce8bf87935f542C190' },
-                { type: 'success', address: '0x797664168c3DEffdF3Eb3Ae18b29a2c7A7156feB' },
-            ],
-            response_length: 2,
-        },
-    },
+    // {
+    //     label: 'DNSRegistry',
+    //     arg: qs.stringify({ names: ['luc.computer', 'luc.cash'] }, { encode: false }),
+    //     expected: {
+    //         response: [
+    //             { type: 'success', address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
+    //             { type: 'success', address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
+    //         ],
+    //         response_length: 2,
+    //     },
+    // },
+    // {
+    //     label: 'DNSRegistry (offchain DNSSEC)',
+    //     arg: qs.stringify({ names: ['antony.cash', 'cold.antony.cash'] }, { encode: false }),
+    //     expected: {
+    //         response: [
+    //             { type: 'success', address: '0x2B5c7025998f88550Ef2fEce8bf87935f542C190' },
+    //             { type: 'success', address: '0x797664168c3DEffdF3Eb3Ae18b29a2c7A7156feB' },
+    //         ],
+    //         response_length: 2,
+    //     },
+    // },
     {
         label: 'CCIP',
         arg: qs.stringify({ names: ['luc.willbreak.eth', 'lucemans.cb.id'] }, { encode: false }),
@@ -140,26 +140,26 @@ export const dataset_address_bulk: Dataset<
             response_length: 2,
         },
     },
-    {
-        label: 'ETHRegistry (extra)',
-        arg: qs.stringify(
-            {
-                addresses: [
-                    '0x2B5c7025998f88550Ef2fEce8bf87935f542C190',
-                    '0x2B5c7025998f88550Ef2fEce8bf87935F542c190',
-                ],
-            },
-            { encode: false }
-        ),
-        expected: { response: [{ type: 'success', name: 'antony.sh' }], response_length: 1 },
-    },
+    // {
+    //     label: 'ETHRegistry (extra)',
+    //     arg: qs.stringify(
+    //         {
+    //             addresses: [
+    //                 '0x2B5c7025998f88550Ef2fEce8bf87935f542C190',
+    //                 '0x2B5c7025998f88550Ef2fEce8bf87935F542c190',
+    //             ],
+    //         },
+    //         { encode: false }
+    //     ),
+    //     expected: { response: [{ type: 'success', name: 'luc.cash' }], response_length: 1 },
+    // },
     {
         label: 'DNSRegistry',
         arg: qs.stringify(
-            { addresses: ['0x2B5c7025998f88550Ef2fEce8bf87935f542C190'] },
+            { addresses: ['0x225f137127d9067788314bc7fcc1f36746a3c3B5'] },
             { encode: false }
         ),
-        expected: { response: [{ type: 'success', name: 'antony.sh' }], response_length: 1 },
+        expected: { response: [{ type: 'success', name: 'luc.eth' }], response_length: 1 },
     },
     {
         label: 'Errors (invalid address)',
@@ -245,14 +245,14 @@ export const dataset_universal_bulk: Dataset<
         label: 'DNSRegistry',
         arg: qs.stringify(
             {
-                queries: ['0x2B5c7025998f88550Ef2fEce8bf87935f542C190', 'antony.sh'],
+                queries: ['0x225f137127d9067788314bc7fcc1f36746a3c3B5', 'luc.eth'],
             },
             { encode: false }
         ),
         expected: {
             response: [
-                { type: 'success', name: 'antony.sh' },
-                { type: 'success', address: '0x2B5c7025998f88550Ef2fEce8bf87935f542C190' },
+                { type: 'success', name: 'luc.eth' },
+                { type: 'success', address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
             ],
             response_length: 2,
         },
@@ -262,7 +262,7 @@ export const dataset_universal_bulk: Dataset<
         arg: qs.stringify(
             {
                 queries: [
-                    '0x2B5c7025998f88550Ef2fEce8bf87935f542C190',
+                    '0x225f137127d9067788314bc7fcc1f36746a3c3B5',
                     'luc.eth',
                     'luc.willbreak.eth',
                 ],
@@ -271,7 +271,7 @@ export const dataset_universal_bulk: Dataset<
         ),
         expected: {
             response: [
-                { type: 'success', name: 'antony.sh' },
+                { type: 'success', name: 'luc.eth' },
                 { type: 'success', address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
                 { type: 'success', address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
             ],

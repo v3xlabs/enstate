@@ -58,6 +58,7 @@ impl ENSService {
         // ENS CCIP unwrapper is limited to 50 sub-requests, i.e. per request
         let mut resolves = Vec::new();
 
+        // TODO: make 50 chunk size configurable later
         for chunk in calldata.chunks(50) {
             resolves.push(resolve_universal(&name, chunk, &rpc, &self.universal_resolver).await?);
         }

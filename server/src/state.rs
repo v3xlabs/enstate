@@ -9,13 +9,16 @@ use enstate_shared::models::{
 };
 use ethers_core::types::H160;
 use tracing::{info, warn};
+use url::Url;
 
 use crate::provider::RoundRobin;
+use crate::telemetry::metrics::Metrics;
 use crate::{cache, database};
 
 #[allow(clippy::module_name_repetitions)]
 pub struct AppState {
     pub service: ENSService,
+    pub metrics: Metrics,
 }
 
 impl AppState {
@@ -63,20 +66,26 @@ impl AppState {
         let opensea_api_key =
             env::var("OPENSEA_API_KEY").expect("OPENSEA_API_KEY should've been set");
 
-        let ipfs_gateway =
-            env::var("IPFS_GATEWAY").unwrap_or_else(|_| "https://ipfs.io/ipfs/".to_string());
+        let ipfs_gateway = env::var("IPFS_GATEWAY").map_or_else(
+            |_| "https://ipfs.io/ipfs/".to_string(),
+            |ipfs_gateway| Url::parse(&ipfs_gateway).unwrap().to_string(),
+        );
 
-        let arweave_gateway =
-            env::var("AR_GATEWAY").unwrap_or_else(|_| "https://arweave.net/".to_string());
+        let arweave_gateway = env::var("AR_GATEWAY").map_or_else(
+            |_| "https://arweave.net/".to_string(),
+            |arweave_gateway| Url::parse(&arweave_gateway).unwrap().to_string(),
+        );
 
         let universal_resolver = env::var("UNIVERSAL_RESOLVER")
             .expect("UNIVERSAL_RESOLVER should've been set")
             .parse::<H160>()
             .expect("UNIVERSAL_RESOLVER should be a valid address");
 
-        let max_bulk_size = env::var("MAX_BULK_SIZE").unwrap_or_else(|_| "10".to_string()).parse().ok();
+        let max_bulk_size =
+            env::var("MAX_BULK_SIZE").map_or(10, |bulk_size| bulk_size.parse().unwrap());
 
-        let cache_ttl = env::var("PROFILE_CACHE_TTL").unwrap_or_else(|_| "600".to_string()).parse().ok();
+        let cache_ttl =
+            env::var("PROFILE_CACHE_TTL").map_or(Some(600), |cache_ttl| cache_ttl.parse().ok());
 
         Self {
             service: ENSService {
@@ -91,6 +100,7 @@ impl AppState {
                 profile_chains: Arc::from(multicoin_chains),
                 universal_resolver,
             },
+            metrics: Metrics::new(),
         }
     }
 }

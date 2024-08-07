@@ -1,0 +1,6 @@
+scrape_configs:
+  - job_name: enstate
+    metrics_path: "/metrics"
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['enstate:8000', 'localhost:8000', 'host.docker.internal:8000']

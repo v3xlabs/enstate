@@ -1,6 +1,6 @@
 use std::convert::Infallible;
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use axum::response::sse::Event;
 use axum::response::{IntoResponse, Sse};
@@ -19,7 +19,7 @@ use crate::models::sse::SSEResponse;
 use crate::routes::{profile_http_error_mapper, validate_bulk_input, FreshQuery, Qs, RouteError};
 
 /// /n/{name}
-/// 
+///
 /// Here is an example of a valid request that looks up a name:
 /// ```url
 /// /n/luc.eth
@@ -41,7 +41,11 @@ pub async fn get(
     Query(query): Query<FreshQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<Profile>, RouteError> {
-    get_bulk(
+    let s = state.clone();
+    s.metrics.name_lookup_total.inc();
+    let start = Instant::now();
+
+    let result = get_bulk(
         Qs(NameGetBulkQuery {
             fresh: query,
             names: vec![name],
@@ -53,7 +57,13 @@ pub async fn get(
         Result::<_, _>::from(res.0.response.remove(0))
             .map(Json)
             .map_err(RouteError::from)
-    })?
+    })?;
+
+    s.metrics
+        .name_lookup_latency
+        .observe(start.elapsed().as_secs_f64());
+
+    result
 }
 
 #[derive(Deserialize)]
@@ -67,7 +77,7 @@ pub struct NameGetBulkQuery {
 }
 
 /// /bulk/n
-/// 
+///
 /// Here is an example of a valid request that looks up multiple names:
 /// ```url
 /// /bulk/n?names[]=luc.eth&names[]=nick.eth&names[]=helgesson.eth&names[]=irc.eth&names[]=khori.eth&names[]=v3x.eth
@@ -88,7 +98,7 @@ pub async fn get_bulk(
     Qs(query): Qs<NameGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<ListResponse<BulkResponse<Profile>>>, RouteError> {
-    let names = validate_bulk_input(&query.names, state.service.max_bulk_size.unwrap_or(10))?;
+    let names = validate_bulk_input(&query.names, state.service.max_bulk_size)?;
 
     let profiles = names
         .into_iter()
@@ -105,7 +115,7 @@ pub async fn get_bulk(
 }
 
 /// /sse/n
-/// 
+///
 /// Here is an example of a valid request that looks up multiple names:
 /// ```url
 /// /sse/n?names[]=luc.eth&names[]=nick.eth&names[]=helgesson.eth&names[]=irc.eth&names[]=khori.eth&names[]=v3x.eth
@@ -126,8 +136,7 @@ pub async fn get_bulk_sse(
     Qs(query): Qs<NameGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> impl IntoResponse {
-    let names =
-        validate_bulk_input(&query.names, state.service.max_bulk_size.unwrap_or(10)).unwrap();
+    let names = validate_bulk_input(&query.names, state.service.max_bulk_size).unwrap();
 
     let (event_tx, event_rx) = tokio::sync::mpsc::unbounded_channel::<Result<Event, Infallible>>();
 
@@ -157,7 +166,7 @@ pub async fn get_bulk_sse(
 }
 
 /// /sse/n
-/// 
+///
 /// Same as the GET version, but using POST with a JSON body instead of query parameters allowing for larger requests.
 #[utoipa::path(
     post,

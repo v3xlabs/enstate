@@ -1,0 +1,47 @@
+name: 'enstate'
+
+services:
+  redis:
+    image: redis:6.0.9-alpine
+    ports:
+      - "6379:6379"
+
+  prometheus:
+    restart: unless-stopped
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ../etc/prometheus/:/etc/prometheus/
+      - prometheusdata:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --storage.tsdb.path=/prometheus
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
+
+  grafana:
+    restart: unless-stopped
+    image: grafana/grafana:latest
+    depends_on:
+      - prometheus
+    ports:
+      - 3000:3000
+    environment:
+      PROMETHEUS_URL: http://prometheus:9090
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ../etc/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ../etc/grafana/dashboards:/etc/grafana/provisioning_temp/dashboards
+    entrypoint: >
+      sh -c "cp -r /etc/grafana/provisioning_temp/dashboards/. /etc/grafana/provisioning/dashboards &&
+             find /etc/grafana/provisioning/dashboards/ -name '*.json' -exec sed -i 's/$${DS_PROMETHEUS}/Prometheus/g' {} \+ &&
+             /run.sh"
+
+volumes:
+  logs:
+    driver: local
+  prometheusdata:
+    driver: local
+  grafanadata:
+    driver: local

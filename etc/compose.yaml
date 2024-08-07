@@ -1,0 +1,61 @@
+name: 'enstate'
+
+services:
+  enstate:
+    image: ghcr.io/v3xlabs/enstate:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+    environment:
+      - PORT=8000
+      - UNIVERSAL_RESOLVER=0x8cab227b1162f03b8338331adaad7aadc83b895e
+      - REDIS_URL=redis://redis:6379
+      - RPC_URL=https://rpc.ankr.com/eth
+    env_file: .env
+
+  redis:
+    image: redis:6.0.9-alpine
+    ports:
+      - "6379:6379"
+
+  prometheus:
+    restart: unless-stopped
+    image: prom/prometheus
+    depends_on:
+      - enstate
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheusdata:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --storage.tsdb.path=/prometheus
+
+  grafana:
+    restart: unless-stopped
+    image: grafana/grafana:latest
+    depends_on:
+      - enstate
+      - prometheus
+    ports:
+      - 3000:3000
+    environment:
+      PROMETHEUS_URL: http://prometheus:9090
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards:/etc/grafana/provisioning_temp/dashboards
+    entrypoint: >
+      sh -c "cp -r /etc/grafana/provisioning_temp/dashboards/. /etc/grafana/provisioning/dashboards &&
+             find /etc/grafana/provisioning/dashboards/ -name '*.json' -exec sed -i 's/$${DS_PROMETHEUS}/Prometheus/g' {} \+ &&
+             /run.sh"
+
+volumes:
+  logs:
+    driver: local
+  prometheusdata:
+    driver: local
+  grafanadata:
+    driver: local

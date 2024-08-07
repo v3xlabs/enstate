@@ -70,7 +70,7 @@ async fn main(req: Request, env: Env, _ctx: Context) -> worker::Result<Response>
         opensea_api_key,
         ipfs_gateway,
         arweave_gateway,
-        max_bulk_size: None,
+        max_bulk_size: 1,
         cache_ttl: Some(600),
         profile_records: Arc::from(profile_records),
         profile_chains: Arc::from(profile_chains),
