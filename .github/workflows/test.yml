@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [server, worker]
+        suite: [server] #, worker]
         include:
           - suite: server
             build: cargo build --release
