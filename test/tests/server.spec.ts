@@ -15,9 +15,21 @@ const TEST_RELEASE = true;
 let server: Subprocess | undefined;
 
 beforeAll(async () => {
-    server = Bun.spawn([`target/${TEST_RELEASE ? 'release' : 'debug'}/enstate`], {
-        cwd: '../server',
+    server = Bun.spawn(['../server/target/release/enstate'], {
+        cwd: '',
+        env: {...process.env, RUST_LOG: 'info'},
     });
+
+    const decoder = new TextDecoder();
+
+    // @ts-ignore
+    server.stdout.pipeTo(new WritableStream({
+        write(chunk) {
+            console.log(decoder.decode(chunk));
+        }
+    }));
+
+    // console.log(server.stdout);
 
     console.log('Waiting for server to start...');
 
@@ -35,6 +47,10 @@ beforeAll(async () => {
             await new Promise<void>((resolve) => setTimeout(resolve, 1000));
             continue;
         }
+    }
+
+    if (attempts >= 10) {
+        throw new Error('Server failed to start');
     }
 
     console.log('Ready to start testing');
