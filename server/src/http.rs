@@ -1,3 +1,5 @@
+use axum::extract::MatchedPath;
+use axum::http::Request;
 use axum::response::{Html, Redirect};
 use std::{net::SocketAddr, sync::Arc};
 
@@ -6,7 +8,7 @@ use tokio::net::TcpListener;
 use tokio_util::sync::CancellationToken;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
-use tracing::info;
+use tracing::{info, info_span};
 
 use crate::routes;
 use crate::state::AppState;
@@ -77,7 +79,23 @@ pub fn setup(state: AppState) -> App {
         .route("/metrics", get(metrics::handle))
         .fallback(routes::four_oh_four::handler)
         .layer(CorsLayer::permissive())
-        .layer(TraceLayer::new_for_http())
+        .layer(
+            TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
+                // Log the matched route's path (with placeholders not filled in).
+                // Use request.uri() or OriginalUri if you want the real path.
+                let matched_path = request
+                    .extensions()
+                    .get::<MatchedPath>()
+                    .map(MatchedPath::as_str);
+
+                info_span!(
+                    "http_request",
+                    method = ?request.method(),
+                    matched_path,
+                    some_other_field = tracing::field::Empty,
+                )
+            }),
+        )
         .with_state(Arc::new(state));
 
     App { router }

@@ -1,20 +1,20 @@
 use std::vec;
 
+use ethers::prelude::ProviderError::JsonRpcClientError;
 use ethers::{
     providers::namehash,
-    types::{Address, Bytes, transaction::eip2718::TypedTransaction},
+    types::{transaction::eip2718::TypedTransaction, Address, Bytes},
 };
-use ethers::prelude::ProviderError::JsonRpcClientError;
 use ethers_ccip_read::{CCIPReadMiddlewareError, CCIPRequest};
 use ethers_core::abi;
 use ethers_core::abi::{ParamType, Token};
 use ethers_core::types::H160;
 use hex_literal::hex;
 use lazy_static::lazy_static;
-use tracing::instrument;
+use tracing::{instrument, span};
 
-use crate::core::CCIPProvider;
 use crate::core::error::ProfileError;
+use crate::core::CCIPProvider;
 use crate::models::lookup::ENSLookup;
 use crate::utils::dns::dns_encode;
 use crate::utils::vec::dedup_ord;
@@ -66,6 +66,8 @@ pub async fn resolve_universal(
     typed_transaction.set_to(*universal_resolver);
     typed_transaction.set_data(Bytes::from(transaction_data));
 
+    let span = span!(tracing::Level::INFO, "ccip_call", name = name);
+
     // Call the transaction
     let (res, ccip_requests) =
         provider
@@ -87,6 +89,8 @@ pub async fn resolve_universal(
 
                 ProfileError::RPCError(provider_error)
             })?;
+
+    drop(span);
 
     // Abi Decode
     let result = abi::decode(
