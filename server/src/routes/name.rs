@@ -41,6 +41,8 @@ pub async fn get(
     Query(query): Query<FreshQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<Profile>, RouteError> {
+    state.metrics.requests_total.inc();
+
     get_bulk(
         Qs(NameGetBulkQuery {
             fresh: query,

@@ -7,6 +7,8 @@ use tracing::{Level, warn};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 use tracing_subscriber::layer::SubscriberExt;
 
+pub mod metrics;
+
 pub fn setup() {
     let filter = EnvFilter::new(format!(
         "enstate={},ethers_ccip_read={}",

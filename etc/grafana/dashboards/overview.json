@@ -1,0 +1,76 @@
+{
+    "annotations": {
+        "list": [
+            {
+                "builtIn": 1,
+                "datasource": {
+                    "type": "grafana",
+                    "uid": "-- Grafana --"
+                },
+                "enable": true,
+                "hide": true,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "target": {
+                    "limit": 100,
+                    "matchAny": false,
+                    "tags": [],
+                    "type": "dashboard"
+                },
+                "type": "dashboard"
+            }
+        ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 1,
+    "links": [],
+    "liveNow": false,
+    "panels": [],
+    "refresh": "30s",
+    "revision": 1,
+    "schemaVersion": 38,
+    "tags": [],
+    "templating": {
+        "list": [
+            {
+                "current": {
+                    "isNone": true,
+                    "selected": false,
+                    "text": "None",
+                    "value": ""
+                },
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "Prometheus"
+                },
+                "definition": "query_result(reth_info)",
+                "hide": 0,
+                "includeAll": false,
+                "multi": false,
+                "name": "instance",
+                "options": [],
+                "query": {
+                    "query": "query_result(reth_info)",
+                    "refId": "PrometheusVariableQueryEditor-VariableQuery"
+                },
+                "refresh": 1,
+                "regex": "/.*instance=\\\"([^\\\"]*).*/",
+                "skipUrlSync": false,
+                "sort": 0,
+                "type": "query"
+            }
+        ]
+    },
+    "time": {
+        "from": "now-1h",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "Enstate",
+    "uid": "2k8BXz24x",
+    "version": 3,
+    "weekStart": ""
+}

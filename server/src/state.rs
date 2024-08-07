@@ -12,11 +12,13 @@ use tracing::{info, warn};
 use url::Url;
 
 use crate::provider::RoundRobin;
+use crate::telemetry::metrics::Metrics;
 use crate::{cache, database};
 
 #[allow(clippy::module_name_repetitions)]
 pub struct AppState {
     pub service: ENSService,
+    pub metrics: Metrics,
 }
 
 impl AppState {
@@ -98,6 +100,7 @@ impl AppState {
                 profile_chains: Arc::from(multicoin_chains),
                 universal_resolver,
             },
+            metrics: Metrics::new(),
         }
     }
 }
