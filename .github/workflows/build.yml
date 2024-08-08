@@ -44,6 +44,10 @@ jobs:
           name: enstate-server
           path: server/target/release
 
+      - name: Build
+        run: chmod +x ./target/release/enstate
+        working-directory: ${{ matrix.suite }}
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
