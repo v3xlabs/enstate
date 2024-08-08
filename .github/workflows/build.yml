@@ -46,7 +46,7 @@ jobs:
 
       - name: Build
         run: chmod +x ./target/release/enstate
-        working-directory: ${{ matrix.suite }}
+        working-directory: server
 
       - name: Docker meta
         id: meta
