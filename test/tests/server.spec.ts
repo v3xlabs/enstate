@@ -16,20 +16,19 @@ let server: Subprocess | undefined;
 
 beforeAll(async () => {
     server = Bun.spawn(['../server/target/release/enstate'], {
-        cwd: '',
-        env: {...process.env, RUST_LOG: 'info'},
+        env: { ...process.env, RUST_LOG: 'info' },
     });
 
     const decoder = new TextDecoder();
 
     // @ts-ignore
-    server.stdout.pipeTo(new WritableStream({
-        write(chunk) {
-            console.log(decoder.decode(chunk));
-        }
-    }));
-
-    // console.log(server.stdout);
+    server.stdout.pipeTo(
+        new WritableStream({
+            write(chunk) {
+                console.log(decoder.decode(chunk));
+            },
+        })
+    );
 
     console.log('Waiting for server to start...');
 
@@ -62,30 +61,40 @@ afterAll(async () => {
 
 const PREFIX = 'server';
 
-test_implementation(`${PREFIX}/name`, http_fetch('http://0.0.0.0:3000/n/'), dataset_name_single);
+test_implementation(
+    `${PREFIX}/name`,
+    // @ts-ignore
+    http_fetch('http://0.0.0.0:3000/n/'),
+    dataset_name_single
+);
 test_implementation(
     `${PREFIX}/address`,
+    // @ts-ignore
     http_fetch('http://0.0.0.0:3000/a/'),
     dataset_address_single
 );
 test_implementation(
     `${PREFIX}/universal`,
+    // @ts-ignore
     http_fetch('http://0.0.0.0:3000/u/'),
     dataset_universal_single
 );
 
 test_implementation(
     `${PREFIX}/bulk/name`,
+    // @ts-ignore
     http_fetch('http://0.0.0.0:3000/bulk/n?'),
     dataset_name_bulk
 );
 test_implementation(
     `${PREFIX}/bulk/address`,
+    // @ts-ignore
     http_fetch('http://0.0.0.0:3000/bulk/a?'),
     dataset_address_bulk
 );
 test_implementation(
     `${PREFIX}/bulk/universal`,
+    // @ts-ignore
     http_fetch('http://0.0.0.0:3000/bulk/u?'),
     dataset_universal_bulk
 );
