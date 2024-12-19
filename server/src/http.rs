@@ -105,8 +105,7 @@ async fn rate_limit_middleware(
     let path = req
         .extensions()
         .get::<MatchedPath>()
-        .map(MatchedPath::as_str)
-        .unwrap_or("/")
+        .map_or("/", MatchedPath::as_str)
         .to_string();
 
     let rate_limiter = &state.rate_limiter;
@@ -116,10 +115,6 @@ async fn rate_limit_middleware(
         let now = Instant::now();
 
         let mut exceeded = false;
-
-        if env::var("RATE_LIMIT_ENABLED").unwrap_or_else(|_| "false".to_owned()) == "true" {
-            info!("Rate limit for {} is {}", path, ip);
-        }
 
         rate_limiter
             .states
