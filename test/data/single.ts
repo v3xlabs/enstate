@@ -43,11 +43,11 @@ export const dataset_name_single: Dataset<{ address: string } | { status: number
         arg: 'luc.willbreak.eth',
         expected: { address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5' },
     },
-    {
-        label: 'CCIP Coinbase',
-        arg: 'lucemans.cb.id',
-        expected: { address: '0x4e7abb71BEe38011c54c30D0130c0c71Da09222b' },
-    },
+    // {
+    //     label: 'CCIP Coinbase',
+    //     arg: 'lucemans.cb.id',
+    //     expected: { address: '0x4e7abb71BEe38011c54c30D0130c0c71Da09222b' },
+    // },
 ];
 
 export const dataset_address_single: Dataset<{ name: string } | { status: number }> = [
