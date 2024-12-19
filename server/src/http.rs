@@ -87,9 +87,19 @@ async fn rate_limit_middleware(
 ) -> Result<Response, StatusCode> {
     let ip = req
         .headers()
-        .get("x-forwarded-for")
+        .get("CF-Connecting-IP")
         .and_then(|hv| hv.to_str().ok())
-        .unwrap_or("unknown")
+        .unwrap_or_else(|| {
+            req.headers()
+                .get("x-real-ip")
+                .and_then(|hv| hv.to_str().ok())
+                .unwrap_or_else(|| {
+                    req.headers()
+                        .get("x-forwarded-for")
+                        .and_then(|hv| hv.to_str().ok())
+                        .unwrap_or("unknown")
+                })
+        })
         .to_string();
 
     let path = req
