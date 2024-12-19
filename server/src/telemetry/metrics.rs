@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::{extract::State, response::IntoResponse};
-use prometheus::{Counter, Encoder, Histogram, Registry, TextEncoder};
+use prometheus::{Counter, CounterVec, Encoder, Histogram, Registry, TextEncoder};
 
 #[derive(Clone)]
 pub struct Metrics {
@@ -9,6 +9,8 @@ pub struct Metrics {
 
     pub name_lookup_total: Counter,
     pub name_lookup_latency: Histogram,
+
+    pub rate_limit_infringements: CounterVec,
 }
 
 impl Metrics {
@@ -34,10 +36,26 @@ impl Metrics {
             .register(Box::new(name_lookup_latency.clone()))
             .unwrap();
 
+        let rate_limit_infringements_opts = prometheus::Opts::new(
+            "rate_limit_infringements",
+            "Total number of rate limit infringements",
+        );
+
+        let rate_limit_infringements = CounterVec::new(rate_limit_infringements_opts, &["ip"]).unwrap();
+        registry
+            .register(Box::new(rate_limit_infringements.clone()))
+            .unwrap();
+
+        // let rate_limit_infringements = Counter::with_opts(rate_limit_infringements_opts).unwrap();
+        // registry
+        //     .register(Box::new(rate_limit_infringements.clone()))
+        //     .unwrap();
+
         Self {
             registry,
             name_lookup_total,
             name_lookup_latency,
+            rate_limit_infringements,
         }
     }
 }

@@ -11,6 +11,7 @@ use ethers_core::types::H160;
 use tracing::{info, warn};
 use url::Url;
 
+use crate::http::RateLimiter;
 use crate::provider::RoundRobin;
 use crate::telemetry::metrics::Metrics;
 use crate::{cache, database};
@@ -19,6 +20,7 @@ use crate::{cache, database};
 pub struct AppState {
     pub service: ENSService,
     pub metrics: Metrics,
+    pub rate_limiter: RateLimiter,
 }
 
 impl AppState {
@@ -88,6 +90,7 @@ impl AppState {
             env::var("PROFILE_CACHE_TTL").map_or(Some(600), |cache_ttl| cache_ttl.parse().ok());
 
         Self {
+            rate_limiter: RateLimiter::new(),
             service: ENSService {
                 cache,
                 rpc: Box::new(provider),
