@@ -45,28 +45,28 @@ impl RateLimiter {
             limits.insert(
                 "/n/:name".to_string(),
                 RateLimit {
-                    requests: 60,
+                    requests: 160,
                     window: Duration::from_secs(60),
                 },
             );
             limits.insert(
                 "/a/:address".to_string(),
                 RateLimit {
-                    requests: 60,
+                    requests: 160,
                     window: Duration::from_secs(60),
                 },
             );
             limits.insert(
                 "/bulk/a".to_string(),
                 RateLimit {
-                    requests: 10,
+                    requests: 9,
                     window: Duration::from_secs(60),
                 },
             );
             limits.insert(
                 "/bulk/n".to_string(),
                 RateLimit {
-                    requests: 10,
+                    requests: 9,
                     window: Duration::from_secs(60),
                 },
             );
