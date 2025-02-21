@@ -1,5 +1,8 @@
 <img src=".github/banner.png#1" alt="enstate.rs" />
 
+> ⚠️ This branch is currently undergoing a rewrite.
+> Please see the [v1](https://github.com/v3xlabs/edgeserver/tree/v1) branch for the latest stable release.
+
 ## 📌 API Specification (OpenAPI)
 
 The API specification is available [on enstate.rs](https://enstate.rs/docs) or locally at `{your_site_here}/docs`.

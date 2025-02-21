@@ -1,0 +1,74 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Docker Compose Up",
+            "type": "shell",
+            "command": "docker compose -f compose.yaml up",
+            "options": {
+                "cwd": "${workspaceFolder}/app"
+            },
+            "problemMatcher": [],
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Docker Compose Down",
+            "type": "shell",
+            "command": "docker compose -f compose.yaml down",
+            "options": {
+                "cwd": "${workspaceFolder}/app"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Cargo Run",
+            "type": "shell",
+            "command": "cargo run",
+            "options": {
+                "cwd": "${workspaceFolder}/app"
+            },
+            "problemMatcher": [],
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Bacon",
+            "type": "shell",
+            "command": "bacon",
+            "options": {
+                "cwd": "${workspaceFolder}/app"
+            },
+            "problemMatcher": [],
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Start Dev Environment",
+            "dependsOn": [
+                "Docker Compose Up",
+                "Bacon",
+                "Cargo Run"
+            ],
+            "group": {
+              "kind": "build",
+              "isDefault": true
+            },
+            "dependsOrder": "parallel",
+            "problemMatcher": []
+        }
+    ]
+}
