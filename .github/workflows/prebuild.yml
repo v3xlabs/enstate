@@ -15,9 +15,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [server] #, worker]
+        suite: [app] #, worker]
         include:
-          - suite: server
+          - suite: app
             build: cargo build --release
             env_file: .env
           # - suite: worker
@@ -50,5 +50,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: enstate-server
-          path: server/target/release/enstate
+          path: app/target/release/enstate
           retention-days: 1

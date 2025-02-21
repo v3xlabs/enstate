@@ -24,9 +24,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [server] #, worker]
+        suite: [app] #, worker]
         include:
-          - suite: server
+          - suite: app
             env_file: .env
           # - suite: worker
           #   build: bun install --global pnpm && pnpm install && pnpm build
@@ -70,7 +70,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: enstate-server
-          path: server/target/release
+          path: app/target/release
 
       - name: Build
         run: chmod +x ./target/release/enstate
