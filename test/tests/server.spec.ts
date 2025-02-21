@@ -15,7 +15,7 @@ const TEST_RELEASE = true;
 let server: Subprocess | undefined;
 
 beforeAll(async () => {
-    server = Bun.spawn(['../server/target/release/enstate'], {
+    server = Bun.spawn(['../app/target/release/enstate'], {
         env: { ...process.env, RUST_LOG: 'info' },
     });
 
