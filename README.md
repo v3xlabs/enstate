@@ -101,7 +101,7 @@ Additionally, there is a hosted instance available at [worker.enstate.rs](https:
 ### Standalone Server
 
 ```sh
-cd server && cargo run -p enstate
+cd app && cargo run -p enstate
 ```
 
 ### Cloudflare Worker
