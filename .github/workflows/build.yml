@@ -79,7 +79,7 @@ jobs:
         with:
           push: true
           file: .github/.docker/Dockerfile
-          context: packages/app
+          context: .
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=ghcr.io/v3xlabs/enstate:edge

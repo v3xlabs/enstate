@@ -6,4 +6,6 @@ WORKDIR /enstate
 
 COPY target/release/enstate /enstate/enstate
 
+RUN chmod +x /enstate/enstate
+
 CMD ["/enstate/enstate"]
