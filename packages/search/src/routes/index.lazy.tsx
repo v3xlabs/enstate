@@ -1,13 +1,16 @@
-import { createLazyFileRoute } from '@tanstack/react-router';
+import { createLazyFileRoute, useNavigate, useSearch as useSearchParams, Link } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
 import { useSearch } from '../hooks/useSearch';
 import { useProfile } from '../hooks/useProfile';
-import { Link } from '@tanstack/react-router';
 import { LuSearch, LuMapPin, LuMail, LuGlobe, LuTwitter, LuGithub, LuMessageSquare, LuSend } from "react-icons/lu";
 import { useDebounce } from 'use-debounce';
 import { getChainIconUrl } from '../utils/chainIcons';
 import { shouldAttemptDirectLookup } from '../utils/validation';
 import { ChainIcon } from '../components/ChainIcon';
+
+interface SearchParams {
+  q?: string
+}
 
 export const Route = createLazyFileRoute('/')({
   component: Home,
@@ -111,7 +114,9 @@ function ProfileFallback({ searchTerm }: { searchTerm: string }) {
 }
 
 function Home() {
-  const [searchInput, setSearchInput] = useState('');
+  const navigate = useNavigate();
+  const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+  const [searchInput, setSearchInput] = useState(params.get('q') || '');
   const [debouncedSearchTerm] = useDebounce(searchInput, 300);
   const { data, isLoading, error } = useSearch(debouncedSearchTerm);
   
@@ -127,8 +132,29 @@ function Home() {
     }
   }, [isLoading, data]);
 
+  // Update URL when search term changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const currentParams = new URLSearchParams(window.location.search);
+    if (debouncedSearchTerm) {
+      currentParams.set('q', debouncedSearchTerm);
+    } else {
+      currentParams.delete('q');
+    }
+    
+    const newSearch = currentParams.toString();
+    const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : '');
+    
+    navigate({
+      to: newPath,
+      replace: true,
+    });
+  }, [debouncedSearchTerm, navigate]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    // The URL will be updated by the effect above
   };
 
   // Render search results or appropriate message
