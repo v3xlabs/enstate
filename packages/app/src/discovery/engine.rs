@@ -1,9 +1,11 @@
 use std::collections::HashMap;
 
 use axum::async_trait;
-use enstate_shared::core::Profile;
+use enstate_shared::core::lookup_data::LookupInfo;
+use enstate_shared::core::{ENSService, Profile};
 use enstate_shared::discovery::Discovery;
 use ethers::providers::namehash;
+use futures::future::join_all;
 use serde::{Deserialize, Serialize};
 
 pub struct DiscoveryEngine {
@@ -92,7 +94,43 @@ impl Discovery for DiscoveryEngine {
         }
     }
 
-    async fn query_search(&self, query: String) -> Result<Vec<Profile>, ()> {
-        todo!()
+    async fn query_search(&self, service: &ENSService, query: String) -> Result<Vec<Profile>, ()> {
+        let index = self.client.index("profiles");
+        
+        // Create search with query and limit to 5 results
+        let search = index.search()
+            .with_query(&query)
+            .with_limit(5)
+            .build();
+            
+        // Execute the search
+        match search.execute::<MeiliProfileDocument>().await {
+            Ok(search_results) => {
+                tracing::info!("Search results: found {} matches", search_results.hits.len());
+                
+                // Return empty vector if no results
+                if search_results.hits.is_empty() {
+                    return Ok(vec![]);
+                }
+                
+                // Extract the name for each result to use with resolve_name
+                let names: Vec<String> = search_results.hits
+                    .into_iter()
+                    .map(|hit| hit.result.name)
+                    .collect();
+                
+                let profiles = names.into_iter().map(|name| async move {
+                    service.resolve_profile(LookupInfo::Name(name), false).await.unwrap()
+                }).collect::<Vec<_>>();
+
+                let profiles = join_all(profiles).await;
+
+                Ok(profiles)
+            },
+            Err(e) => {
+                tracing::error!("Error searching profiles: {}", e);
+                Err(())
+            }
+        }
     }
 }

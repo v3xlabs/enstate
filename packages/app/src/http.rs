@@ -15,6 +15,7 @@ use tower_http::trace::TraceLayer;
 use tracing::{info, info_span};
 
 use crate::routes;
+use crate::routes::v2::setup_v2_router;
 use crate::state::AppState;
 use crate::telemetry::metrics::{self};
 
@@ -190,6 +191,8 @@ pub fn setup(mut state: AppState) -> App {
 
     let state = Arc::new(state);
 
+    let v2 = setup_v2_router(state.clone());
+
     let router = Router::new()
         .route("/", get(|| async { Redirect::temporary("/docs") }))
         .nest("/docs", docs)
@@ -214,6 +217,7 @@ pub fn setup(mut state: AppState) -> App {
             "/sse/u",
             get(routes::universal::get_bulk_sse).post(routes::universal::post_bulk_sse),
         )
+        .nest("/v2", v2)
         .route("/metrics", get(metrics::handle))
         .fallback(routes::four_oh_four::handler)
         .layer(middleware::from_fn_with_state(

@@ -18,8 +18,7 @@ pub mod image;
 pub mod name;
 pub mod root;
 pub mod universal;
-
-// TODO (@antony1060): cleanup file
+pub mod v2;
 
 #[derive(Deserialize)]
 pub struct FreshQuery {

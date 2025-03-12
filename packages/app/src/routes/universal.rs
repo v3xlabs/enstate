@@ -55,10 +55,22 @@ pub async fn get(
             fresh: query,
             queries: vec![name_or_address],
         }),
-        State(state),
+        State(state.clone()),
     )
     .await
     .map(|mut res| {
+
+        // TODO: +1 on cache hit popularity discover
+        for profile in &res.response {
+            if let BulkResponse::Ok(profile) = profile {
+                let profile = profile.clone();
+                let _ = state.service.cache.cache_hit(&profile.name);
+                if let Some(discovery) = &state.service.discovery {
+                    let _ = discovery.discover_name(&profile);
+                }
+            }
+        }
+
         Result::<_, _>::from(res.0.response.remove(0))
             .map(Json)
             .map_err(RouteError::from)
@@ -146,8 +158,7 @@ pub async fn get_bulk_sse(
     Qs(query): Qs<UniversalGetBulkQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> impl IntoResponse {
-    let queries =
-        validate_bulk_input(&query.queries, state.service.max_bulk_size).unwrap();
+    let queries = validate_bulk_input(&query.queries, state.service.max_bulk_size).unwrap();
 
     let (event_tx, event_rx) = tokio::sync::mpsc::unbounded_channel::<Result<Event, Infallible>>();
 
@@ -179,7 +190,7 @@ pub async fn get_bulk_sse(
 }
 
 /// /sse/u
-/// 
+///
 /// Same as the GET version, but using POST with a JSON body instead of query parameters allowing for larger requests.
 #[utoipa::path(
     post,
