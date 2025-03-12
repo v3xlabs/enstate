@@ -24,7 +24,7 @@ export const Route = createLazyFileRoute('/$profileId')({
 function Profile() {
   const { profileId } = Route.useParams();
   const { data: profile, isLoading, error } = useProfile(profileId);
-  const { data: followersData, isLoading: followersLoading, error: followersError } = useFollowers(profileId);
+  const { data: followersData } = useFollowers(profileId);
   const [copySuccess, setCopySuccess] = useState('');
 
   // Helper function to copy text to clipboard
