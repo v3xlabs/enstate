@@ -43,6 +43,13 @@ services:
       - 7700:7700
     environment:
       MEILISEARCH_NO_ANALYTICS: true
+  clickhouse:
+    image: clickhouse
+    ports:
+      - 8123:8123
+    environment:
+      CLICKHOUSE_USER: admin
+      CLICKHOUSE_PASSWORD: admin
 
 volumes:
   logs:

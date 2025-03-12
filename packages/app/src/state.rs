@@ -11,6 +11,7 @@ use ethers_core::types::H160;
 use tracing::{info, warn};
 use url::Url;
 
+use crate::discovery::engine::DiscoveryEngine;
 use crate::http::RateLimiter;
 use crate::provider::RoundRobin;
 use crate::telemetry::metrics::Metrics;
@@ -89,9 +90,14 @@ impl AppState {
         let cache_ttl =
             env::var("PROFILE_CACHE_TTL").map_or(Some(600), |cache_ttl| cache_ttl.parse().ok());
 
+        let discovery_engine = DiscoveryEngine::new("http://localhost:8123", "admin", "admin");
+
+        discovery_engine.create_table_if_not_exists().await;
+
         Self {
             rate_limiter: RateLimiter::new(),
             service: ENSService {
+                discovery: Some(Box::new(discovery_engine)),
                 cache,
                 rpc: Box::new(provider),
                 opensea_api_key,

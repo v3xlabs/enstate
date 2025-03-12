@@ -114,7 +114,10 @@ pub async fn get_bulk(
     // TODO: +1 on cache hit popularity discover
     for profile in &joined.response {
         if let BulkResponse::Ok(profile) = profile {
-            state.service.cache.cache_hit(&profile.name).await;
+            let _ = state.service.cache.cache_hit(&profile.name).await;
+            if let Some(discovery) = &state.service.discovery {
+                let _ = discovery.discover_name(profile).await;
+            }
         }
     }
 

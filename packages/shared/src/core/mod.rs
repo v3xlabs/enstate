@@ -54,6 +54,7 @@ pub struct Profile {
 
 pub struct ENSService {
     pub cache: Box<dyn crate::cache::CacheLayer>,
+    pub discovery: Option<Box<dyn crate::discovery::Discovery>>,
     pub rpc: Box<dyn Factory<Arc<Provider<Http>>>>,
     pub opensea_api_key: String,
     pub ipfs_gateway: String,

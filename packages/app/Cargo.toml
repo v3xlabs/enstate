@@ -74,3 +74,5 @@ url = "2.5.2"
 prometheus = "0.13.4"
 time = "0.3.36"
 dashmap = "6.1.0"
+meilisearch-sdk = "0.28.0"
+clickhouse = { version = "0.13.1", features = ["rustls-tls"] }
