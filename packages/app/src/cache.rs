@@ -44,4 +44,15 @@ impl CacheLayer for Redis {
             Err(error) => Err(CacheError::Other(error.to_string())),
         }
     }
+
+    async fn cache_hit(&self, key: &str) -> Result<(), CacheError> {
+        let mut redis = self.redis.clone();
+
+        let x: Result<(), _> = redis.zadd("cache_hits", key, 1).await;
+
+        match x {
+            Ok(x) => Ok(x),
+            Err(error) => Err(CacheError::Other(error.to_string())),
+        }
+    }
 }

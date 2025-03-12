@@ -44,11 +44,11 @@ jobs:
 
       - name: Build
         run: ${{ matrix.build }}
-        working-directory: ${{ matrix.suite }}
+        working-directory: packages/${{ matrix.suite }}
 
       - name: 'Upload Artifact'
         uses: actions/upload-artifact@v4
         with:
           name: enstate-server
-          path: app/target/release/enstate
+          path: packages/app/target/release/enstate
           retention-days: 1

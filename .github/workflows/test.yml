@@ -64,17 +64,17 @@ jobs:
           OPENSEA_API_KEY=$OPENSEA_API_KEY
           UNIVERSAL_RESOLVER=0x8cab227b1162f03b8338331adaad7aadc83b895e
           EOF
-        working-directory: ${{ matrix.suite }}
+        working-directory: packages/${{ matrix.suite }}
 
       - name: Download Artifact
         uses: actions/download-artifact@v4
         with:
           name: enstate-server
-          path: app/target/release
+          path: packages/app/target/release
 
       - name: Build
         run: chmod +x ./target/release/enstate
-        working-directory: ${{ matrix.suite }}
+        working-directory: packages/${{ matrix.suite }}
 
       # - name: Build
       #   run: ${{ matrix.build }}

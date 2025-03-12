@@ -109,7 +109,14 @@ pub async fn get_bulk(
         })
         .collect::<Vec<_>>();
 
-    let joined = join_all(profiles).await.into();
+    let joined: ListResponse<BulkResponse<Profile>> = join_all(profiles).await.into();
+
+    // TODO: +1 on cache hit popularity discover
+    for profile in &joined.response {
+        if let BulkResponse::Ok(profile) = profile {
+            state.service.cache.cache_hit(&profile.name).await;
+        }
+    }
 
     Ok(Json(joined))
 }

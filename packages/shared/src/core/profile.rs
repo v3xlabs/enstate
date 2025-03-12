@@ -50,6 +50,7 @@ impl ENSService {
 
                 let entry_result: Result<Profile, _> = serde_json::from_str(value.as_str());
                 if let Ok(entry) = entry_result {
+                    // TODO: +1 on cache hit popularity
                     return Ok(entry);
                 }
                 // TODO: Else, warn about unparsable data in cache
@@ -151,6 +152,9 @@ impl ENSService {
                 .map(|(key, value)| (key.name(), value.to_string()))
                 .collect(),
         };
+
+        // Update metrics
+        // TODO: +1 on cache hit popularity discover
 
         let response =
             serde_json::to_string(&value).map_err(|err| ProfileError::Other(err.to_string()))?;

@@ -20,6 +20,7 @@ mod provider;
 mod routes;
 mod state;
 mod telemetry;
+mod discovery;
 
 #[tokio::main]
 async fn main() {

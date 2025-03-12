@@ -12,6 +12,7 @@ pub enum CacheError {
 pub trait CacheLayer: Send + Sync {
     async fn get(&self, key: &str) -> Result<String, CacheError>;
     async fn set(&self, key: &str, value: &str, expires: u32) -> Result<(), CacheError>;
+    async fn cache_hit(&self, key: &str) -> Result<(), CacheError>;
 }
 
 pub struct PassthroughCacheLayer {}
@@ -24,6 +25,10 @@ impl CacheLayer for PassthroughCacheLayer {
     }
 
     async fn set(&self, _key: &str, _value: &str, _expires: u32) -> Result<(), CacheError> {
+        Ok(())
+    }
+
+    async fn cache_hit(&self, _key: &str) -> Result<(), CacheError> {
         Ok(())
     }
 }
