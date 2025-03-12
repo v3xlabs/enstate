@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use enstate_shared::cache::{CacheLayer, PassthroughCacheLayer};
 use enstate_shared::core::ENSService;
+use enstate_shared::discovery::Discovery;
 use enstate_shared::models::{
     multicoin::cointype::{coins::CoinType, Coins},
     records::Records,
@@ -90,14 +91,19 @@ impl AppState {
         let cache_ttl =
             env::var("PROFILE_CACHE_TTL").map_or(Some(600), |cache_ttl| cache_ttl.parse().ok());
 
-        let discovery_engine = DiscoveryEngine::new("http://localhost:8123", "admin", "admin");
+        let meilisearch_url = env::var("MEILI_ENDPOINT").ok();
+        let meilisearch_key = env::var("MEILI_KEY").ok();
 
-        discovery_engine.create_table_if_not_exists().await;
+        let discovery = meilisearch_url.map(|url| {
+            let engine = DiscoveryEngine::new(&url, meilisearch_key.as_deref());
+
+            Box::new(engine) as Box<dyn Discovery>
+        });
 
         Self {
             rate_limiter: RateLimiter::new(),
             service: ENSService {
-                discovery: Some(Box::new(discovery_engine)),
+                discovery,
                 cache,
                 rpc: Box::new(provider),
                 opensea_api_key,
