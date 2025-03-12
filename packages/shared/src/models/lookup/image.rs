@@ -20,7 +20,7 @@ lazy_static! {
     static ref ARWEAVE_REGEX: regex::Regex =
         regex::Regex::new(r"^ar://(.+)").expect("should be a valid regex");
     static ref EIP155_REGEX: regex::Regex =
-        regex::Regex::new(r"eip155:([0-9]+)/(erc1155|erc721):0x([0-9a-fA-F]{40})/([0-9]+)")
+        regex::Regex::new(r"(?i:eip155):([0-9]+)/(?i:(erc1155|erc721)):0x([0-9a-fA-F]{40})/([0-9]+)")
             .expect("should be a valid regex");
 }
 #[derive(Error, Debug)]
@@ -71,12 +71,15 @@ pub async fn decode(data: &[u8], state: &LookupState) -> Result<String, ENSLooku
         return Ok(value.to_string());
     };
 
+    info!("EIP155: {captures:?}");
+
     let (Some(chain_id), Some(contract_type), Some(contract_address), Some(token_id)) = (
         captures.get(1),
         captures.get(2),
         captures.get(3),
         captures.get(4),
     ) else {
+        info!("Failed to decode EIP155: {value}");
         return Err(ENSLookupError::AbiDecodeError);
     };
 
@@ -88,7 +91,7 @@ pub async fn decode(data: &[u8], state: &LookupState) -> Result<String, ENSLooku
     let token_id = U256::from_dec_str(token_id.as_str())
         .map_err(|err| ImageLookupError::FormatError(err.to_string()))?;
 
-    let contract_type = match contract_type.as_str() {
+    let contract_type = match contract_type.as_str().to_lowercase().as_str() {
         "erc721" => EIP155ContractType::ERC721,
         "erc1155" => EIP155ContractType::ERC1155,
         _ => return Err(ImageLookupError::FormatError("invalid contract type".to_string()).into()),

@@ -229,4 +229,34 @@ mod tests {
 
         assert_eq!(data, "https://i.seadn.io/gae/hKHZTZSTmcznonu8I6xcVZio1IF76fq0XmcxnvUykC-FGuVJ75UPdLDlKJsfgVXH9wOSmkyHw0C39VAYtsGyxT7WNybjQ6s3fM3macE?w=500&auto=format".to_string());
     }
+
+    #[tokio::test]
+    async fn test_calldata_avatar_erc1155z() {
+        let provider = Provider::<Http>::try_from("https://rpc.ankr.com/eth")
+            .unwrap()
+            .wrap_into(|it| CCIPReadMiddleware::new(Arc::from(it)));
+
+        let state = LookupState {
+            rpc: Arc::new(provider),
+            opensea_api_key: "".to_string(),
+            ipfs_gateway: "https://ipfs.io/ipfs/".to_string(),
+            arweave_gateway: "https://arweave.net/".to_string(),
+        };
+
+        let data = resolve_eip155(
+            ChainId::Ethereum,
+            EIP155ContractType::ERC1155,
+            "0x495f947276749ce646f68ac8c248420045cb7b5e",
+            U256::from_dec_str("109791375735522898048150917964456965919994596086232976516654423066184641413121").unwrap(),
+            &state,
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(
+            data,
+            "https://i.seadn.io/gae/Ra4OPR25gZ-_c7yasr7-vwUHxJp9SSn_w3angBICNK7qlUX63g0YlcFqQc5dVC47atikih_JkjMsfX4xE4KJURsbFcP-9y1cZWx4?w=500&auto=format"
+                .to_string()
+        );
+    }
 }
