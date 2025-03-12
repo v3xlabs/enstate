@@ -131,16 +131,6 @@ function Home() {
     e.preventDefault();
   };
 
-  // Helper function to get the best profile picture URL
-  const getProfilePicture = (profile: any) => {
-    return profile.avatar || profile.records?.avatar || null;
-  };
-
-  // Helper function to get the best profile description
-  const getDescription = (profile: any) => {
-    return profile.records?.description || '';
-  };
-
   // Render search results or appropriate message
   const renderResults = () => {
     // Case 1: We have data to show
@@ -181,9 +171,9 @@ function Home() {
                         <div className="flex items-start space-x-2 pb-3">
                           {/* Avatar */}
                           <div className={`${profile.header || profile.records?.header ? '-mt-7' : ''} flex-shrink-0`}>
-                            {getProfilePicture(profile) ? (
+                            {profile.avatar ? (
                               <img 
-                                src={getProfilePicture(profile)} 
+                                src={profile.avatar} 
                                 alt={profile.display}
                                 className="h-14 w-14 rounded-full border-2 border-white shadow-md object-cover"
                               />
@@ -203,7 +193,7 @@ function Home() {
                               {profile.address}
                             </p>
                             <p className="mt-1 text-xs text-gray-600 whitespace-pre-line line-clamp-2">
-                              {getDescription(profile)}
+                              {profile.records?.description || ''}
                             </p>
                             
                             {/* Chain addresses */}
@@ -311,9 +301,9 @@ function Home() {
                     <div className="flex items-start space-x-2 pb-3">
                       {/* Avatar */}
                       <div className={`${profile.header || profile.records?.header ? '-mt-7' : ''} flex-shrink-0`}>
-                        {getProfilePicture(profile) ? (
+                        {profile.avatar ? (
                           <img 
-                            src={getProfilePicture(profile)} 
+                            src={profile.avatar} 
                             alt={profile.display}
                             className="h-14 w-14 rounded-full border-2 border-white shadow-md object-cover"
                           />
@@ -333,7 +323,7 @@ function Home() {
                           {profile.address}
                         </p>
                         <p className="mt-1 text-xs text-gray-600 whitespace-pre-line line-clamp-2">
-                          {getDescription(profile)}
+                          {profile.records?.description || ''}
                         </p>
                         
                         {/* Chain addresses */}

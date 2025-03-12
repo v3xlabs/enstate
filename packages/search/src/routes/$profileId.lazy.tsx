@@ -61,15 +61,6 @@ function Profile() {
     );
   }
 
-  // Get the best display name
-  const displayName = profile.records?.name || profile.display || profile.name;
-  
-  // Get avatar URL
-  const avatarUrl = profile.avatar || profile.records?.avatar;
-  
-  // Get banner URL
-  const bannerUrl = profile.header || profile.records?.header;
-  
   // Format date for profile freshness
   const formatDate = (timestamp?: number) => {
     if (!timestamp) return 'Unknown';
@@ -83,11 +74,11 @@ function Profile() {
   return (
     <div className="bg-white shadow overflow-hidden rounded-lg">
       {/* Banner image */}
-      {bannerUrl ? (
+      {profile.header ? (
         <div className="w-full aspect-[3/1] overflow-hidden">
           <img 
-            src={bannerUrl} 
-            alt={`${displayName} banner`} 
+            src={profile.header} 
+            alt={`${profile.display} banner`} 
             className="w-full h-full object-cover"
           />
         </div>
@@ -99,20 +90,20 @@ function Profile() {
       <div className="px-4 py-5 sm:px-6 relative">
         <div className="flex items-end">
           <div className="-mt-16 flex-shrink-0">
-            {avatarUrl ? (
+            {profile.avatar ? (
               <img 
-                src={avatarUrl} 
-                alt={displayName}
+                src={profile.avatar} 
+                alt={profile.display}
                 className="h-24 w-24 rounded-full border-4 border-white shadow-md object-cover"
               />
             ) : (
               <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-3xl font-bold border-4 border-white shadow-md">
-                {displayName.charAt(0).toUpperCase()}
+                {profile.display.charAt(0).toUpperCase()}
               </div>
             )}
           </div>
           <div className="ml-4 flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{profile.display}</h1>
             <p className="text-sm text-gray-500">{profile.display || profile.name}</p>
           </div>
         </div>
