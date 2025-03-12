@@ -1,0 +1,42 @@
+name: Build and Deploy
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "v*.*.*"
+  workflow_call:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build ENState Search 🚀
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+      - name: Install packageManager
+        uses: pnpm/action-setup@v4
+      - name: Install Project Dependencies
+        run: pnpm install
+        working-directory: ./packages/search
+
+        # Build the web assets
+      - name: Build
+        working-directory: ./packages/search
+        run: NODE_ENV=production pnpm run build
+
+      - name: Edgeserver Upload
+        uses: v3xlabs/edgeserver-upload@v0.1.2-pre.4
+        with:
+          app_id: "422866334162882560"
+          server: https://api.edgeserver.io
+          token: ${{ secrets.EDGE_TOKEN }}
+          directory: packages/search/dist
+          context: true
