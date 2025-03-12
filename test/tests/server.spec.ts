@@ -17,7 +17,7 @@ let server: Subprocess | undefined;
 
 beforeAll(async () => {
     if (SPAWN_SERVER) {
-        server = Bun.spawn(['../packages/app/target/release/enstate'], {
+        server = Bun.spawn(['../target/release/enstate'], {
             env: { ...process.env, RUST_LOG: 'info' },
         });
 

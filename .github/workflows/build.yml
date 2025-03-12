@@ -46,7 +46,6 @@ jobs:
 
       - name: Build
         run: chmod +x ./target/release/enstate
-        working-directory: packages/app
 
       - name: Docker meta
         id: meta
