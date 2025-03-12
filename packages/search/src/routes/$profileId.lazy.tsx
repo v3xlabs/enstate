@@ -11,7 +11,6 @@ import {
   LuCopy,
   LuCalendar,
   LuUser,
-  LuWallet
 } from "react-icons/lu";
 import { useState } from 'react';
 import { getChainIconUrl } from '../utils/chainIcons';

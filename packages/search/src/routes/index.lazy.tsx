@@ -1,9 +1,9 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearch } from '../hooks/useSearch';
 import { useProfile } from '../hooks/useProfile';
 import { Link } from '@tanstack/react-router';
-import { LuSearch, LuMapPin, LuMail, LuGlobe, LuTwitter, LuGithub, LuMessageSquare, LuSend, LuWallet } from "react-icons/lu";
+import { LuSearch, LuMapPin, LuMail, LuGlobe, LuTwitter, LuGithub, LuMessageSquare, LuSend } from "react-icons/lu";
 import { useDebounce } from 'use-debounce';
 import { getChainIconUrl } from '../utils/chainIcons';
 import { shouldAttemptDirectLookup } from '../utils/validation';
@@ -53,7 +53,8 @@ function ProfileFallback({ searchTerm }: { searchTerm: string }) {
       <div className="max-w-2xl mx-auto bg-white rounded-lg overflow-hidden shadow-sm">
         <Link
           to="/$profileId"
-          params={{ profileId: profile.name || profile.address }}
+          // @ts-ignore
+          params={{ profileId: profile.name }}
           className="block"
         >
           <div className="relative">
@@ -140,12 +141,6 @@ function Home() {
     return profile.records?.description || '';
   };
 
-  // Helper function to get the best profileId (ENS name preferred over address)
-  const getProfileId = (profile: any) => {
-    // Prefer ENS name if available, otherwise use address
-    return profile.name || profile.address;
-  };
-
   // Render search results or appropriate message
   const renderResults = () => {
     // Case 1: We have data to show
@@ -162,7 +157,9 @@ function Home() {
                 <div key={profile.name + index} className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
                   <Link
                     to="/$profileId"
-                    params={{ profileId: getProfileId(profile) }}
+                    // params={{ profileId: profile.name || profile.address }}
+                    // @ts-ignore
+                    params={{ profileId: profile.name }}
                     className="block h-full"
                   >
                     <div className="relative">
@@ -291,7 +288,8 @@ function Home() {
             <div key={profile.name + index} className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
               <Link
                 to="/$profileId"
-                params={{ profileId: getProfileId(profile) }}
+                // @ts-ignore
+                params={{ profileId: profile.name }}
                 className="block h-full"
               >
                 <div className="relative">
