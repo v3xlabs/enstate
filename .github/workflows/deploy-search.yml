@@ -37,6 +37,6 @@ jobs:
         with:
           app_id: "422866334162882560"
           server: https://api.edgeserver.io
-          token: ${{ secrets.EDGE_TOKEN }}
+          token: ${{ secrets.SIGNAL_TOKEN }}
           directory: packages/search/dist
           context: true
