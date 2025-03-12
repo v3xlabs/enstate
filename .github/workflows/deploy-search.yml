@@ -5,6 +5,8 @@ on:
       - master
     tags:
       - "v*.*.*"
+    paths:
+      - packages/search/**
   workflow_call:
 
 env:

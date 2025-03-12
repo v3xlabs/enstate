@@ -5,6 +5,9 @@ on:
       - master
     tags:
       - "v*.*.*"
+    paths:
+      - packages/app/**
+      - packages/shared/**
   workflow_call:
 
 env:
