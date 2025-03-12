@@ -19,9 +19,9 @@ pub struct MeiliProfileDocument {
     avatar: Option<String>,
     header: Option<String>,
     display: String,
-    description: Option<String>,
     bio: Option<String>,
     addresses: HashMap<String, String>,
+    records: HashMap<String, String>,
     fresh: i64,
 }
 
@@ -33,9 +33,9 @@ impl From<&Profile> for MeiliProfileDocument {
             avatar: profile.avatar.clone(),
             header: profile.header.clone(),
             display: profile.display.clone(),
-            description: profile.records.get("description").cloned(),
             bio: profile.records.get("bio").cloned(),
             addresses: profile.chains.iter().map(|(chain, address)| (chain.to_string(), address.to_string())).collect(),
+            records: profile.records.clone().into_iter().collect(),
             fresh: profile.fresh,
         }
     }
