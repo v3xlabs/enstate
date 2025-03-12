@@ -34,8 +34,16 @@ impl From<&Profile> for MeiliProfileDocument {
             header: profile.header.clone(),
             display: profile.display.clone(),
             bio: profile.records.get("bio").cloned(),
-            addresses: Some(profile.chains.iter().map(|(chain, address)| (chain.to_string(), address.to_string())).collect()),
-            records: Some(profile.records.clone().into_iter().collect()),
+            addresses: if profile.chains.is_empty() { 
+                None 
+            } else {
+                Some(profile.chains.iter().map(|(chain, address)| (chain.to_string(), address.to_string())).collect())
+            },
+            records: if profile.records.is_empty() {
+                None
+            } else {
+                Some(profile.records.clone().into_iter().collect())
+            },
             fresh: profile.fresh,
         }
     }
