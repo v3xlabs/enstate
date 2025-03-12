@@ -12,7 +12,7 @@ services:
     ports:
       - 9090:9090
     volumes:
-      - ../etc/prometheus/:/etc/prometheus/
+      - ../../etc/prometheus/:/etc/prometheus/
       - prometheusdata:/prometheus
     command:
       - --config.file=/etc/prometheus/prometheus.yaml
@@ -31,8 +31,8 @@ services:
       PROMETHEUS_URL: http://prometheus:9090
     volumes:
       - grafanadata:/var/lib/grafana
-      - ../etc/grafana/datasources:/etc/grafana/provisioning/datasources
-      - ../etc/grafana/dashboards:/etc/grafana/provisioning_temp/dashboards
+      - ../../etc/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ../../etc/grafana/dashboards:/etc/grafana/provisioning_temp/dashboards
     entrypoint: >
       sh -c "cp -r /etc/grafana/provisioning_temp/dashboards/. /etc/grafana/provisioning/dashboards &&
              find /etc/grafana/provisioning/dashboards/ -name '*.json' -exec sed -i 's/$${DS_PROMETHEUS}/Prometheus/g' {} \+ &&

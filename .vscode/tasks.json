@@ -6,7 +6,7 @@
             "type": "shell",
             "command": "docker compose -f compose.yaml up",
             "options": {
-                "cwd": "${workspaceFolder}/app"
+                "cwd": "${workspaceFolder}/packages/app"
             },
             "problemMatcher": [],
             "isBackground": true,
@@ -20,7 +20,7 @@
             "type": "shell",
             "command": "docker compose -f compose.yaml down",
             "options": {
-                "cwd": "${workspaceFolder}/app"
+                "cwd": "${workspaceFolder}/packages/app"
             },
             "problemMatcher": [],
             "presentation": {
@@ -33,7 +33,7 @@
             "type": "shell",
             "command": "cargo run",
             "options": {
-                "cwd": "${workspaceFolder}/app"
+                "cwd": "${workspaceFolder}/packages/app"
             },
             "problemMatcher": [],
             "isBackground": true,
@@ -47,7 +47,7 @@
             "type": "shell",
             "command": "bacon",
             "options": {
-                "cwd": "${workspaceFolder}/app"
+                "cwd": "${workspaceFolder}/packages/app"
             },
             "problemMatcher": [],
             "isBackground": true,
