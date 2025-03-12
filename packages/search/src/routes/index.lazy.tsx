@@ -60,24 +60,24 @@ function ProfileFallback({ searchTerm }: { searchTerm: string }) {
             {/* Header/Banner image */}
             {profile.header || profile.records?.header ? (
               <div className="w-full aspect-[3/1] overflow-hidden">
-                <img 
-                  src={profile.header || profile.records?.header} 
-                  alt={`${profile.display} banner`} 
+                <img
+                  src={profile.header || profile.records?.header}
+                  alt={`${profile.display} banner`}
                   className="w-full h-full object-cover"
                 />
               </div>
             ) : (
               <div className="w-full aspect-[3/1] bg-gradient-to-r from-blue-500 to-purple-600"></div>
             )}
-            
+
             {/* Profile information with avatar */}
             <div className="p-4">
               <div className="flex items-start space-x-4">
                 {/* Avatar */}
                 <div className={`${profile.header || profile.records?.header ? '-mt-10' : ''} flex-shrink-0`}>
                   {(profile.avatar || profile.records?.avatar) ? (
-                    <img 
-                      src={profile.avatar || profile.records?.avatar} 
+                    <img
+                      src={profile.avatar || profile.records?.avatar}
                       alt={profile.display}
                       className="h-20 w-20 rounded-full border-2 border-white shadow-md object-cover"
                     />
@@ -87,7 +87,7 @@ function ProfileFallback({ searchTerm }: { searchTerm: string }) {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Profile details */}
                 <div className="flex-1 min-w-0">
                   <h3 className="text-xl font-semibold text-blue-600 truncate">
@@ -115,10 +115,10 @@ function Home() {
   const [searchInput, setSearchInput] = useState(params.get('q') || '');
   const [debouncedSearchTerm] = useDebounce(searchInput, 300);
   const { data, isLoading, error } = useSearch(debouncedSearchTerm);
-  
+
   // Keep track of previous results to show during new searches
   const [isInitialLoading, setIsInitialLoading] = useState(false);
-  
+
   // When loading state changes, determine if it's an initial load or a subsequent load
   useEffect(() => {
     if (isLoading && !data) {
@@ -131,17 +131,17 @@ function Home() {
   // Update URL when search term changes
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
+
     const currentParams = new URLSearchParams(window.location.search);
     if (debouncedSearchTerm) {
       currentParams.set('q', debouncedSearchTerm);
     } else {
       currentParams.delete('q');
     }
-    
+
     const newSearch = currentParams.toString();
     const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : '');
-    
+
     navigate({
       to: newPath,
       replace: true,
@@ -159,11 +159,16 @@ function Home() {
     if (data && data.length > 0) {
       // Check if any of the results have an exact name match with the search term
       const hasExactMatch = data.some(profile => profile.name?.toLowerCase() === debouncedSearchTerm.toLowerCase());
-      
+
+      console.log('hasExactMatch', hasExactMatch);
+
       // If no exact match and it's a valid ENS name/address, try direct lookup alongside results
       if (!hasExactMatch && shouldAttemptDirectLookup(debouncedSearchTerm)) {
         return (
           <>
+            <div className="mt-8 border-b mb-6 pb-3 w-full">
+              <ProfileFallback searchTerm={debouncedSearchTerm} />
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-1 relative">
               {data.map((profile, index) => (
                 <div key={profile.name + index} className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
@@ -178,24 +183,24 @@ function Home() {
                       {/* Header/Banner image */}
                       {profile.header || profile.records?.header ? (
                         <div className="w-full aspect-[3/1] overflow-hidden">
-                          <img 
-                            src={profile.header || profile.records?.header} 
-                            alt={`${profile.display} banner`} 
+                          <img
+                            src={profile.header || profile.records?.header}
+                            alt={`${profile.display} banner`}
                             className="w-full h-full object-cover"
                           />
                         </div>
                       ) : (
                         <div className="w-full aspect-[3/1] bg-gradient-to-r from-blue-500 to-purple-600"></div>
                       )}
-                      
+
                       {/* Profile information with avatar */}
                       <div className="p-2">
                         <div className="flex items-start space-x-2 pb-3">
                           {/* Avatar */}
                           <div className={`${profile.header || profile.records?.header ? '-mt-7' : ''} flex-shrink-0`}>
                             {profile.avatar ? (
-                              <img 
-                                src={profile.avatar} 
+                              <img
+                                src={profile.avatar}
                                 alt={profile.display}
                                 className="h-14 w-14 rounded-full border-2 border-white shadow-md object-cover"
                               />
@@ -205,7 +210,7 @@ function Home() {
                               </div>
                             )}
                           </div>
-                          
+
                           {/* Profile details */}
                           <div className="flex-1 min-w-0">
                             <h3 className="text-base font-semibold text-blue-600 truncate">
@@ -217,13 +222,13 @@ function Home() {
                             <p className="mt-1 text-xs text-gray-600 whitespace-pre-line line-clamp-2">
                               {profile.records?.description || ''}
                             </p>
-                            
+
                             {/* Chain addresses */}
                             {profile.chains && Object.keys(profile.chains).length > 0 && (
                               <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1">
                                 {Object.entries(profile.chains).map(([chain, address]) => (
                                   <div key={chain} className="flex items-center text-xs text-gray-500" title={`${chain.toUpperCase()}: ${address}`}>
-                                    <ChainIcon 
+                                    <ChainIcon
                                       chain={chain}
                                       iconUrl={getChainIconUrl(chain)}
                                       className="mr-1"
@@ -233,7 +238,7 @@ function Home() {
                                 ))}
                               </div>
                             )}
-                            
+
                             {/* Profile metadata - making it more compact */}
                             <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
                               {profile.records?.location && (
@@ -255,7 +260,7 @@ function Home() {
                                 </div>
                               )}
                             </div>
-                            
+
                             {/* Social links */}
                             <div className="mt-1.5 flex space-x-2">
                               {profile.records?.['com.twitter'] && (
@@ -287,144 +292,143 @@ function Home() {
                 </div>
               ))}
             </div>
-            <div className="mt-8 border-t pt-6">
-              <ProfileFallback searchTerm={debouncedSearchTerm} />
-            </div>
           </>
         );
       }
-      
+
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-1 relative">
-          {data.map((profile, index) => (
-            <div key={profile.name + index} className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
-              <Link
-                to="/$profileId"
-                // @ts-ignore
-                params={{ profileId: profile.name }}
-                className="block h-full"
-              >
-                <div className="relative">
-                  {/* Header/Banner image */}
-                  {profile.header || profile.records?.header ? (
-                    <div className="w-full aspect-[3/1] overflow-hidden">
-                      <img 
-                        src={profile.header || profile.records?.header} 
-                        alt={`${profile.display} banner`} 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-full aspect-[3/1] bg-gradient-to-r from-blue-500 to-purple-600"></div>
-                  )}
-                  
-                  {/* Profile information with avatar */}
-                  <div className="p-2">
-                    <div className="flex items-start space-x-2 pb-3">
-                      {/* Avatar */}
-                      <div className={`${profile.header || profile.records?.header ? '-mt-7' : ''} flex-shrink-0`}>
-                        {profile.avatar ? (
-                          <img 
-                            src={profile.avatar} 
-                            alt={profile.display}
-                            className="h-14 w-14 rounded-full border-2 border-white shadow-md object-cover"
-                          />
-                        ) : (
-                          <div className="h-14 w-14 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xl font-bold">
-                            {profile.display.charAt(0).toUpperCase()}
-                          </div>
-                        )}
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-1 relative">
+            {data.map((profile, index) => (
+              <div key={profile.name + index} className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
+                <Link
+                  to="/$profileId"
+                  // @ts-ignore
+                  params={{ profileId: profile.name }}
+                  className="block h-full"
+                >
+                  <div className="relative">
+                    {/* Header/Banner image */}
+                    {profile.header || profile.records?.header ? (
+                      <div className="w-full aspect-[3/1] overflow-hidden">
+                        <img
+                          src={profile.header || profile.records?.header}
+                          alt={`${profile.display} banner`}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      
-                      {/* Profile details */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-semibold text-blue-600 truncate">
-                          {profile.display}
-                        </h3>
-                        <p className="text-xs text-gray-500 truncate">
-                          {profile.address}
-                        </p>
-                        <p className="mt-1 text-xs text-gray-600 whitespace-pre-line line-clamp-2">
-                          {profile.records?.description || ''}
-                        </p>
-                        
-                        {/* Chain addresses */}
-                        {profile.chains && Object.keys(profile.chains).length > 0 && (
-                          <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1">
-                            {Object.entries(profile.chains).map(([chain, address]) => (
-                              <div key={chain} className="flex items-center text-xs text-gray-500" title={`${chain.toUpperCase()}: ${address}`}>
-                                <ChainIcon 
-                                  chain={chain}
-                                  iconUrl={getChainIconUrl(chain)}
-                                  className="mr-1"
-                                />
-                                <span className="truncate max-w-[100px]">{address}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {/* Profile metadata - making it more compact */}
-                        <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
-                          {profile.records?.location && (
-                            <div className="flex items-center">
-                              <LuMapPin className="mr-1 h-4 w-4" />
-                              <span>{profile.records.location}</span>
-                            </div>
-                          )}
-                          {profile.records?.email && (
-                            <div className="flex items-center">
-                              <LuMail className="mr-1 h-4 w-4" />
-                              <span>{profile.records.email}</span>
-                            </div>
-                          )}
-                          {profile.records?.url && (
-                            <div className="flex items-center">
-                              <LuGlobe className="mr-1 h-4 w-4" />
-                              <span>{profile.records.url}</span>
+                    ) : (
+                      <div className="w-full aspect-[3/1] bg-gradient-to-r from-blue-500 to-purple-600"></div>
+                    )}
+
+                    {/* Profile information with avatar */}
+                    <div className="p-2">
+                      <div className="flex items-start space-x-2 pb-3">
+                        {/* Avatar */}
+                        <div className={`${profile.header || profile.records?.header ? '-mt-7' : ''} flex-shrink-0`}>
+                          {profile.avatar ? (
+                            <img
+                              src={profile.avatar}
+                              alt={profile.display}
+                              className="h-14 w-14 rounded-full border-2 border-white shadow-md object-cover"
+                            />
+                          ) : (
+                            <div className="h-14 w-14 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xl font-bold">
+                              {profile.display.charAt(0).toUpperCase()}
                             </div>
                           )}
                         </div>
-                        
-                        {/* Social links */}
-                        <div className="mt-1.5 flex space-x-2">
-                          {profile.records?.['com.twitter'] && (
-                            <div className="text-blue-400 hover:text-blue-600">
-                              <LuTwitter className="h-4 w-4" title={`Twitter: ${profile.records['com.twitter']}`} />
+
+                        {/* Profile details */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base font-semibold text-blue-600 truncate">
+                            {profile.display}
+                          </h3>
+                          <p className="text-xs text-gray-500 truncate">
+                            {profile.address}
+                          </p>
+                          <p className="mt-1 text-xs text-gray-600 whitespace-pre-line line-clamp-2">
+                            {profile.records?.description || ''}
+                          </p>
+
+                          {/* Chain addresses */}
+                          {profile.chains && Object.keys(profile.chains).length > 0 && (
+                            <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1">
+                              {Object.entries(profile.chains).map(([chain, address]) => (
+                                <div key={chain} className="flex items-center text-xs text-gray-500" title={`${chain.toUpperCase()}: ${address}`}>
+                                  <ChainIcon
+                                    chain={chain}
+                                    iconUrl={getChainIconUrl(chain)}
+                                    className="mr-1"
+                                  />
+                                  <span className="truncate max-w-[100px]">{address}</span>
+                                </div>
+                              ))}
                             </div>
                           )}
-                          {profile.records?.['com.github'] && (
-                            <div className="text-gray-700 hover:text-gray-900">
-                              <LuGithub className="h-4 w-4" title={`GitHub: ${profile.records['com.github']}`} />
-                            </div>
-                          )}
-                          {profile.records?.['com.discord'] && (
-                            <div className="text-indigo-500 hover:text-indigo-700">
-                              <LuMessageSquare className="h-4 w-4" title={`Discord: ${profile.records['com.discord']}`} />
-                            </div>
-                          )}
-                          {profile.records?.['org.telegram'] && (
-                            <div className="text-blue-500 hover:text-blue-700">
-                              <LuSend className="h-4 w-4" title={`Telegram: ${profile.records['org.telegram']}`} />
-                            </div>
-                          )}
+
+                          {/* Profile metadata - making it more compact */}
+                          <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+                            {profile.records?.location && (
+                              <div className="flex items-center">
+                                <LuMapPin className="mr-1 h-4 w-4" />
+                                <span>{profile.records.location}</span>
+                              </div>
+                            )}
+                            {profile.records?.email && (
+                              <div className="flex items-center">
+                                <LuMail className="mr-1 h-4 w-4" />
+                                <span>{profile.records.email}</span>
+                              </div>
+                            )}
+                            {profile.records?.url && (
+                              <div className="flex items-center">
+                                <LuGlobe className="mr-1 h-4 w-4" />
+                                <span>{profile.records.url}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Social links */}
+                          <div className="mt-1.5 flex space-x-2">
+                            {profile.records?.['com.twitter'] && (
+                              <div className="text-blue-400 hover:text-blue-600">
+                                <LuTwitter className="h-4 w-4" title={`Twitter: ${profile.records['com.twitter']}`} />
+                              </div>
+                            )}
+                            {profile.records?.['com.github'] && (
+                              <div className="text-gray-700 hover:text-gray-900">
+                                <LuGithub className="h-4 w-4" title={`GitHub: ${profile.records['com.github']}`} />
+                              </div>
+                            )}
+                            {profile.records?.['com.discord'] && (
+                              <div className="text-indigo-500 hover:text-indigo-700">
+                                <LuMessageSquare className="h-4 w-4" title={`Discord: ${profile.records['com.discord']}`} />
+                              </div>
+                            )}
+                            {profile.records?.['org.telegram'] && (
+                              <div className="text-blue-500 hover:text-blue-700">
+                                <LuSend className="h-4 w-4" title={`Telegram: ${profile.records['org.telegram']}`} />
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            </div>
-          ))}
-        </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </>
       );
     }
-    
+
     // Case 2: No results found for an active search - try direct profile lookup only if it looks like an ENS name or address
     if (debouncedSearchTerm && !isInitialLoading && !isLoading && shouldAttemptDirectLookup(debouncedSearchTerm)) {
       return <ProfileFallback searchTerm={debouncedSearchTerm} />;
     }
-    
+
     // Case 3: No results found and not a valid ENS name/address format
     if (debouncedSearchTerm && !isInitialLoading && !isLoading) {
       return (
@@ -433,7 +437,7 @@ function Home() {
         </div>
       );
     }
-    
+
     // Case 4: Initial loading with no previous data
     if (isInitialLoading) {
       return (
@@ -445,7 +449,7 @@ function Home() {
         </div>
       );
     }
-    
+
     // Case 5: Default state - no search input yet
     return (
       <div className="p-6 text-center">
@@ -463,7 +467,7 @@ function Home() {
       <p className="text-gray-600 mb-4">
         Search for ENS names, addresses, or profiles using the search bar below.
       </p>
-      
+
       <div className="mb-8">
         <form onSubmit={handleSearch} className="flex gap-2">
           <div className="relative flex-1">
@@ -495,14 +499,14 @@ function Home() {
       {/* Results section */}
       <div className="rounded-lg overflow-hidden relative">
         {renderResults()}
-        
+
         {/* Always show a subtle indicator when search is happening */}
         {isLoading && Boolean(data) && (
           <div className="fixed bottom-4 right-4 bg-white shadow-md rounded-full p-1 z-50">
             <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent"></div>
           </div>
         )}
-        
+
         {/* Show error message if needed */}
         {error && (
           <div className="p-6 text-center">
