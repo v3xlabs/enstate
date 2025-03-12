@@ -33,6 +33,8 @@ jobs:
       - name: Build
         working-directory: ./packages/search
         run: NODE_ENV=production pnpm run build
+        env:
+          VITE_API_URL: https://enstate.rs
 
       - name: Edgeserver Upload
         uses: v3xlabs/edgeserver-upload@v0.1.2-pre.4
