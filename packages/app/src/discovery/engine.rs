@@ -20,8 +20,8 @@ pub struct MeiliProfileDocument {
     header: Option<String>,
     display: String,
     bio: Option<String>,
-    addresses: HashMap<String, String>,
-    records: HashMap<String, String>,
+    addresses: Option<HashMap<String, String>>,
+    records: Option<HashMap<String, String>>,
     fresh: i64,
 }
 
@@ -34,8 +34,8 @@ impl From<&Profile> for MeiliProfileDocument {
             header: profile.header.clone(),
             display: profile.display.clone(),
             bio: profile.records.get("bio").cloned(),
-            addresses: profile.chains.iter().map(|(chain, address)| (chain.to_string(), address.to_string())).collect(),
-            records: profile.records.clone().into_iter().collect(),
+            addresses: Some(profile.chains.iter().map(|(chain, address)| (chain.to_string(), address.to_string())).collect()),
+            records: Some(profile.records.clone().into_iter().collect()),
             fresh: profile.fresh,
         }
     }
