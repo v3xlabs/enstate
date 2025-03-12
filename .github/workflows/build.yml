@@ -41,8 +41,8 @@ jobs:
       - name: Download Artifact
         uses: actions/download-artifact@v4
         with:
-          name: enstate-server
-          path: packages/app/target/release
+          name: enstate
+          path: /target/release
 
       - name: Build
         run: chmod +x ./target/release/enstate

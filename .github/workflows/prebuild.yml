@@ -50,5 +50,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: enstate-server
-          path: packages/app/target/release/enstate
+          path: target/release/enstate
           retention-days: 1

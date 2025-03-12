@@ -26,7 +26,7 @@ services:
     depends_on:
       - prometheus
     ports:
-      - 3000:3000
+      - 9002:3000
     environment:
       PROMETHEUS_URL: http://prometheus:9090
     volumes:
@@ -37,6 +37,12 @@ services:
       sh -c "cp -r /etc/grafana/provisioning_temp/dashboards/. /etc/grafana/provisioning/dashboards &&
              find /etc/grafana/provisioning/dashboards/ -name '*.json' -exec sed -i 's/$${DS_PROMETHEUS}/Prometheus/g' {} \+ &&
              /run.sh"
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    ports:
+      - 7700:7700
+    environment:
+      MEILISEARCH_NO_ANALYTICS: true
 
 volumes:
   logs:

@@ -11,24 +11,27 @@ import { http_fetch } from '../src/http_fetch';
 import { test_implementation } from '../src/test_implementation';
 
 const TEST_RELEASE = true;
+const SPAWN_SERVER = false;
 
 let server: Subprocess | undefined;
 
 beforeAll(async () => {
-    server = Bun.spawn(['../packages/app/target/release/enstate'], {
-        env: { ...process.env, RUST_LOG: 'info' },
-    });
+    if (SPAWN_SERVER) {
+        server = Bun.spawn(['../packages/app/target/release/enstate'], {
+            env: { ...process.env, RUST_LOG: 'info' },
+        });
 
-    const decoder = new TextDecoder();
+        const decoder = new TextDecoder();
 
-    // @ts-ignore
-    server.stdout.pipeTo(
-        new WritableStream({
-            write(chunk) {
-                console.log(decoder.decode(chunk));
-            },
-        })
-    );
+        // @ts-ignore
+        server.stdout.pipeTo(
+            new WritableStream({
+                write(chunk) {
+                    console.log(decoder.decode(chunk));
+                },
+            })
+        );
+    }
 
     console.log('Waiting for server to start...');
 
