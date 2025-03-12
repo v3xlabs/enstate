@@ -1,4 +1,4 @@
-import { createLazyFileRoute, useNavigate, useSearch as useSearchParams, Link } from '@tanstack/react-router';
+import { createLazyFileRoute, useNavigate, Link } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
 import { useSearch } from '../hooks/useSearch';
 import { useProfile } from '../hooks/useProfile';
@@ -7,10 +7,6 @@ import { useDebounce } from 'use-debounce';
 import { getChainIconUrl } from '../utils/chainIcons';
 import { shouldAttemptDirectLookup } from '../utils/validation';
 import { ChainIcon } from '../components/ChainIcon';
-
-interface SearchParams {
-  q?: string
-}
 
 export const Route = createLazyFileRoute('/')({
   component: Home,
