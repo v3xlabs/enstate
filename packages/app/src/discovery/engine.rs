@@ -97,10 +97,10 @@ impl Discovery for DiscoveryEngine {
     async fn query_search(&self, service: &ENSService, query: String) -> Result<Vec<Profile>, ()> {
         let index = self.client.index("profiles");
         
-        // Create search with query and limit to 5 results
+        // Create search with query and limit to 12 results
         let search = index.search()
             .with_query(&query)
-            .with_limit(5)
+            .with_limit(12)
             .build();
             
         // Execute the search

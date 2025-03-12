@@ -10,9 +10,12 @@ import {
   LuSend,
   LuCopy,
   LuCalendar,
-  LuUser
+  LuUser,
+  LuWallet
 } from "react-icons/lu";
 import { useState } from 'react';
+import { getChainIconUrl } from '../utils/chainIcons';
+import { ChainIcon } from '../components/ChainIcon';
 
 export const Route = createLazyFileRoute('/$profileId')({
   component: Profile,
@@ -170,13 +173,15 @@ function Profile() {
                   <dt className="text-sm font-medium text-gray-500">Ethereum Address</dt>
                   <dd className="mt-1 text-sm text-gray-900 flex items-center">
                     <span className="truncate max-w-xs">{profile.address}</span>
-                    <button 
-                      onClick={() => copyToClipboard(profile.address, 'address')}
-                      className="ml-2 text-gray-400 hover:text-gray-600"
-                      title="Copy address"
-                    >
-                      <LuCopy className="h-4 w-4" />
-                    </button>
+                    {profile.address && (
+                      <button 
+                        onClick={() => copyToClipboard(profile.address!, 'address')}
+                        className="ml-2 text-gray-400 hover:text-gray-600"
+                        title="Copy address"
+                      >
+                        <LuCopy className="h-4 w-4" />
+                      </button>
+                    )}
                   </dd>
                 </div>
               </div>
@@ -360,14 +365,16 @@ function Profile() {
                 {Object.entries(profile.chains).map(([chain, address]) => (
                   <div key={chain} className="flex items-start">
                     <div className="mt-1 flex-shrink-0 text-gray-400">
-                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 15V9M8 5L16 5V19L8 19M21 15V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
+                      <ChainIcon 
+                        chain={chain}
+                        iconUrl={getChainIconUrl(chain)}
+                        size="md"
+                      />
                     </div>
                     <div className="ml-3">
                       <dt className="text-sm font-medium text-gray-500">{chain.toUpperCase()}</dt>
-                      <dd className="mt-1 text-sm text-gray-900 flex items-center break-all">
-                        <span className="font-mono">{address as string}</span>
+                      <dd className="mt-1 text-sm text-gray-900 flex items-center">
+                        <span className="font-mono">{address}</span>
                         <button 
                           onClick={() => copyToClipboard(address as string, `${chain} address`)}
                           className="ml-2 text-gray-400 hover:text-gray-600"

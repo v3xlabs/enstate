@@ -50,31 +50,33 @@ pub async fn get(
     Query(query): Query<FreshQuery>,
     State(state): State<Arc<crate::AppState>>,
 ) -> Result<Json<Profile>, RouteError> {
-    get_bulk(
+    let response = get_bulk(
         Qs(UniversalGetBulkQuery {
             fresh: query,
             queries: vec![name_or_address],
         }),
         State(state.clone()),
     )
-    .await
-    .map(|mut res| {
+    .await;
 
-        // TODO: +1 on cache hit popularity discover
-        for profile in &res.response {
-            if let BulkResponse::Ok(profile) = profile {
-                let profile = profile.clone();
-                let _ = state.service.cache.cache_hit(&profile.name);
-                if let Some(discovery) = &state.service.discovery {
-                    let _ = discovery.discover_name(&profile);
+    match response {
+        Ok(mut res) => {
+            for profile in &res.response {
+                if let BulkResponse::Ok(profile) = profile {
+                    let profile = profile.clone();
+                    let _ = state.service.cache.cache_hit(&profile.name).await;
+                    if let Some(discovery) = &state.service.discovery {
+                        let _ = discovery.discover_name(&profile).await;
+                    }
                 }
             }
-        }
 
-        Result::<_, _>::from(res.0.response.remove(0))
+            Result::<_, _>::from(res.response.remove(0))
             .map(Json)
             .map_err(RouteError::from)
-    })?
+        }
+        Err(e) => Err(e),
+    }
 }
 
 #[derive(Deserialize, IntoParams, ToSchema)]

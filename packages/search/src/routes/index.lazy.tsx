@@ -3,8 +3,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useSearch } from '../hooks/useSearch';
 import { useProfile } from '../hooks/useProfile';
 import { Link } from '@tanstack/react-router';
-import { LuSearch, LuMapPin, LuMail, LuGlobe, LuTwitter, LuGithub, LuMessageSquare, LuSend } from "react-icons/lu";
+import { LuSearch, LuMapPin, LuMail, LuGlobe, LuTwitter, LuGithub, LuMessageSquare, LuSend, LuWallet } from "react-icons/lu";
 import { useDebounce } from 'use-debounce';
+import { getChainIconUrl } from '../utils/chainIcons';
+import { shouldAttemptDirectLookup } from '../utils/validation';
+import { ChainIcon } from '../components/ChainIcon';
 
 export const Route = createLazyFileRoute('/')({
   component: Home,
@@ -172,7 +175,7 @@ function Home() {
                   
                   {/* Profile information with avatar */}
                   <div className="p-2">
-                    <div className="flex items-start space-x-2">
+                    <div className="flex items-start space-x-2 pb-3">
                       {/* Avatar */}
                       <div className={`${profile.header || profile.records?.header ? '-mt-7' : ''} flex-shrink-0`}>
                         {getProfilePicture(profile) ? (
@@ -199,6 +202,22 @@ function Home() {
                         <p className="mt-1 text-xs text-gray-600 whitespace-pre-line line-clamp-2">
                           {getDescription(profile)}
                         </p>
+                        
+                        {/* Chain addresses */}
+                        {profile.chains && Object.keys(profile.chains).length > 0 && (
+                          <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1">
+                            {Object.entries(profile.chains).map(([chain, address]) => (
+                              <div key={chain} className="flex items-center text-xs text-gray-500" title={`${chain.toUpperCase()}: ${address}`}>
+                                <ChainIcon 
+                                  chain={chain}
+                                  iconUrl={getChainIconUrl(chain)}
+                                  className="mr-1"
+                                />
+                                <span className="truncate max-w-[100px]">{address}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         
                         {/* Profile metadata - making it more compact */}
                         <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
@@ -256,12 +275,21 @@ function Home() {
       );
     }
     
-    // Case 2: No results found for an active search - try direct profile lookup
-    if (debouncedSearchTerm && !isInitialLoading && !isLoading) {
+    // Case 2: No results found for an active search - try direct profile lookup only if it looks like an ENS name or address
+    if (debouncedSearchTerm && !isInitialLoading && !isLoading && shouldAttemptDirectLookup(debouncedSearchTerm)) {
       return <ProfileFallback searchTerm={debouncedSearchTerm} />;
     }
     
-    // Case 3: Initial loading with no previous data
+    // Case 3: No results found and not a valid ENS name/address format
+    if (debouncedSearchTerm && !isInitialLoading && !isLoading) {
+      return (
+        <div className="p-6 text-center">
+          <p className="text-gray-500">No results found for "{debouncedSearchTerm}"</p>
+        </div>
+      );
+    }
+    
+    // Case 4: Initial loading with no previous data
     if (isInitialLoading) {
       return (
         <div className="text-center p-6">
@@ -273,10 +301,13 @@ function Home() {
       );
     }
     
-    // Case 4: Default state - no search input yet
+    // Case 5: Default state - no search input yet
     return (
       <div className="p-6 text-center">
         <p className="text-gray-500">Enter a search term to find profiles</p>
+        <p className="text-sm text-gray-400 mt-2">
+          Try searching for an ENS name (e.g., "vitalik.eth") or an Ethereum address
+        </p>
       </div>
     );
   };

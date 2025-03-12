@@ -24,16 +24,7 @@ export interface SearchResult {
     pronouns?: string;
     [key: string]: string | undefined;
   };
-  chains?: {
-    eth?: string;
-    btc?: string;
-    sol?: string;
-    arbitrum?: string;
-    optimism?: string;
-    polygon?: string;
-    ltc?: string;
-    [key: string]: string | undefined;
-  };
+  chains?: Record<string, string>;
   fresh?: number;
   resolver?: string;
   ccip_urls?: string[];
@@ -56,6 +47,6 @@ export const useSearch = (searchTerm: string) => {
       return response.data;
     },
     enabled: Boolean(searchTerm.trim()),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 10, // 10 seconds
   });
-}; 
+};
