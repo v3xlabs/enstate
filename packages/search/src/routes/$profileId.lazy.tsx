@@ -109,7 +109,7 @@ function Profile() {
             <p className="text-sm text-gray-500">{profile.display || profile.name}</p>
           </div>
           {followersData && (
-            <div className="ml-4 flex-1 flex justify-end gap-3 items-start self-start">
+            <div className="ml-4 flex-1 flex justify-end md:gap-3 items-start self-start flex-wrap">
               <a href={`https://ethfollow.xyz/${profileId}?tab=following`} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 flex gap-1 items-center hover:underline cursor-pointer">
                 <span className="font-bold">{followersData.following_count}</span>
                 <span className="text-gray-500">Following</span>
