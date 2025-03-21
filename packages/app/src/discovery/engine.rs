@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use axum::async_trait;
 use enstate_shared::core::lookup_data::LookupInfo;
 use enstate_shared::core::{ENSService, Profile};
-use enstate_shared::discovery::Discovery;
+use enstate_shared::discovery::{Discovery, SearchResult};
 use ethers::providers::namehash;
 use futures::future::join_all;
 use serde::{Deserialize, Serialize};
@@ -106,7 +106,7 @@ impl Discovery for DiscoveryEngine {
         }
     }
 
-    async fn query_search(&self, service: &ENSService, query: String) -> Result<Vec<Profile>, ()> {
+    async fn query_search(&self, service: &ENSService, query: String) -> Result<Vec<SearchResult>, ()> {
         let index = self.client.index("profiles");
         
         // Create search with query and limit to 12 results
@@ -124,20 +124,14 @@ impl Discovery for DiscoveryEngine {
                 if search_results.hits.is_empty() {
                     return Ok(vec![]);
                 }
-                
+
                 // Extract the name for each result to use with resolve_name
-                let names: Vec<String> = search_results.hits
+                let names: Vec<SearchResult> = search_results.hits
                     .into_iter()
-                    .map(|hit| hit.result.name)
+                    .map(|hit| SearchResult { name: hit.result.name })
                     .collect();
-                
-                let profiles = names.into_iter().map(|name| async move {
-                    service.resolve_profile(LookupInfo::Name(name), false).await.unwrap()
-                }).collect::<Vec<_>>();
 
-                let profiles = join_all(profiles).await;
-
-                Ok(profiles)
+                Ok(names)
             },
             Err(e) => {
                 tracing::error!("Error searching profiles: {}", e);

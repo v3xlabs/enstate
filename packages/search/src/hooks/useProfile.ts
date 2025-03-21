@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { SearchResult } from './useSearch';
+import { ProfileSearchResult } from './useSearch';
 
 // We'll use the same interface as SearchResult for consistency
-export type Profile = SearchResult;
+export type Profile = ProfileSearchResult;
 
 import { profileFetcher } from 'use-enstate/helpers';
 
@@ -28,4 +28,4 @@ export const useProfile = (profileId: string) => {
     enabled: Boolean(profileId),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
-}; 
+};

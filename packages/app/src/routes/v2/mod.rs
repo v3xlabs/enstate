@@ -14,7 +14,7 @@ use enstate_shared::core::lookup_data::LookupInfo;
 use enstate_shared::core::Profile;
 use ethers_core::types::Address;
 use futures::future::join_all;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tracing::info;
 
@@ -34,6 +34,11 @@ pub fn setup_v2_router(state: Arc<crate::AppState>) -> Router<Arc<crate::AppStat
 #[derive(Deserialize)]
 pub struct SearchQuery {
     s: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ProfileSearchResult {
+    pub name: String,
 }
 
 /// /a/{address}
@@ -59,13 +64,13 @@ pub struct SearchQuery {
 pub async fn discovery_search(
     Query(query): Query<SearchQuery>,
     State(state): State<Arc<crate::AppState>>,
-) -> Result<Json<Vec<Profile>>, RouteError> {
+) -> Result<Json<Vec<ProfileSearchResult>>, RouteError> {
 
     info!("query: {:?}", query.s);
     
     if let Some(discovery) = &state.service.discovery {
         let profiles = discovery.query_search(&state.service, query.s).await.unwrap();
-        return Ok(Json(profiles));
+        return Ok(Json(profiles.into_iter().map(|x| ProfileSearchResult { name: x.name }).collect()));
     }
     // get_bulk(
     //     Qs(AddressGetBulkQuery {
