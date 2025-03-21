@@ -4,12 +4,48 @@ import { useSearch } from '../hooks/useSearch';
 import { useProfile } from '../hooks/useProfile';
 import { LuSearch } from "react-icons/lu";
 import { useDebounce } from 'use-debounce';
-import { shouldAttemptDirectLookup } from '../utils/validation';
+import { shouldAttemptDirectLookup, isValidENSNameFormat } from '../utils/validation';
 import { SearchResult } from '../components/SearchResult';
 
 export const Route = createLazyFileRoute('/')({
   component: Home,
 });
+
+// SuggestedSearch component that shows .eth auto-complete when user forgets to add .eth
+function SuggestedSearch({ searchTerm }: { searchTerm: string }) {
+  const suggestedEns = `${searchTerm}.eth`;
+  const { data: profile, isLoading } = useProfile(suggestedEns);
+
+  // Only show if we found a profile
+  if (isLoading || !profile) {
+    return null;
+  }
+
+  return (
+    <div className="mb-4 p-3 bg-blue-50 rounded-md shadow-sm border border-blue-200">
+      <div className="flex items-center">
+        {profile.avatar && (
+          <img 
+            src={profile.avatar} 
+            alt={suggestedEns} 
+            className="w-8 h-8 rounded-full mr-3"
+          />
+        )}
+        <div>
+          <p className="text-gray-700">
+            Did you mean <a href={`/${suggestedEns}`} className="font-semibold text-blue-600 hover:text-blue-800">{suggestedEns}</a>?
+          </p>
+          <a 
+            href={`/${suggestedEns}`}
+            className="text-sm text-blue-600 hover:text-blue-800 underline"
+          >
+            Go to {suggestedEns} profile
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ProfileFallback component that attempts direct profile lookup
 function ProfileFallback({ searchTerm }: { searchTerm: string }) {
@@ -89,6 +125,17 @@ function Home() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     // The URL will be updated by the effect above
+  };
+
+  // Check if we should show the .eth auto-complete
+  const shouldShowEthAutoComplete = () => {
+    // Only show auto-complete if there's a search term, no dots in it (not already ENS), and it's not an Ethereum address
+    return (
+      debouncedSearchTerm && 
+      debouncedSearchTerm.length > 1 && 
+      !debouncedSearchTerm.includes('.') && 
+      !debouncedSearchTerm.startsWith('0x')
+    );
   };
 
   // Render search results or appropriate message
@@ -194,6 +241,11 @@ function Home() {
           </button>
         </form>
       </div>
+
+      {/* .eth Auto-Complete */}
+      {shouldShowEthAutoComplete() && (
+        <SuggestedSearch searchTerm={debouncedSearchTerm} />
+      )}
 
       {/* Results section */}
       <div className="rounded-lg overflow-hidden relative">
