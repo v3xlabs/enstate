@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 
 pub struct DiscoveryEngine {
     client: meilisearch_sdk::client::Client,
+    project_id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -50,14 +51,17 @@ impl From<&Profile> for MeiliProfileDocument {
 }
 
 impl DiscoveryEngine {
-    pub fn new(url: &str, key: Option<&str>) -> Self {
+    pub fn new(url: &str, key: Option<&str>, project_id: String) -> Self {
         Self {
             client: meilisearch_sdk::client::Client::new(url, key).unwrap(),
+            project_id,
         }
     }
 
     pub async fn create_table_if_not_exists(&self) -> Result<(), ()> {
-        
+        // Use the project_id in the method
+        let index = self.client.index(&self.project_id);
+        let _ = index.create().await;
 
         Ok(())
     }
