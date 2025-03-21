@@ -6,27 +6,6 @@ import { useFollowers } from '../hooks/useFollowers';
 import { ProfileSearchResult } from '@/hooks/useSearch';
 import { useProfile } from '@/hooks/useProfile';
 
-interface Profile {
-  name: string;
-  display: string;
-  address?: string;
-  avatar?: string;
-  header?: string;
-  records?: {
-    header?: string;
-    avatar?: string;
-    description?: string;
-    location?: string;
-    email?: string;
-    url?: string;
-    'com.twitter'?: string;
-    'com.github'?: string;
-    'com.discord'?: string;
-    'org.telegram'?: string;
-  };
-  chains?: Record<string, string>;
-}
-
 interface SearchResultProps {
   profile: ProfileSearchResult;
 }
