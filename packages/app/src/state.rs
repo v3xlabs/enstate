@@ -95,7 +95,7 @@ impl AppState {
         let meilisearch_key = env::var("MEILI_KEY").ok();
 
         let discovery = meilisearch_url.map(|url| {
-            let engine = DiscoveryEngine::new(&url, meilisearch_key.as_deref());
+            let engine = DiscoveryEngine::new(&url, meilisearch_key.as_deref(), "0xf5d1c16d0bfd76465fae78f66ddcb41356e4d2bf147df97682de7231e59cca59".to_string());
 
             Box::new(engine) as Box<dyn Discovery>
         });
