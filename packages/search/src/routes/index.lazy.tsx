@@ -4,7 +4,7 @@ import { useSearch } from '../hooks/useSearch';
 import { useProfile } from '../hooks/useProfile';
 import { LuSearch } from "react-icons/lu";
 import { useDebounce } from 'use-debounce';
-import { shouldAttemptDirectLookup, isValidENSNameFormat } from '../utils/validation';
+import { shouldAttemptDirectLookup } from '../utils/validation';
 import { SearchResult } from '../components/SearchResult';
 
 export const Route = createLazyFileRoute('/')({
